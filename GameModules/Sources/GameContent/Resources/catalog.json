@@ -1,0 +1,50 @@
+{
+  "vehicles": [
+    { "id": "anadolux_serce", "name": "Anadolux Serçe", "category": "Eski şehir otomobili", "baseValue": { "minorUnits": 32000000 }, "accentHex": "D89B45" },
+    { "id": "torin_sahin", "name": "Torin Şahinay", "category": "Halk sedanı", "baseValue": { "minorUnits": 48000000 }, "accentHex": "B8443F" },
+    { "id": "reno_moruk", "name": "Reno Moruk 12", "category": "Aile klasiği", "baseValue": { "minorUnits": 56000000 }, "accentHex": "5D8C7B" },
+    { "id": "egea_kardes", "name": "Egeya Gardaş", "category": "Modern filo sedanı", "baseValue": { "minorUnits": 92000000 }, "accentHex": "587FA8" },
+    { "id": "volksvagon_poloz", "name": "Halksvagon Poloz", "category": "Kompakt hatchback", "baseValue": { "minorUnits": 110000000 }, "accentHex": "765A9B" },
+    { "id": "bemeve_beslik", "name": "Bemeve Beşlik", "category": "Yorgun makam otomobili", "baseValue": { "minorUnits": 185000000 }, "accentHex": "414752" }
+  ],
+  "faults": [
+    { "id": "engine_belt", "name": "Aksesuar Kayışı", "area": "engine", "complaint": "Sabah çalıştırınca kaputun altından ince bir ıslık geliyor.", "clues": ["Soğuk motorda ötme artıyor", "Kayış yüzeyi çatlak", "Şarj değeri normal"], "partName": "aksesuar kayışı", "basePartCost": { "minorUnits": 90000 }, "laborValue": { "minorUnits": 140000 }, "requiredSkill": 1, "repairGame": "alignment" },
+    { "id": "engine_thermostat", "name": "Termostat", "area": "engine", "complaint": "Hararet ibresi trafikte saz çalıyor, yolda normale dönüyor.", "clues": ["Üst hortum geç ısınıyor", "Fan çalışıyor", "Su seviyesi normal"], "partName": "termostat", "basePartCost": { "minorUnits": 180000 }, "laborValue": { "minorUnits": 260000 }, "requiredSkill": 2, "repairGame": "gauge" },
+    { "id": "engine_gasket", "name": "Üst Kapak Contası", "area": "engine", "complaint": "Su eksiliyor ama yere damlamıyor; usta motor inecek mi?", "clues": ["Egzozda beyaz duman", "Yağ kapağında köpük", "Kompresyon dengesiz"], "partName": "üst kapak conta seti", "basePartCost": { "minorUnits": 750000 }, "laborValue": { "minorUnits": 1400000 }, "requiredSkill": 5, "repairGame": "bolts" },
+
+    { "id": "electrical_battery", "name": "Akü", "area": "electrical", "complaint": "Marşa basınca araba düşüncelere dalıyor.", "clues": ["Kontak voltajı düşük", "Farlar marşta sönüyor", "Alternatör şarj ediyor"], "partName": "akü", "basePartCost": { "minorUnits": 280000 }, "laborValue": { "minorUnits": 70000 }, "requiredSkill": 1, "repairGame": "wiring" },
+    { "id": "electrical_alternator", "name": "Alternatör Regülatörü", "area": "electrical", "complaint": "Akü lambası ara sıra göz kırpıyor.", "clues": ["Şarj voltajı dalgalı", "Kayış sağlam", "Akü testi başarılı"], "partName": "alternatör regülatörü", "basePartCost": { "minorUnits": 320000 }, "laborValue": { "minorUnits": 350000 }, "requiredSkill": 3, "repairGame": "gauge" },
+    { "id": "electrical_sensor", "name": "Krank Sensörü", "area": "electrical", "complaint": "Isınınca stop ediyor, soğuyunca hiçbir şey olmamış gibi davranıyor.", "clues": ["Sıcakta devir sinyali kesiliyor", "Yakıt basıncı normal", "Hata kaydı aralıklı"], "partName": "krank sensörü", "basePartCost": { "minorUnits": 230000 }, "laborValue": { "minorUnits": 280000 }, "requiredSkill": 4, "repairGame": "wiring" },
+
+    { "id": "chassis_pad", "name": "Fren Balatası", "area": "chassis", "complaint": "Frene basınca mahalle uyanıyor.", "clues": ["Balata kalınlığı düşük", "Disk yüzeyi kullanılabilir", "Pedal sertliği normal"], "partName": "fren balatası", "basePartCost": { "minorUnits": 210000 }, "laborValue": { "minorUnits": 220000 }, "requiredSkill": 1, "repairGame": "bolts" },
+    { "id": "chassis_tierod", "name": "Rot Başı", "area": "chassis", "complaint": "Çukurda ön taraftan tak tuk; radyoyu açınca geçiyor.", "clues": ["Tekerlekte yatay boşluk", "Amortisör kuru", "Direksiyon tepkisi gevşek"], "partName": "rot başı", "basePartCost": { "minorUnits": 160000 }, "laborValue": { "minorUnits": 250000 }, "requiredSkill": 2, "repairGame": "alignment" },
+    { "id": "chassis_clutch", "name": "Debriyaj Seti", "area": "chassis", "complaint": "Gaza basıyorum ses gidiyor, araba sonra geliyor.", "clues": ["Yük altında devir yükseliyor", "Kavrama noktası yukarıda", "Şanzıman geçişleri normal"], "partName": "debriyaj seti", "basePartCost": { "minorUnits": 950000 }, "laborValue": { "minorUnits": 1200000 }, "requiredSkill": 5, "repairGame": "bolts" },
+
+    { "id": "body_bumper", "name": "Tampon Bağlantısı", "area": "body", "complaint": "Tampon biraz küsmüş, köşeden dışarı bakıyor.", "clues": ["Sol klipsler kırık", "Şasi ucu düz", "Boya hasarı yüzeysel"], "partName": "tampon bağlantı seti", "basePartCost": { "minorUnits": 110000 }, "laborValue": { "minorUnits": 200000 }, "requiredSkill": 1, "repairGame": "alignment" },
+    { "id": "body_door", "name": "Kapı Menteşesi", "area": "body", "complaint": "Kapıyı kapatmak için niyet edip omuz atmak gerekiyor.", "clues": ["Kapı aralığı aşağıda dar", "Kilit sağlam", "Alt menteşede boşluk"], "partName": "kapı menteşesi", "basePartCost": { "minorUnits": 240000 }, "laborValue": { "minorUnits": 360000 }, "requiredSkill": 3, "repairGame": "bolts" },
+    { "id": "body_dent", "name": "Çamurluk Göçüğü", "area": "body", "complaint": "Direk kendi kendine olmuş usta, duvar yanaştı.", "clues": ["Boya çatlamamış", "Sac erişilebilir", "Bağlantı noktaları düz"], "partName": "kaporta sarf seti", "basePartCost": { "minorUnits": 130000 }, "laborValue": { "minorUnits": 520000 }, "requiredSkill": 4, "repairGame": "gauge" }
+  ],
+  "customers": [
+    { "id": "retired_hasan", "name": "Emekli Hasan Abi", "archetype": "Çay ve sohbet sever", "greeting": "Ustam acelem yok da akşama lazım.", "patience": 7, "priceSensitivity": 8 },
+    { "id": "courier_mert", "name": "Kurye Mert", "archetype": "Zamanla yarışır", "greeting": "Abi on dakikada çıkar mı? Üç sipariş bekliyor.", "patience": 2, "priceSensitivity": 6 },
+    { "id": "teacher_sevgi", "name": "Öğretmen Sevgi", "archetype": "Her şeyi not eder", "greeting": "Yapılacakları tek tek yazar mısınız?", "patience": 8, "priceSensitivity": 7 },
+    { "id": "dealer_cemil", "name": "Galerici Cemil", "archetype": "Pazarlığı meslek bilir", "greeting": "Ustam yabancı değiliz, araç zaten müşterisini buldu.", "patience": 5, "priceSensitivity": 10 },
+    { "id": "taxi_erol", "name": "Taksici Erol", "archetype": "Aracının her sesini tanır", "greeting": "Sağ önden geliyor, sol arka gibi duyuluyor.", "patience": 3, "priceSensitivity": 5 },
+    { "id": "student_duru", "name": "Öğrenci Duru", "archetype": "Bütçeyi hesaplar", "greeting": "Önce fiyatı konuşsak, sonra kalbime bakarsınız.", "patience": 6, "priceSensitivity": 10 },
+    { "id": "accountant_nuri", "name": "Muhasebeci Nuri", "archetype": "Faturasız adım atmaz", "greeting": "Parça ve işçilik ayrı ayrı görünsün lütfen.", "patience": 7, "priceSensitivity": 4 },
+    { "id": "enthusiast_arda", "name": "Araba Sevdalısı Arda", "archetype": "Forumları ezbere bilir", "greeting": "Ben biraz araştırdım, kesin kronik ama siz yine bakın.", "patience": 5, "priceSensitivity": 3 },
+    { "id": "neighbor_aysel", "name": "Komşu Aysel Teyze", "archetype": "Referansla gelir", "greeting": "Seni bakkal Şevket önerdi, yabancıya gitme dedi.", "patience": 9, "priceSensitivity": 8 },
+    { "id": "fleet_bora", "name": "Filocu Bora", "archetype": "Devamlı iş vadeder", "greeting": "Bunu uygun yap, arkada on araç daha var.", "patience": 4, "priceSensitivity": 9 }
+  ],
+  "shopLevels": [
+    { "id": 1, "name": "Kepenk Altı", "capacity": 1, "upgradeCost": { "minorUnits": 0 }, "equipmentBonus": 0 },
+    { "id": 2, "name": "Çift Lift", "capacity": 2, "upgradeCost": { "minorUnits": 4500000 }, "equipmentBonus": 5 },
+    { "id": 3, "name": "Sanayi Yıldızı", "capacity": 3, "upgradeCost": { "minorUnits": 14000000 }, "equipmentBonus": 10 }
+  ],
+  "balance": {
+    "startingCash": { "minorUnits": 2500000 },
+    "daySlots": 8,
+    "dailyExpense": { "minorUnits": 125000 },
+    "inspectionCost": { "minorUnits": 175000 }
+  }
+}

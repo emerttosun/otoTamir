@@ -1,0 +1,87 @@
+{
+  "identifier" : "8F12A72C-907E-43D1-A03A-B53745C4AC6D",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "49.99",
+      "familyShareable" : false,
+      "internalID" : "cash-small",
+      "localizations" : [
+        {
+          "description" : "Dükkân kasasına 7.500 ₺ ekler.",
+          "displayName" : "Küçük Kasa Desteği",
+          "locale" : "tr_TR"
+        }
+      ],
+      "productID" : "com.abim.OtoTamirGame.cash.small",
+      "referenceName" : "Small Cash Pack",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "99.99",
+      "familyShareable" : false,
+      "internalID" : "cash-medium",
+      "localizations" : [
+        {
+          "description" : "Dükkân kasasına 25.000 ₺ ekler.",
+          "displayName" : "Orta Kasa Desteği",
+          "locale" : "tr_TR"
+        }
+      ],
+      "productID" : "com.abim.OtoTamirGame.cash.medium",
+      "referenceName" : "Medium Cash Pack",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "39.99",
+      "familyShareable" : false,
+      "internalID" : "theme-copper",
+      "localizations" : [
+        {
+          "description" : "Tamirhaneye bakır renkli kozmetik tema ekler.",
+          "displayName" : "Bakır Dükkân Teması",
+          "locale" : "tr_TR"
+        }
+      ],
+      "productID" : "com.abim.OtoTamirGame.theme.copper",
+      "referenceName" : "Copper Theme",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "79.99",
+      "familyShareable" : false,
+      "internalID" : "stories-01",
+      "localizations" : [
+        {
+          "description" : "Gelecekteki sanayi hikâyeleri için test ürünü.",
+          "displayName" : "Sanayi Hikâyeleri 1",
+          "locale" : "tr_TR"
+        }
+      ],
+      "productID" : "com.abim.OtoTamirGame.content.stories01",
+      "referenceName" : "Stories Pack 01",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "ototamir-local",
+    "_developerTeamID" : "",
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 0,
+    "_locale" : "tr_TR",
+    "_storefront" : "TUR",
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}
+

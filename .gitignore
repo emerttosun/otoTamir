@@ -1,0 +1,8 @@
+.DS_Store
+.build-cache/
+.derivedData/
+.derivedData-final/
+GameModules/.build/
+xcuserdata/
+*.xcuserstate
+
