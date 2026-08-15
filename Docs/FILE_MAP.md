@@ -21,7 +21,8 @@
 
 - `Money.swift`: Kuruş tabanlı güvenli para değerini ve Türk lirası gösterimini sağlar.
 - `ContentModels.swift`: JSON'dan gelen araç, kontrol bulgusu, arıza, müşteri, yorum, dükkân kabiliyeti ve ayrıntılı gider dengelerini tanımlar.
-- `GameModels.swift`: Sürüm 6 kayıt durumunu, eylem tabanlı zamanı, XP'yi, çırakları, banka kredilerini, kasa hareketlerini, yıkamayı ve adım adım proje araç restorasyonunu tanımlar.
+- `GameModels.swift`: Sürüm 7 kayıt durumunu, eylem tabanlı zamanı, XP'yi, çırakları, banka kredilerini, kasa hareketlerini, yıkamayı ve adım adım proje araç restorasyonunu tanımlar.
+- `IncidentModels.swift`: Denetim, şikâyet, kredi, ilan ve benzeri dükkân olaylarını para ve itibar etkileriyle sürümlü kayda uygun tanımlar.
 - `GameContracts.swift`: Komut, olay, hata ve kayıt/bulut/satın alma portlarını tanımlar.
 
 ## GameLogic ve GameContent

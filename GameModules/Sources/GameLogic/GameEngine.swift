@@ -500,6 +500,18 @@ public struct GameEngine: Sendable {
         if let remainingIndex = state.activeJobs.firstIndex(where: { $0.id == jobID }) {
             state.activeJobs[remainingIndex].repairedByApprenticeID = nil
         }
+        let quality = events.compactMap { event -> WorkmanshipQuality? in
+            switch event {
+            case .repairCompleted(let value): value
+            case .apprenticeCompleted(_, let value): value
+            default: nil
+            }
+        }.last
+        recordIncident(
+            kind: .apprentice,
+            message: "\(apprentice.name) verilen \(task?.title ?? "tamir") işini \(quality?.title.lowercased() ?? "tamamlanmış") olarak teslim etti.",
+            craftsmanshipImpact: quality == .poor ? -2 : (quality == .good ? 1 : 0)
+        )
         return events
     }
 
@@ -531,23 +543,51 @@ public struct GameEngine: Sendable {
         let due = state.consequences.filter { $0.dueDay <= newDay }
         state.consequences.removeAll { $0.dueDay <= newDay }
         for consequence in due {
+            let incidentKind: IncidentKind
+            let cashImpact: Money
+            let trustImpact: Int
+            let craftsmanshipImpact: Int
+            let suspicionImpact: Int
             switch consequence.kind {
             case .complaint, .comeback:
+                incidentKind = .complaint
+                cashImpact = Money(minorUnits: -consequence.amount.minorUnits)
+                trustImpact = -4
+                craftsmanshipImpact = -2
+                suspicionImpact = 0
                 state.cash = state.cash - consequence.amount
-                recordFinance(amount: Money(minorUnits: -consequence.amount.minorUnits), category: .fine, note: consequence.message)
+                recordFinance(amount: cashImpact, category: .fine, note: consequence.message)
                 state.reputation.trust -= 4
                 state.reputation.craftsmanship -= 2
             case .inspection:
+                incidentKind = .inspection
+                cashImpact = Money(minorUnits: -consequence.amount.minorUnits)
+                trustImpact = -3
+                craftsmanshipImpact = 0
+                suspicionImpact = -8
                 state.cash = state.cash - consequence.amount
-                recordFinance(amount: Money(minorUnits: -consequence.amount.minorUnits), category: .fine, note: consequence.message)
+                recordFinance(amount: cashImpact, category: .fine, note: consequence.message)
                 state.reputation.suspicion -= 8
                 state.reputation.trust -= 3
             case .referral:
+                incidentKind = .referral
+                cashImpact = consequence.amount
+                trustImpact = 3
+                craftsmanshipImpact = 0
+                suspicionImpact = 0
                 state.reputation.trust += 3
                 state.cash = state.cash + consequence.amount
                 recordFinance(amount: consequence.amount, category: .customerIncome, note: consequence.message)
             }
             state.reputation.clamp()
+            recordIncident(
+                kind: incidentKind,
+                message: consequence.message,
+                cashImpact: cashImpact,
+                trustImpact: trustImpact,
+                craftsmanshipImpact: craftsmanshipImpact,
+                suspicionImpact: suspicionImpact
+            )
             events.append(.consequence(consequence.message))
         }
 
@@ -764,6 +804,11 @@ public struct GameEngine: Sendable {
         state.loans.append(loan)
         state.cash = state.cash + amount
         recordFinance(amount: amount, category: .loanProceeds, note: "\(plan.title) araç yatırım kredisi")
+        recordIncident(
+            kind: .loan,
+            message: "\(plan.title) planıyla \(amount.liraText) kredi kullanıldı. Toplam geri ödeme \(total.liraText).",
+            cashImpact: amount
+        )
         return [.moneyChanged(amount, reason: "Banka kredisi"), .loanTaken(amount: amount, totalRepayment: total)]
     }
 
@@ -782,6 +827,11 @@ public struct GameEngine: Sendable {
                     amount: Money(minorUnits: -payment.minorUnits),
                     category: .loanPayment,
                     note: "\(state.loans[index].plan.title) kredi taksiti"
+                )
+                recordIncident(
+                    kind: .loan,
+                    message: "\(state.loans[index].plan.title) kredi taksiti ödendi. Kalan borç \(state.loans[index].remainingBalance.liraText).",
+                    cashImpact: Money(minorUnits: -payment.minorUnits)
                 )
                 events.append(.moneyChanged(Money(minorUnits: -payment.minorUnits), reason: "Kredi taksiti"))
                 events.append(.loanInstallmentPaid(
@@ -847,11 +897,24 @@ public struct GameEngine: Sendable {
                     }
                 }
                 state.reputation.clamp()
+                recordIncident(
+                    kind: .vehicleSale,
+                    message: project.disclosedDamage
+                        ? "\(vehicle.name), hasar geçmişi alıcıya anlatılarak \(askingPrice.liraText) bedelle satıldı."
+                        : "\(vehicle.name), hasar geçmişi saklanarak \(askingPrice.liraText) bedelle satıldı; sonradan geri dönüş riski oluştu.",
+                    cashImpact: askingPrice,
+                    trustImpact: project.disclosedDamage ? 3 : 0,
+                    suspicionImpact: project.disclosedDamage ? 0 : 8
+                )
                 state.projectCars.remove(at: index)
                 events.append(.projectCarSold(price: askingPrice, honest: project.disclosedDamage))
                 events.append(.reputationChanged(state.reputation))
             } else {
                 state.projectCars[index].nextBuyerCheckMinute = nextCheck
+                recordIncident(
+                    kind: .listing,
+                    message: "\(vehicle.name) ilanı bu alıcı kontrolünde satılmadı; fiyat değiştirilebilir veya yeni alıcı beklenebilir."
+                )
                 events.append(.projectListingExpired(state.projectCars[index].id))
                 index += 1
             }
@@ -1160,6 +1223,39 @@ public struct GameEngine: Sendable {
             amount: amount,
             note: note
         ))
+    }
+
+    private mutating func recordIncident(
+        kind: IncidentKind,
+        message: String,
+        cashImpact: Money = .zero,
+        trustImpact: Int = 0,
+        craftsmanshipImpact: Int = 0,
+        suspicionImpact: Int = 0
+    ) {
+        let sequence = state.incidents.count + 1
+        let value = UInt64(sequence)
+        let id = UUID(uuid: (
+            0x4F, 0x4C, 0x41, 0x59,
+            0, 0, 0, 0,
+            UInt8((value >> 56) & 0xFF), UInt8((value >> 48) & 0xFF),
+            UInt8((value >> 40) & 0xFF), UInt8((value >> 32) & 0xFF),
+            UInt8((value >> 24) & 0xFF), UInt8((value >> 16) & 0xFF),
+            UInt8((value >> 8) & 0xFF), UInt8(value & 0xFF)
+        ))
+        state.incidents.append(GameIncident(
+            id: id,
+            sequence: sequence,
+            kind: kind,
+            message: message,
+            cashImpact: cashImpact,
+            trustImpact: trustImpact,
+            craftsmanshipImpact: craftsmanshipImpact,
+            suspicionImpact: suspicionImpact
+        ))
+        if state.incidents.count > 60 {
+            state.incidents.removeFirst(state.incidents.count - 60)
+        }
     }
 
     private func percent(_ money: Money, _ value: Int) -> Money {

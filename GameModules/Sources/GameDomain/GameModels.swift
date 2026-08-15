@@ -821,7 +821,7 @@ public struct ProjectCar: Codable, Hashable, Identifiable, Sendable {
 }
 
 public struct GameState: Codable, Hashable, Sendable {
-    public static let currentSchemaVersion = 6
+    public static let currentSchemaVersion = 7
 
     public var schemaVersion: Int
     public var saveID: UUID
@@ -848,6 +848,7 @@ public struct GameState: Codable, Hashable, Sendable {
     public var apprentices: [Apprentice]
     public var financeEntries: [FinanceEntry]
     public var loans: [BankLoan]
+    public var incidents: [GameIncident]
     public var processedTransactionIDs: Set<String>
     public var selectedThemeID: String
     public var randomSeed: UInt64
@@ -878,6 +879,7 @@ public struct GameState: Codable, Hashable, Sendable {
         apprentices = []
         financeEntries = []
         loans = []
+        incidents = []
         processedTransactionIDs = []
         selectedThemeID = "classic"
         self.randomSeed = randomSeed
@@ -887,7 +889,8 @@ public struct GameState: Codable, Hashable, Sendable {
         case schemaVersion, saveID, revision, parentRevision, modifiedAt
         case day, remainingSlots, totalMinutes, nextCustomerArrivalMinute, cash, skills, expertise, reputation, shopLevel
         case offers, activeJobs, inventory, consequences, auction, projectCars
-        case reviews, ratingTenths, apprentices, financeEntries, loans, processedTransactionIDs, selectedThemeID, randomSeed
+        case reviews, ratingTenths, apprentices, financeEntries, loans, incidents
+        case processedTransactionIDs, selectedThemeID, randomSeed
     }
 
     public init(from decoder: any Decoder) throws {
@@ -919,6 +922,7 @@ public struct GameState: Codable, Hashable, Sendable {
         apprentices = try values.decodeIfPresent([Apprentice].self, forKey: .apprentices) ?? []
         financeEntries = try values.decodeIfPresent([FinanceEntry].self, forKey: .financeEntries) ?? []
         loans = try values.decodeIfPresent([BankLoan].self, forKey: .loans) ?? []
+        incidents = try values.decodeIfPresent([GameIncident].self, forKey: .incidents) ?? []
         processedTransactionIDs = try values.decodeIfPresent(Set<String>.self, forKey: .processedTransactionIDs) ?? []
         selectedThemeID = try values.decodeIfPresent(String.self, forKey: .selectedThemeID) ?? "classic"
         randomSeed = try values.decodeIfPresent(UInt64.self, forKey: .randomSeed) ?? 0x0A70_7A11

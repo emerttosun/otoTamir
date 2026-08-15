@@ -212,6 +212,30 @@ struct GameLogicTests {
 
         #expect(engine.state.loans.first?.remainingBalance ?? .zero < balanceBefore)
         #expect(engine.state.financeEntries.contains { $0.category == .loanPayment })
+        #expect(engine.state.incidents.contains { $0.kind == .loan && $0.cashImpact.minorUnits < 0 })
+    }
+
+    @Test("Denetim ve şikâyet sonuçları etkileriyle olay defterinde kalır")
+    func consequenceIncidentLedger() throws {
+        let catalog = try DefaultContentRepository().load()
+        var state = GameState(startingCash: catalog.balance.startingCash, daySlots: 8)
+        state.consequences = [ScheduledConsequence(
+            id: UUID(),
+            dueDay: 2,
+            kind: .inspection,
+            amount: Money(minorUnits: 125_000),
+            message: "Denetim kaydı testi"
+        )]
+        var engine = GameEngine(state: state, catalog: catalog)
+
+        try engine.handle(.advanceTime(minutes: 1_440))
+
+        let incident = try #require(engine.state.incidents.last)
+        #expect(incident.kind == .inspection)
+        #expect(incident.message == "Denetim kaydı testi")
+        #expect(incident.cashImpact == Money(minorUnits: -125_000))
+        #expect(incident.trustImpact == -3)
+        #expect(incident.suspicionImpact == -8)
     }
 
     @Test("Yüksek ilan fiyatı satış ihtimalini düşürür")
@@ -381,7 +405,7 @@ struct GameLogicTests {
         encoder.dateEncodingStrategy = .iso8601
         let encoded = try encoder.encode(legacy)
         var object = try #require(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
-        for key in ["inventory", "totalMinutes", "nextCustomerArrivalMinute", "expertise", "reviews", "ratingTenths", "apprentices", "financeEntries", "loans"] {
+        for key in ["inventory", "totalMinutes", "nextCustomerArrivalMinute", "expertise", "reviews", "ratingTenths", "apprentices", "financeEntries", "loans", "incidents"] {
             object.removeValue(forKey: key)
         }
         let legacyData = try JSONSerialization.data(withJSONObject: object)
@@ -393,6 +417,7 @@ struct GameLogicTests {
         #expect(migrated.inventory.isEmpty)
         #expect(migrated.totalMinutes > 0)
         #expect(migrated.expertise.count == SkillArea.allCases.count)
+        #expect(migrated.incidents.isEmpty)
     }
 
     @Test("Kontrolü yapılmış iş kayıt turunda teşhis aşamasını korur")

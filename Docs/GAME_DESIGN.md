@@ -12,6 +12,7 @@ Ana fantezi küçük bir sanayi dükkânını ustalıkla ve esnaflık kararları
 - **Proje restorasyonu:** ihale aracı tek düğmeyle bitmez. Her mekanik arıza, hasarlı/boyalı/değişen kaporta parçası ve hava yastığı sistemi ayrı maliyetli bir iş ve uygun mini oyunla oyuncu tarafından tamamlanır.
 - **İlan yeri:** restorasyonu biten araç için fiyat belirleme, satış ihtimali, ayrı ilan takibi ve dürüst veya riskli satış.
 - **Finansman:** dükkân puanı, güven ve gelişim seviyesine bağlı banka limiti; araç yatırımı için farklı faiz/vade seçenekleri ve eylem tabanlı taksitler.
+- **Olay Defteri:** denetim, şikâyet, tavsiye, kredi, ilan, araç satışı ve çırak sonuçlarını para/itibar etkileriyle Gelişim ekranında kalıcı tutar.
 
 İlk üç gün eski ustanın mesajları temel sistemi öğretir. Sonrasında oyun sonsuz ilerler. Mizah; abartılı teşhis, yanlış parça, çay sohbeti ve esnaf olayları üzerinden kurulur; kimlik veya dezavantaj üzerinden aşağılayıcı şaka kullanılmaz.
 
