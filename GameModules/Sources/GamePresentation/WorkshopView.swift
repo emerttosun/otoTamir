@@ -32,7 +32,8 @@ struct WorkshopView: View {
                             shopLevel: store.state.shopLevel,
                             washLevel: store.state.washLevel,
                             apprentices: store.state.apprentices,
-                            catalog: store.catalog
+                            catalog: store.catalog,
+                            partPurchasePrice: store.state.inventory.first { $0.jobID == selectedJob.id }?.purchasePrice
                         ) { command in
                             store.send(command)
                         } startMiniGame: { request in
@@ -276,6 +277,7 @@ private struct JobCard: View {
     let washLevel: Int
     let apprentices: [Apprentice]
     let catalog: ContentCatalog
+    let partPurchasePrice: Money?
     let send: (GameCommand) -> Void
     let startMiniGame: (MiniGameRequest) -> Void
     @State private var concealPartQuality = false
@@ -471,6 +473,14 @@ private struct JobCard: View {
             }
             Text("\(customer?.appearance ?? "Müşteri") • \(customer?.profileHint ?? "Fiyat tepkisini kestirmek zor")")
                 .font(.caption).foregroundStyle(.secondary)
+            VStack(spacing: 7) {
+                quoteRow("Parça ücreti", amount: quoteBreakdown.partCost)
+                quoteRow("İşçilik", amount: quoteBreakdown.laborCost)
+                Divider().overlay(.white.opacity(0.15))
+                quoteRow("Normal toplam", amount: quoteBreakdown.normalTotal, emphasized: true)
+            }
+            .padding(12)
+            .background(GarageStyle.raised.opacity(0.72), in: RoundedRectangle(cornerRadius: 12))
             Text("Usta, müşteriye ne fiyat söyleyeceksin?").font(.caption.bold())
             if let wash = catalog.washLevel(washLevel) {
                 if job.isWashed {
@@ -513,13 +523,42 @@ private struct JobCard: View {
                 .font(.caption).tint(GarageStyle.danger)
             LazyVGrid(columns: [.init(.flexible()), .init(.flexible())], spacing: 8) {
                 ForEach(PriceStrategy.allCases, id: \.self) { strategy in
-                    Button(strategy.title) {
+                    Button {
                         send(.setPrice(jobID: job.id, strategy: strategy, hidePartQuality: concealPartQuality))
+                    } label: {
+                        VStack(spacing: 2) {
+                            Text(strategy.title)
+                            Text(quoteBreakdown.amount(for: strategy).liraText)
+                                .font(.caption2.bold())
+                                .monospacedDigit()
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.72)
+                        }
+                        .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(ActionButtonStyle(tint: strategy == .excessive ? GarageStyle.danger : GarageStyle.orange))
+                    .accessibilityLabel("\(strategy.title) fiyat, kesin tahsilat \(quoteBreakdown.amount(for: strategy).liraText)")
                 }
             }
+            Text("Seçtiğin tutar teslimde kesin olarak kasaya girer. Yüksek fiyat daha sonra yorum, şikâyet veya denetim riski doğurabilir.")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
         }
+    }
+
+    private func quoteRow(
+        _ title: String,
+        amount: Money,
+        emphasized: Bool = false
+    ) -> some View {
+        HStack {
+            Text(title)
+            Spacer()
+            Text(amount.liraText)
+                .monospacedDigit()
+        }
+        .font(emphasized ? .subheadline.bold() : .caption)
+        .foregroundStyle(emphasized ? .primary : .secondary)
     }
 
     @ViewBuilder
@@ -591,6 +630,14 @@ private struct JobCard: View {
 
     private var qualityProfile: PartQualityProfile {
         job.serviceKind == .periodicMaintenance ? .maintenanceSupply : .replacementPart
+    }
+
+    private var quoteBreakdown: CustomerQuoteBreakdown {
+        CustomerPricingRules.quote(
+            partCost: partPurchasePrice ?? .zero,
+            for: job,
+            catalog: catalog
+        )
     }
 
     private var maintenanceParts: [PartDefinition] {

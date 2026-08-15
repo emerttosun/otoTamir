@@ -280,19 +280,21 @@ extension GameEngine {
 
         var random = SeededRandomSource(seed: state.randomSeed)
         let job = state.activeJobs[index]
-        let labor = laborValue(for: job)
-        let normalTotal = inventory.purchasePrice + labor
-        let requested = percent(normalTotal, strategy.multiplierPercent)
+        let quote = CustomerPricingRules.quote(
+            partCost: inventory.purchasePrice,
+            for: job,
+            catalog: catalog
+        )
+        let paid = quote.amount(for: strategy)
         let riskBonus = strategy == .excessive ? 45 : (strategy == .high ? 16 : 0)
         let noticed = strategy != .affordable && strategy != .fair
             && random.next(upperBound: 100) < min(92, customer.priceSensitivity * 6 + riskBonus)
-        let paid = noticed ? normalTotal : requested
         let reaction: String
         if noticed {
             let lines = [
-                "\(customer.name) hesabı görünce kaşını kaldırdı; fiyat pazarlıkla normale indi.",
-                "‘Usta bu paraya kaputu da mı veriyorsun?’ pazarlığı başladı; normal ücrette anlaşıldı.",
-                "Müşteri telefondan parça fiyatına baktı. Uçuk kısım masada kaldı."
+                "\(customer.name) hesabı görünce kaşını kaldırdı; ödedi ama fişi cebine dikkatlice koydu.",
+                "‘Usta bu paraya kaputu da mı veriyorsun?’ dedi; hesabı ödedi, sanayi grubuna soracağını söyledi.",
+                "Müşteri parça fiyatını aklına yazdı. Ödeme tamam ama bu hesap sonra şikâyet olarak dönebilir."
             ]
             reaction = lines[random.next(upperBound: lines.count)]
         } else if strategy == .excessive {

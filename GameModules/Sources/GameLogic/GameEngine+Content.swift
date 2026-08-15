@@ -121,14 +121,6 @@ extension GameEngine {
         score >= 82 ? .good : (score >= 55 ? .acceptable : .poor)
     }
 
-    func laborValue(for job: RepairJob) -> Money {
-        if job.serviceKind == .periodicMaintenance {
-            return PartPricingRules.maintenanceLaborValue(for: job.maintenanceTasks, catalog: catalog)
-        }
-        guard let faultID = job.diagnosedFaultID, let fault = catalog.fault(id: faultID) else { return .zero }
-        return fault.laborValue
-    }
-
     mutating func applyReputation(
         for quality: WorkmanshipQuality,
         strategy: PriceStrategy,

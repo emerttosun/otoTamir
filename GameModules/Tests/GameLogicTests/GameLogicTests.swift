@@ -51,6 +51,50 @@ struct GameLogicTests {
         #expect(engine.state.expertise[fault.area, default: SkillProgress()].experience > 0)
     }
 
+    @Test("Fiyat ekranındaki tutar stratejiden bağımsız olarak kesin tahsil edilir")
+    func selectedCustomerPriceIsCollectedExactly() throws {
+        let sample = CustomerQuoteBreakdown(
+            partCost: Money(minorUnits: 100_000),
+            laborCost: Money(minorUnits: 200_000)
+        )
+        #expect(sample.amount(for: .affordable).minorUnits == 255_000)
+        #expect(sample.amount(for: .fair).minorUnits == 300_000)
+        #expect(sample.amount(for: .high).minorUnits == 405_000)
+        #expect(sample.amount(for: .excessive).minorUnits == 540_000)
+
+        let catalog = try DefaultContentRepository().load()
+        let fault = catalog.faults[0]
+        var engine = makeFaultEngine(catalog: catalog, fault: fault)
+        let offer = try #require(engine.state.offers.first)
+
+        try engine.handle(.acceptOffer(offer.id))
+        for kind in Array(fault.inspectionFindings.keys.prefix(2)) {
+            try engine.handle(.performInspection(jobID: offer.id, kind: kind))
+        }
+        try engine.handle(.diagnose(jobID: offer.id, faultID: fault.id))
+        try engine.handle(.buyPart(jobID: offer.id, quality: .aftermarket))
+        try engine.handle(.completeRepair(jobID: offer.id, performance: 100))
+
+        let job = try #require(engine.state.activeJobs.first)
+        let inventory = try #require(engine.state.inventory.first)
+        let breakdown = CustomerPricingRules.quote(
+            partCost: inventory.purchasePrice,
+            for: job,
+            catalog: catalog
+        )
+        let expectedPayment = breakdown.amount(for: .excessive)
+        let cashBeforeDelivery = engine.state.cash
+
+        let events = try engine.handle(
+            .setPrice(jobID: offer.id, strategy: .excessive, hidePartQuality: false)
+        )
+
+        #expect(engine.state.cash == cashBeforeDelivery + expectedPayment)
+        #expect(events.contains {
+            if case let .priceSettled(amount, _) = $0 { amount == expectedPayment } else { false }
+        })
+    }
+
     @Test("Geçersiz komut oyun zamanını tüketmez")
     func failedCommandIsAtomic() throws {
         let catalog = try DefaultContentRepository().load()

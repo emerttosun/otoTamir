@@ -12,6 +12,7 @@ Fiyatlar tek bir gerçek marka veya modele ait canlı teklif değildir. 16 Ağus
 - Normal müşteri bedeli gerçek parça alış tutarı ile seçili bakım görevlerinin işçilik toplamıdır; uygun/normal/yüksek/uçuk stratejisi bunun üzerine uygulanır.
 - Normal arızalar da aynı ortak `parts` kataloğuna `partID` ile bağlanır. Arıza kaydında ikinci bir parça adı veya fiyatı tutulmaz; müşteri işi, ihale hesabı ve restorasyon aynı fiyat kaynağını kullanır.
 - Fiyat stratejisi: uygun `%85`, normal `%100`, yüksek `%135`, uçuk `%180`.
+- Teslim ekranı gerçek parça alış tutarını, katalogdan gelen işçiliği ve normal toplamı ayrı gösterir. Dört fiyat seçeneğinde kasaya girecek kesin tutar önceden görünür ve seçim yapıldığında aynen tahsil edilir; yüksek/uçuk fiyatın riski tahsilatı düşürmek yerine sonraki yorum, şikâyet ve denetimlere yansır.
 - İşçilik ve parça güvenilirliği tekrar arıza ihtimalini etkiler.
 - Hileli davranışlar anında kazanç sağlar; dükkân puanı/yorum, şikâyet ve denetim sonraki takvim günlerinde uygulanır.
 - Para sıfırın altına inebilir ancak oyun bitmez. Böylece kriz cezalı fakat toparlanabilirdir.
