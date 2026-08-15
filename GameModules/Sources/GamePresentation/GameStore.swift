@@ -152,7 +152,8 @@ public final class GameStore: ObservableObject {
         guard let event = events.last(where: { event in
             switch event {
             case .tutorial, .consequence, .inspectionCompleted, .diagnosisCompleted, .repairCompleted,
-                 .priceSettled, .vehicleWashed, .apprenticeHired, .apprenticeCompleted,
+                 .priceSettled, .vehicleWashed, .apprenticeHired, .apprenticeApplicationReceived,
+                 .apprenticeApplicationRejected, .apprenticeCompleted,
                  .experienceGained, .reviewReceived, .auctionWon, .projectCarSold, .shopUpgraded:
                 true
             case .projectRepairCompleted, .projectCarListed, .projectListingExpired,
@@ -180,6 +181,10 @@ public final class GameStore: ObservableObject {
             bannerMessage = "Araç yıkandı. Temiz teslim müşteri memnuniyetine katkı sağlayacak."
         case .apprenticeHired(let apprentice):
             bannerMessage = "\(apprentice.name) çırak olarak dükkâna katıldı. İş verdikçe tecrübe kazanacak."
+        case .apprenticeApplicationReceived(let application):
+            bannerMessage = "Çırak ilanına \(application.name) başvurdu: \(application.background.title)."
+        case .apprenticeApplicationRejected(let name):
+            bannerMessage = "\(name) adlı adayın çırak başvurusu reddedildi."
         case .apprenticeCompleted(let name, let quality):
             bannerMessage = "\(name) verilen işi tamamladı: \(quality.title)."
         case .experienceGained(let area, let amount, let level):

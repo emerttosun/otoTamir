@@ -28,6 +28,8 @@ enum QAScenarioFactory {
             return try projectState(catalog: catalog, stage: .listed)
         case "progress":
             return try progressState(catalog: catalog)
+        case "apprentice-recruitment":
+            return try apprenticeRecruitmentState(catalog: catalog)
         case "workshop-maintenance":
             return try maintenanceState(catalog: catalog)
         case "workshop-mixed":
@@ -199,6 +201,17 @@ enum QAScenarioFactory {
         ]
         var engine = GameEngine(state: state, catalog: catalog)
         try engine.handle(.takeLoan(amount: Money(minorUnits: 15_000_000), plan: .standard))
+        return engine.state
+    }
+
+    private static func apprenticeRecruitmentState(catalog: ContentCatalog) throws -> GameState {
+        var state = baseState(catalog: catalog, seed: 123)
+        state.shopLevel = 4
+        state.apprentices = []
+        var engine = GameEngine(state: state, catalog: catalog)
+        try engine.handle(.postApprenticeAd)
+        try engine.handle(.checkApprenticeApplications)
+        try engine.handle(.checkApprenticeApplications)
         return engine.state
     }
 

@@ -52,6 +52,7 @@ extension GameEngine {
         }
         events.append(contentsOf: processLoanPayments())
         events.append(contentsOf: processVehicleListings())
+        events.append(contentsOf: processApprenticeRecruitment())
         return events
     }
 

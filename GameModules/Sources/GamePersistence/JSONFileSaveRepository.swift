@@ -112,6 +112,10 @@ enum SaveMigrator {
             }
             state.schemaVersion = 10
         }
+        if state.schemaVersion < 11 {
+            state.apprenticeRecruitment = nil
+            state.schemaVersion = 11
+        }
         return state
     }
 }

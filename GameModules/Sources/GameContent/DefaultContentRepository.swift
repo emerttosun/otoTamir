@@ -90,6 +90,9 @@ public enum ContentValidator {
         guard visibleDailyCost == catalog.balance.dailyExpense else {
             throw ContentError.invalidValue("Görünür günlük giderler toplam giderle eşleşmeli")
         }
+        guard catalog.balance.apprenticeAdCost > .zero else {
+            throw ContentError.invalidValue("Çırak ilan bedeli sıfırdan büyük olmalı")
+        }
     }
 
     private static func requireUnique(_ ids: [String], kind: String) throws {

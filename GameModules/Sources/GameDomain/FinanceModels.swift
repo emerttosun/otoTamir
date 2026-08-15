@@ -8,6 +8,7 @@ public enum FinanceCategory: String, Codable, Sendable {
     case utilities
     case supplies
     case wages
+    case recruitment
     case wash
     case shopUpgrade
     case salvageVehicle
@@ -27,6 +28,7 @@ public enum FinanceCategory: String, Codable, Sendable {
         case .utilities: "Elektrik, su ve enerji"
         case .supplies: "Sarf ve temizlik"
         case .wages: "Çırak ücreti"
+        case .recruitment: "Çırak ilanı ve işe giriş"
         case .wash: "Araç yıkama"
         case .shopUpgrade: "Dükkân geliştirmesi"
         case .salvageVehicle: "Hasarlı araç alımı"
@@ -194,4 +196,3 @@ public struct ScheduledConsequence: Codable, Hashable, Identifiable, Sendable {
         self.message = message
     }
 }
-

@@ -48,8 +48,14 @@ public struct GameEngine: Sendable {
             events = try setPrice(jobID: jobID, strategy: strategy, hidePartQuality: hidePartQuality)
         case .washVehicle(let jobID):
             events = try washVehicle(jobID: jobID)
-        case .hireApprentice:
-            events = try hireApprentice()
+        case .postApprenticeAd:
+            events = try postApprenticeAd()
+        case .checkApprenticeApplications:
+            events = advanceClock(by: 180)
+        case .acceptApprenticeApplication(let id):
+            events = try acceptApprenticeApplication(id)
+        case .rejectApprenticeApplication(let id):
+            events = try rejectApprenticeApplication(id)
         case .assignApprentice(let apprenticeID, let jobID, let task):
             events = try assignApprentice(apprenticeID: apprenticeID, jobID: jobID, task: task)
         case .upgradeShop:

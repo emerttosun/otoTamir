@@ -252,7 +252,10 @@ struct GameLogicTests {
         let fault = catalog.faults[0]
         var engine = try makeReadyForRepairEngine(catalog: catalog, fault: fault, shopLevel: 2)
         try engine.handle(.grantPurchase(transactionID: "apprentice-funds", cash: Money(minorUnits: 5_000_000), themeID: nil))
-        try engine.handle(.hireApprentice)
+        try engine.handle(.postApprenticeAd)
+        try engine.handle(.checkApprenticeApplications)
+        let application = try #require(engine.state.apprenticeRecruitment?.applications.first)
+        try engine.handle(.acceptApprenticeApplication(application.id))
         let apprentice = try #require(engine.state.apprentices.first)
         let jobID = try #require(engine.state.activeJobs.first?.id)
 
@@ -260,6 +263,27 @@ struct GameLogicTests {
 
         #expect(engine.state.activeJobs[0].stage == .awaitingPrice)
         #expect(engine.state.apprentices[0].experience > 0)
+    }
+
+    @Test("Aynı seed aynı çırak başvurusunu üretir ve ret başvuruyu kaldırır")
+    func deterministicApprenticeApplications() throws {
+        let catalog = try DefaultContentRepository().load()
+        var firstState = GameState(startingCash: Money(minorUnits: 5_000_000), daySlots: 8, randomSeed: 123)
+        firstState.shopLevel = 2
+        let secondState = firstState
+        var first = GameEngine(state: firstState, catalog: catalog)
+        var second = GameEngine(state: secondState, catalog: catalog)
+
+        try first.handle(.postApprenticeAd)
+        try second.handle(.postApprenticeAd)
+        try first.handle(.checkApprenticeApplications)
+        try second.handle(.checkApprenticeApplications)
+
+        let firstApplication = try #require(first.state.apprenticeRecruitment?.applications.first)
+        let secondApplication = try #require(second.state.apprenticeRecruitment?.applications.first)
+        #expect(firstApplication == secondApplication)
+        try first.handle(.rejectApprenticeApplication(firstApplication.id))
+        #expect(first.state.apprenticeRecruitment?.applications.isEmpty == true)
     }
 
     @Test("Kredi limit içinde alınır ve oyun zamanı ilerlediğinde taksiti tahsil edilir")
@@ -532,7 +556,7 @@ struct GameLogicTests {
         encoder.dateEncodingStrategy = .iso8601
         let encoded = try encoder.encode(legacy)
         var object = try #require(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
-        for key in ["inventory", "totalMinutes", "nextCustomerArrivalMinute", "expertise", "reviews", "ratingTenths", "apprentices", "financeEntries", "loans", "incidents", "washLevel"] {
+        for key in ["inventory", "totalMinutes", "nextCustomerArrivalMinute", "expertise", "reviews", "ratingTenths", "apprentices", "apprenticeRecruitment", "financeEntries", "loans", "incidents", "washLevel"] {
             object.removeValue(forKey: key)
         }
         let legacyData = try JSONSerialization.data(withJSONObject: object)

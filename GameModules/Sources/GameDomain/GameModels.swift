@@ -1,7 +1,7 @@
 import Foundation
 
 public struct GameState: Codable, Hashable, Sendable {
-    public static let currentSchemaVersion = 10
+    public static let currentSchemaVersion = 11
 
     public var schemaVersion: Int
     public var saveID: UUID
@@ -27,6 +27,7 @@ public struct GameState: Codable, Hashable, Sendable {
     public var reviews: [ShopReview]
     public var ratingTenths: Int
     public var apprentices: [Apprentice]
+    public var apprenticeRecruitment: ApprenticeRecruitment?
     public var financeEntries: [FinanceEntry]
     public var loans: [BankLoan]
     public var incidents: [GameIncident]
@@ -59,6 +60,7 @@ public struct GameState: Codable, Hashable, Sendable {
         reviews = []
         ratingTenths = 40
         apprentices = []
+        apprenticeRecruitment = nil
         financeEntries = []
         loans = []
         incidents = []
@@ -71,7 +73,7 @@ public struct GameState: Codable, Hashable, Sendable {
         case schemaVersion, saveID, revision, parentRevision, modifiedAt
         case day, remainingSlots, totalMinutes, nextCustomerArrivalMinute, cash, skills, expertise, reputation, shopLevel, washLevel
         case offers, activeJobs, inventory, consequences, auction, projectCars
-        case reviews, ratingTenths, apprentices, financeEntries, loans, incidents
+        case reviews, ratingTenths, apprentices, apprenticeRecruitment, financeEntries, loans, incidents
         case processedTransactionIDs, selectedThemeID, randomSeed
     }
 
@@ -103,6 +105,7 @@ public struct GameState: Codable, Hashable, Sendable {
         reviews = try values.decodeIfPresent([ShopReview].self, forKey: .reviews) ?? []
         ratingTenths = try values.decodeIfPresent(Int.self, forKey: .ratingTenths) ?? 40
         apprentices = try values.decodeIfPresent([Apprentice].self, forKey: .apprentices) ?? []
+        apprenticeRecruitment = try values.decodeIfPresent(ApprenticeRecruitment.self, forKey: .apprenticeRecruitment)
         financeEntries = try values.decodeIfPresent([FinanceEntry].self, forKey: .financeEntries) ?? []
         loans = try values.decodeIfPresent([BankLoan].self, forKey: .loans) ?? []
         incidents = try values.decodeIfPresent([GameIncident].self, forKey: .incidents) ?? []

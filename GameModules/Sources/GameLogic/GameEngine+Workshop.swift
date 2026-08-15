@@ -322,31 +322,6 @@ extension GameEngine {
         return events
     }
 
-    mutating func hireApprentice() throws -> [GameEvent] {
-        guard let shop = catalog.shopLevel(state.shopLevel), shop.facilities.contains(.apprenticeStation) else {
-            throw GameRuleError.invalidCommand("Çırak almak için çalışma tezgâhı olan daha büyük dükkân gerekli.")
-        }
-        guard state.apprentices.count < shop.maxApprentices else {
-            throw GameRuleError.invalidCommand("Bu dükkânda başka çırak için çalışma alanı yok.")
-        }
-        let cost = catalog.balance.apprenticeHireCost
-        guard state.cash >= cost else { throw GameRuleError.notEnoughMoney }
-        var random = SeededRandomSource(seed: state.randomSeed)
-        let names = ["Mert", "Efe", "Can", "Burak", "Deniz", "Ayaz"]
-        let usedNames = Set(state.apprentices.map(\.name))
-        let availableNames = names.filter { !usedNames.contains($0) }
-        let name = availableNames.isEmpty ? "Çırak \(state.apprentices.count + 1)" : availableNames[random.next(upperBound: availableNames.count)]
-        let apprentice = Apprentice(id: random.nextUUID(), name: name)
-        state.randomSeed = random.state
-        state.cash = state.cash - cost
-        state.apprentices.append(apprentice)
-        recordFinance(amount: Money(minorUnits: -cost.minorUnits), category: .wages, note: "\(name) işe giriş ve ekipman")
-        return [
-            .moneyChanged(Money(minorUnits: -cost.minorUnits), reason: "Çırak işe alımı"),
-            .apprenticeHired(apprentice)
-        ]
-    }
-
     mutating func assignApprentice(
         apprenticeID: UUID,
         jobID: UUID,
