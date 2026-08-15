@@ -21,7 +21,11 @@
 
 - `Money.swift`: Kuruş tabanlı güvenli para değerini ve Türk lirası gösterimini sağlar.
 - `ContentModels.swift`: JSON'dan gelen araç, kontrol bulgusu, arıza, müşteri, yorum, dükkân kabiliyeti ve ayrıntılı gider dengelerini tanımlar.
-- `GameModels.swift`: Sürüm 7 kayıt durumunu, eylem tabanlı zamanı, XP'yi, çırakları, banka kredilerini, kasa hareketlerini, yıkamayı ve adım adım proje araç restorasyonunu tanımlar.
+- `GameModels.swift`: Sürüm 7 `GameState` kayıt kökünü ve eylem tabanlı zaman gösterimini tanımlar.
+- `RepairModels.swift`: Müşteri teklifi, iş emri, parça kalitesi, bakım, ustalık ve itibar modellerini toplar.
+- `ApprenticeModels.swift`: Çırak seviyesi ve deneyim ilerlemesini tanımlar.
+- `FinanceModels.swift`: Kredi, kasa hareketi, yorum, envanter ve gecikmeli sonuç modellerini tanımlar.
+- `VehicleTradingModels.swift`: Hasarlı araç, kaporta paneli, restorasyon görevi ve ilan durumunu tanımlar.
 - `IncidentModels.swift`: Denetim, şikâyet, kredi, ilan ve benzeri dükkân olaylarını para ve itibar etkileriyle sürümlü kayda uygun tanımlar.
 - `GameContracts.swift`: Komut, olay, hata ve kayıt/bulut/satın alma portlarını tanımlar.
 
@@ -30,7 +34,12 @@
 - `SeededRandomSource.swift`: Kayıt seed'inden tekrar üretilebilir rastgele sayı ve kimlik üretir.
 - `BankingRules.swift`: Dükkân durumundan kredi limitini, vade faizini ve taksit tutarını deterministik hesaplar.
 - `VehicleTradingRules.swift`: Hasarlı araç yatırım aralığını, restorasyon maliyetini, adil ilan fiyatını ve satış ihtimalini deterministik hesaplar.
-- `GameEngine.swift`: Dinamik müşteri, kontrol/teşhis, bakım, fiyat, yıkama, çırak, kredi, görünür gider, sabit fiyatlı hasarlı araç, restorasyon ve ilan kurallarının tek değişim noktasıdır.
+- `GameEngine.swift`: Komutları doğrular ve ilgili kural uzantısına yönlendiren küçük oyun motoru girişidir.
+- `GameEngine+Workshop.swift`: Kontrol, teşhis, parça, tamir, fiyat, yıkama ve çırak iş akışını yürütür.
+- `GameEngine+World.swift`: Eylem tabanlı saat, gider, kredi ve dükkân gelişimini yürütür.
+- `GameEngine+Trading.swift`: Hasarlı araç alımı, restorasyon, ilan ve satış akışını yürütür.
+- `GameEngine+Content.swift`: Deterministik müşteri/içerik seçimi, itibar, yorum ve gecikmeli sonuç üretir.
+- `GameEngine+Support.swift`: Para yüzdesi, tesis kontrolü ve kayıt defteri gibi ortak saf yardımcıları tutar.
 - `DefaultContentRepository.swift`: Paket JSON'unu yükler ve bütünlük kurallarını doğrular.
 - `Resources/catalog.json`: 12 araç, benzersiz mini oyunlu 12 arıza, 20 müşteri, üçlü şikâyet anlatımları, 26 yorum ve yedi dükkân seviyesini koddan bağımsız tutar.
 
@@ -56,11 +65,16 @@
 - `BankView.swift`: Kredi limiti, vade seçimi, taksit hesabı ve aktif borçları ayrı bölümde sunar.
 - `ShopStoreView.swift`: Gerçek para ile alınabilen StoreKit oyun parası, kozmetik ve içerik ürünlerini ayrı mağazada sunar.
 - `FinanceLedgerView.swift`: Üstteki para göstergesine dokunulduğunda kasa bakiyesi ve bütün gelir/gider hareketlerini açar.
-- `RepairMiniGames.swift`: Altı genel bakım mekaniğini ve kayıştan göçük onarımına kadar on iki arızaya özgü, hedefleri iş kimliğine göre değişen mini oyunu içerir.
+- `RepairMiniGames.swift`: Tamir isteğini ilgili mini oyun ailesine yönlendiren sunum girişidir.
+- `RepairMiniGames/CommonMiniGames.swift`: Gösterge, civata, kablo ve hizalama gibi yeniden kullanılabilir temel mekanikleri tutar.
+- `RepairMiniGames/MaintenanceMiniGames.swift`: Sıvı dolumu ve zamanlama bakım oyunlarını tutar.
+- `RepairMiniGames/EngineMiniGames.swift`: Motor ve elektrik arızalarına özel tamir oyunlarını tutar.
+- `RepairMiniGames/ChassisMiniGames.swift`: Fren, rot ve debriyaj oyunlarını tutar.
+- `RepairMiniGames/BodyMiniGames.swift`: Tampon, kapı ve göçük kaporta oyunlarını tutar.
 - `WorkshopScene.swift`: Kalıcı SpriteKit sahnesinde araçları kabul sırasıyla tek tek büyük gösterir; iPhone'da yatay sayfalama ve dokunarak iş seçimi sağlar.
 - `Style.swift`: Paylaşılan renk, kart, düğme stilleri ve iPhone dokunsal geri bildirimini tanımlar.
 
 ## Testler
 
-- `GameLogicTests.swift`: Determinizm, müşteri, teşhis, bakım, adım adım proje restorasyonu, yıkama, çırak, kredi/taksit, yatırım hesabı, ilan satışı, gider dökümü, kriz, satın alma ve sürüm 6 kayıt göçünü doğrular.
+- `GameLogicTests.swift`: Determinizm, müşteri, teşhis, bakım, adım adım proje restorasyonu, yıkama, çırak, kredi/taksit, olay defteri, yatırım hesabı, ilan satışı, gider dökümü, kriz, satın alma ve sürüm 7 kayıt göçünü doğrular.
 - `GameContentTests.swift`: İçerik sayısı, kontrol bağlantıları, yorumlar, benzersiz kimlik ve kapsama kurallarını doğrular.

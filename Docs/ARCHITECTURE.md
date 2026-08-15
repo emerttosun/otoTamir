@@ -22,8 +22,10 @@ Yeni bir modül yalnızca daha aşağıdaki katmanlara bağlanabilir. Domain hi�
 
 Rastgele seçimler `GameState.randomSeed` üzerinden yapılır. Aynı başlangıç kaydı ve komut dizisi aynı içeriği üretir.
 
+`GameEngine` yalnızca komut yönlendirme girişidir. Davranış; dükkân, dünya/ekonomi, araç ticareti, içerik ve ortak destek sorumluluk dosyalarına ayrılır. Domain modelleri de tamir, finans, çırak ve araç ticareti dosyalarında tutulur. Yeni sistemler mevcut merkezi dosyaları büyütmek yerine kendi sorumluluk dosyası ve testiyle eklenir.
+
 ## Zaman ve kayıt
 
 `GameState.totalMinutes` işlemlerin sıralanması için tek zaman kaynağıdır. Geçici tasarımda gerçek zaman sayacı çalıştırılmaz; yalnız oyuncu komutları zamanı ilerletir. Müşteri gelişleri, giderler, kredi taksitleri, ilan alıcı kontrolleri, hasarlı araç pazarı ve gecikmeli sonuçlar aynı deterministik takvim üzerinde kalır.
 
-Kayıt şeması sürüm 6'dır. Eski kayıtlar silinmez; migrator gün bilgisini dakikaya, eski uzmanlık seviyelerini XP modeline taşır ve çırak/kasa hareketi/kredi ile proje restorasyon ilerlemesini güvenli varsayılanlarla ekler. iCloud eşitlemesi otomatik ve isteğe bağlıdır; normal oyun akışında elle eşitleme düğmesi bulunmaz.
+Kayıt şeması sürüm 7'dir. Eski kayıtlar silinmez; migrator gün bilgisini dakikaya, eski uzmanlık seviyelerini XP modeline taşır ve çırak/kasa hareketi/kredi, Olay Defteri ile proje restorasyon ilerlemesini güvenli varsayılanlarla ekler. iCloud eşitlemesi otomatik ve isteğe bağlıdır; normal oyun akışında elle eşitleme düğmesi bulunmaz.
