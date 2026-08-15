@@ -126,6 +126,7 @@
     "dailySupplies": { "minorUnits": 20000 },
     "apprenticeHireCost": { "minorUnits": 750000 },
     "apprenticeAdCost": { "minorUnits": 50000 },
-    "apprenticeDailyWage": { "minorUnits": 90000 }
+    "apprenticeDailyWage": { "minorUnits": 90000 },
+    "apprenticeBonusCost": { "minorUnits": 125000 }
   }
 }

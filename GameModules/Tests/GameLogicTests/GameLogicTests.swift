@@ -320,8 +320,51 @@ struct GameLogicTests {
         let firstApplication = try #require(first.state.apprenticeRecruitment?.applications.first)
         let secondApplication = try #require(second.state.apprenticeRecruitment?.applications.first)
         #expect(firstApplication == secondApplication)
+        #expect(firstApplication.traits.count == 2)
+        #expect(firstApplication.revealedTraits.count <= 1)
+        #expect(firstApplication.revealedTraits.allSatisfy(firstApplication.traits.contains))
         try first.handle(.rejectApprenticeApplication(firstApplication.id))
         #expect(first.state.apprenticeRecruitment?.applications.isEmpty == true)
+    }
+
+    @Test("Çırak özellikleri görevlerle açılır, hız ve disiplin performansı etkiler")
+    func apprenticeTraitsAffectWorkAndReveal() {
+        var apprentice = Apprentice(
+            id: UUID(),
+            name: "Can",
+            traits: [.hardworking, .disciplined]
+        )
+        let regular = Apprentice(id: UUID(), name: "Efe")
+
+        #expect(ApprenticeRules.adjustedDuration(baseMinutes: 100, apprentice: apprentice) == 80)
+        #expect(
+            ApprenticeRules.performance(apprentice: apprentice, area: .engine, randomBonus: 0)
+                > ApprenticeRules.performance(apprentice: regular, area: .engine, randomBonus: 0)
+        )
+
+        #expect(apprentice.recordRepair(quality: .good).isEmpty)
+        #expect(apprentice.recordWash().isEmpty)
+        let firstReveal = apprentice.recordRepair(quality: .acceptable)
+        #expect(firstReveal.count == 1)
+        for _ in 0..<4 { _ = apprentice.recordWash() }
+        #expect(apprentice.revealedTraits.count == 2)
+        #expect(apprentice.happiness > 65)
+    }
+
+    @Test("Çırağa prim vermek mutluluğu artırır ve kasa hareketine yazılır")
+    func apprenticeBonus() throws {
+        let catalog = try DefaultContentRepository().load()
+        var state = GameState(startingCash: Money(minorUnits: 5_000_000), daySlots: 8)
+        let apprentice = Apprentice(id: UUID(), name: "Arda", happiness: 40)
+        state.apprentices = [apprentice]
+        var engine = GameEngine(state: state, catalog: catalog)
+        let cashBefore = engine.state.cash
+
+        try engine.handle(.giveApprenticeBonus(apprentice.id))
+
+        #expect(engine.state.apprentices[0].happiness == 55)
+        #expect(engine.state.cash == cashBefore - catalog.balance.apprenticeBonusCost)
+        #expect(engine.state.financeEntries.last?.category == .wages)
     }
 
     @Test("Kredi limit içinde alınır ve oyun zamanı ilerlediğinde taksiti tahsil edilir")

@@ -330,6 +330,7 @@ public struct BalanceDefinition: Codable, Hashable, Sendable {
     public let apprenticeHireCost: Money
     public let apprenticeAdCost: Money
     public let apprenticeDailyWage: Money
+    public let apprenticeBonusCost: Money
 
     public init(
         startingCash: Money,
@@ -341,7 +342,8 @@ public struct BalanceDefinition: Codable, Hashable, Sendable {
         dailySupplies: Money = Money(minorUnits: 20_000),
         apprenticeHireCost: Money = Money(minorUnits: 750_000),
         apprenticeAdCost: Money = Money(minorUnits: 50_000),
-        apprenticeDailyWage: Money = Money(minorUnits: 90_000)
+        apprenticeDailyWage: Money = Money(minorUnits: 90_000),
+        apprenticeBonusCost: Money = Money(minorUnits: 125_000)
     ) {
         self.startingCash = startingCash
         self.daySlots = daySlots
@@ -353,6 +355,7 @@ public struct BalanceDefinition: Codable, Hashable, Sendable {
         self.apprenticeHireCost = apprenticeHireCost
         self.apprenticeAdCost = apprenticeAdCost
         self.apprenticeDailyWage = apprenticeDailyWage
+        self.apprenticeBonusCost = apprenticeBonusCost
     }
 }
 

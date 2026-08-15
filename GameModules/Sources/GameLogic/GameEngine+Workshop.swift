@@ -153,23 +153,36 @@ extension GameEngine {
         state.activeJobs[index].stage = .awaitingPrice
         let xp = max(15, actualFault.requiredSkill * 14 + performance / 8)
         let experienceEvent: GameEvent?
-        let apprenticeEvent: GameEvent?
+        var apprenticeEvents: [GameEvent] = []
+        let assignedApprentice = state.activeJobs[index].repairedByApprenticeID
+            .flatMap { id in state.apprentices.first(where: { $0.id == id }) }
         if let apprenticeID = state.activeJobs[index].repairedByApprenticeID,
            let apprenticeIndex = state.apprentices.firstIndex(where: { $0.id == apprenticeID }) {
             state.apprentices[apprenticeIndex].addExperience(area: actualFault.area, amount: xp)
+            let revealed = state.apprentices[apprenticeIndex].recordRepair(quality: quality)
             experienceEvent = nil
-            apprenticeEvent = .apprenticeCompleted(
+            apprenticeEvents.append(.apprenticeCompleted(
                 name: state.apprentices[apprenticeIndex].name,
                 quality: quality
-            )
+            ))
+            apprenticeEvents.append(.apprenticeHappinessChanged(
+                name: state.apprentices[apprenticeIndex].name,
+                happiness: state.apprentices[apprenticeIndex].happiness
+            ))
+            apprenticeEvents.append(contentsOf: revealed.map {
+                .apprenticeTraitRevealed(name: state.apprentices[apprenticeIndex].name, trait: $0)
+            })
         } else {
             experienceEvent = grantExperience(area: actualFault.area, amount: xp)
-            apprenticeEvent = nil
         }
-        var events = advanceClock(by: 90 + actualFault.requiredSkill * 15)
+        let baseDuration = 90 + actualFault.requiredSkill * 15
+        let duration = assignedApprentice.map {
+            ApprenticeRules.adjustedDuration(baseMinutes: baseDuration, apprentice: $0)
+        } ?? baseDuration
+        var events = advanceClock(by: duration)
         events.append(.repairCompleted(quality))
         if let experienceEvent { events.append(experienceEvent) }
-        if let apprenticeEvent { events.append(apprenticeEvent) }
+        events.append(contentsOf: apprenticeEvents)
         return events
     }
 
@@ -190,15 +203,29 @@ extension GameEngine {
         state.activeJobs[index].repairPerformanceTotal += performance
         state.activeJobs[index].repairPerformanceCount += 1
         let xp = 18 + performance / 10
-        var events = advanceClock(by: 25)
+        let assignedApprentice = state.activeJobs[index].repairedByApprenticeID
+            .flatMap { id in state.apprentices.first(where: { $0.id == id }) }
+        let duration = assignedApprentice.map {
+            ApprenticeRules.adjustedDuration(baseMinutes: 25, apprentice: $0)
+        } ?? 25
+        var events = advanceClock(by: duration)
         events.append(.maintenanceTaskCompleted(task))
         if let apprenticeID = state.activeJobs[index].repairedByApprenticeID,
            let apprenticeIndex = state.apprentices.firstIndex(where: { $0.id == apprenticeID }) {
             state.apprentices[apprenticeIndex].addExperience(area: task.skillArea, amount: xp)
+            let taskQuality = workmanship(for: performance)
+            let revealed = state.apprentices[apprenticeIndex].recordRepair(quality: taskQuality)
             events.append(.apprenticeCompleted(
                 name: state.apprentices[apprenticeIndex].name,
-                quality: workmanship(for: performance)
+                quality: taskQuality
             ))
+            events.append(.apprenticeHappinessChanged(
+                name: state.apprentices[apprenticeIndex].name,
+                happiness: state.apprentices[apprenticeIndex].happiness
+            ))
+            events.append(contentsOf: revealed.map {
+                .apprenticeTraitRevealed(name: state.apprentices[apprenticeIndex].name, trait: $0)
+            })
         } else {
             events.append(grantExperience(area: task.skillArea, amount: xp))
         }
@@ -404,7 +431,15 @@ extension GameEngine {
         let apprenticeName = state.apprentices[apprenticeIndex].name
         var events = try washVehicle(jobID: jobID)
         state.apprentices[apprenticeIndex].addExperience(8)
+        let revealed = state.apprentices[apprenticeIndex].recordWash()
         events.append(.apprenticeWashed(name: apprenticeName))
+        events.append(.apprenticeHappinessChanged(
+            name: apprenticeName,
+            happiness: state.apprentices[apprenticeIndex].happiness
+        ))
+        events.append(contentsOf: revealed.map {
+            .apprenticeTraitRevealed(name: apprenticeName, trait: $0)
+        })
         recordIncident(
             kind: .apprentice,
             message: "\(apprenticeName) aracı yıkayıp teslime hazırladı ve +8 XP kazandı."

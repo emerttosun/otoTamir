@@ -40,7 +40,10 @@ extension GameEngine {
         var apprentice = Apprentice(
             id: application.id,
             name: application.name,
-            background: application.background
+            background: application.background,
+            traits: application.traits,
+            revealedTraits: application.revealedTraits,
+            hiredAtMinute: state.totalMinutes
         )
         if let startingArea = application.startingArea {
             apprentice.addExperience(area: startingArea, amount: application.startingExperience)
@@ -72,6 +75,26 @@ extension GameEngine {
         let name = recruitment.applications.remove(at: index).name
         state.apprenticeRecruitment = recruitment.isActive || !recruitment.applications.isEmpty ? recruitment : nil
         return [.apprenticeApplicationRejected(name)]
+    }
+
+    mutating func giveApprenticeBonus(_ apprenticeID: UUID) throws -> [GameEvent] {
+        guard let index = state.apprentices.firstIndex(where: { $0.id == apprenticeID }) else {
+            throw GameRuleError.invalidCommand("Prim verilecek çırak bulunamadı.")
+        }
+        let cost = catalog.balance.apprenticeBonusCost
+        guard state.cash >= cost else { throw GameRuleError.notEnoughMoney }
+        state.cash = state.cash - cost
+        state.apprentices[index].changeHappiness(by: 15)
+        let apprentice = state.apprentices[index]
+        recordFinance(
+            amount: Money(minorUnits: -cost.minorUnits),
+            category: .wages,
+            note: "\(apprentice.name) performans primi"
+        )
+        return [
+            .moneyChanged(Money(minorUnits: -cost.minorUnits), reason: "Çırak performans primi"),
+            .apprenticeHappinessChanged(name: apprentice.name, happiness: apprentice.happiness)
+        ]
     }
 
     mutating func processApprenticeRecruitment() -> [GameEvent] {
@@ -128,6 +151,16 @@ extension GameEngine {
             startingArea = nil
             introduction = "İlanı kendi görüp geldi: ‘Usta, işi yerinde öğrenmek istiyorum; süpürgeden kaçmam.’"
         }
+        let traitPairs: [[ApprenticeTrait]] = [
+            [.hardworking, .loyal], [.hardworking, .entrepreneurial],
+            [.disciplined, .loyal], [.disciplined, .entrepreneurial],
+            [.slowPaced, .loyal], [.slowPaced, .entrepreneurial],
+            [.hardworking, .disciplined], [.slowPaced, .disciplined]
+        ]
+        let traits = traitPairs[random.next(upperBound: traitPairs.count)]
+        let revealedTraits = random.next(upperBound: 100) < 35
+            ? [traits[random.next(upperBound: traits.count)]]
+            : []
         return ApprenticeApplication(
             id: random.nextUUID(),
             name: name,
@@ -135,6 +168,8 @@ extension GameEngine {
             introduction: introduction,
             startingExperience: experience,
             startingArea: startingArea,
+            traits: traits,
+            revealedTraits: revealedTraits,
             appliedAtMinute: state.totalMinutes
         )
     }

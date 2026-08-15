@@ -80,6 +80,22 @@ struct ApprenticesView: View {
                         }
                         Text("Yalnızca alan seviyesinin yettiği işleri yapabilir. Her çırak araç yıkayabilir.")
                             .font(.caption2).foregroundStyle(.secondary)
+                        HStack {
+                            Label("Mutluluk %\(apprentice.happiness)", systemImage: "heart.fill")
+                                .font(.caption.bold())
+                                .foregroundStyle(happinessColor(apprentice.happiness))
+                            Spacer()
+                            Text("\(apprentice.jobsCompleted) iş • \(apprentice.washesCompleted) yıkama")
+                                .font(.caption2).foregroundStyle(.secondary)
+                        }
+                        SwiftUI.ProgressView(value: Double(apprentice.happiness), total: 100)
+                            .tint(happinessColor(apprentice.happiness))
+                        traitRows(apprentice)
+                        Button("Performans Primi Ver • \(store.catalog.balance.apprenticeBonusCost.liraText)") {
+                            store.send(.giveApprenticeBonus(apprentice.id))
+                        }
+                        .buttonStyle(ActionButtonStyle(tint: GarageStyle.raised, foreground: .white))
+                        .accessibilityLabel("\(apprentice.name) için performans primi ver")
                     }
                     .padding(10)
                     .background(GarageStyle.raised.opacity(0.7), in: RoundedRectangle(cornerRadius: 12))
@@ -156,6 +172,13 @@ struct ApprenticesView: View {
             }
             Text(application.introduction)
                 .font(.caption).foregroundStyle(.white.opacity(0.82))
+            if let knownTrait = application.revealedTraits.first {
+                Label("Referanstan bilinen: \(knownTrait.title)", systemImage: "eye.fill")
+                    .font(.caption2.bold()).foregroundStyle(GarageStyle.mint)
+            } else {
+                Label("Kişisel özellikleri henüz bilinmiyor", systemImage: "questionmark.circle")
+                    .font(.caption2).foregroundStyle(.secondary)
+            }
             HStack(spacing: 8) {
                 Button("Reddet") {
                     store.send(.rejectApprenticeApplication(application.id))
@@ -191,5 +214,32 @@ struct ApprenticesView: View {
         let base = experienceTitle(application.startingExperience)
         guard let area = application.startingArea else { return base }
         return "\(base) • \(area.title)"
+    }
+
+    @ViewBuilder
+    private func traitRows(_ apprentice: Apprentice) -> some View {
+        if apprentice.traits.isEmpty {
+            Text("Kişilik kaydı yeni işe alınan çıraklarda oluşur.")
+                .font(.caption2).foregroundStyle(.secondary)
+        } else {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Tanıdığın özellikler").font(.caption.bold())
+                ForEach(Array(apprentice.traits.enumerated()), id: \.offset) { _, trait in
+                    if apprentice.revealedTraits.contains(trait) {
+                        Label("\(trait.title): \(trait.detail)", systemImage: "eye.fill")
+                            .font(.caption2).foregroundStyle(.white.opacity(0.82))
+                    } else {
+                        Label("Birlikte çalıştıkça ortaya çıkacak", systemImage: "lock.fill")
+                            .font(.caption2).foregroundStyle(.secondary)
+                    }
+                }
+            }
+        }
+    }
+
+    private func happinessColor(_ happiness: Int) -> Color {
+        if happiness >= 70 { return GarageStyle.mint }
+        if happiness >= 40 { return GarageStyle.orange }
+        return GarageStyle.danger
     }
 }

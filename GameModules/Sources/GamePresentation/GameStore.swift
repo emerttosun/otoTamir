@@ -154,6 +154,7 @@ public final class GameStore: ObservableObject {
             case .tutorial, .consequence, .inspectionCompleted, .diagnosisCompleted, .repairCompleted,
                  .priceSettled, .vehicleWashed, .apprenticeHired, .apprenticeApplicationReceived,
                  .apprenticeApplicationRejected, .apprenticeCompleted, .apprenticeWashed,
+                 .apprenticeTraitRevealed, .apprenticeHappinessChanged,
                  .experienceGained, .reviewReceived, .auctionWon, .projectCarSold, .shopUpgraded:
                 true
             case .projectRepairCompleted, .projectCarListed, .projectListingExpired,
@@ -189,6 +190,10 @@ public final class GameStore: ObservableObject {
             bannerMessage = "\(name) verilen işi tamamladı: \(quality.title)."
         case .apprenticeWashed(let name):
             bannerMessage = "\(name) aracı yıkayıp teslime hazırladı ve tecrübe kazandı."
+        case .apprenticeTraitRevealed(let name, let trait):
+            bannerMessage = "\(name) ile çalıştıkça yeni bir özelliğini öğrendin: \(trait.title)."
+        case .apprenticeHappinessChanged(let name, let happiness):
+            bannerMessage = "\(name) mutluluk: %\(happiness)."
         case .experienceGained(let area, let amount, let level):
             bannerMessage = "\(area.title) +\(amount) XP • Seviye \(level)"
         case .reviewReceived(let review):

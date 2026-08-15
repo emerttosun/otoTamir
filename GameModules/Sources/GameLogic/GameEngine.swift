@@ -60,6 +60,8 @@ public struct GameEngine: Sendable {
             events = try assignApprentice(apprenticeID: apprenticeID, jobID: jobID, task: task)
         case .assignApprenticeToWash(let apprenticeID, let jobID):
             events = try assignApprenticeToWash(apprenticeID: apprenticeID, jobID: jobID)
+        case .giveApprenticeBonus(let apprenticeID):
+            events = try giveApprenticeBonus(apprenticeID)
         case .upgradeShop:
             events = try upgradeShop()
         case .upgradeWashBay:

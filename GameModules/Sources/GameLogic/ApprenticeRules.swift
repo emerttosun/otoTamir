@@ -25,6 +25,18 @@ public enum ApprenticeRules {
         area: SkillArea,
         randomBonus: Int
     ) -> Int {
-        min(92, 46 + apprentice.skillLevel(for: area) * 9 + randomBonus)
+        let disciplineBonus = apprentice.traits.contains(.disciplined) ? 8 : 0
+        let moodBonus = apprentice.happiness >= 75 ? 4 : (apprentice.happiness < 35 ? -8 : 0)
+        return min(96, max(20, 46 + apprentice.skillLevel(for: area) * 9 + randomBonus + disciplineBonus + moodBonus))
+    }
+
+    public static func adjustedDuration(baseMinutes: Int, apprentice: Apprentice) -> Int {
+        if apprentice.traits.contains(.hardworking) {
+            return max(5, baseMinutes * 80 / 100)
+        }
+        if apprentice.traits.contains(.slowPaced) {
+            return baseMinutes * 125 / 100
+        }
+        return baseMinutes
     }
 }
