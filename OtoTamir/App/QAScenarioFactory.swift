@@ -71,6 +71,7 @@ enum QAScenarioFactory {
     private static func baseState(catalog: ContentCatalog, seed: UInt64 = 7) -> GameState {
         var state = GameState(startingCash: Money(minorUnits: 180_000_000), daySlots: 8, randomSeed: seed)
         state.shopLevel = 7
+        state.washLevel = 3
         state.ratingTenths = 46
         state.reputation = Reputation(craftsmanship: 72, trust: 68, suspicion: 12)
         return state
@@ -182,6 +183,7 @@ enum QAScenarioFactory {
 
     private static func progressState(catalog: ContentCatalog) throws -> GameState {
         var state = baseState(catalog: catalog, seed: 42)
+        state.washLevel = 2
         state.apprentices = [
             Apprentice(id: UUID(uuidString: "00000000-0000-0000-0000-000000000201")!, name: "Çırak Memo", level: 3, experience: 84),
             Apprentice(id: UUID(uuidString: "00000000-0000-0000-0000-000000000202")!, name: "Çırak İsmail", level: 2, experience: 45)

@@ -20,8 +20,8 @@
 ## GameDomain
 
 - `Money.swift`: Kuruş tabanlı güvenli para değerini ve Türk lirası gösterimini sağlar.
-- `ContentModels.swift`: JSON'dan gelen araç, kontrol bulgusu, arıza, müşteri, yorum, dükkân kabiliyeti ve ayrıntılı gider dengelerini tanımlar.
-- `GameModels.swift`: Sürüm 9 `GameState` kayıt kökünü ve eylem tabanlı zaman gösterimini tanımlar.
+- `ContentModels.swift`: JSON'dan gelen araç, kontrol bulgusu, arıza, müşteri, yorum, dükkân ve üç seviyeli yıkama gelişimi ile ayrıntılı gider dengelerini tanımlar.
+- `GameModels.swift`: Sürüm 10 `GameState` kayıt kökünü, yıkama seviyesini ve eylem tabanlı zaman gösterimini tanımlar.
 - `RepairModels.swift`: Müşteri teklifi, iş emri, parça kalitesi, bakım, ustalık ve itibar modellerini toplar.
 - `ApprenticeModels.swift`: Çırak seviyesi ve deneyim ilerlemesini tanımlar.
 - `FinanceModels.swift`: Kredi, kasa hareketi, yorum, envanter ve gecikmeli sonuç modellerini tanımlar.
@@ -33,6 +33,7 @@
 
 - `SeededRandomSource.swift`: Kayıt seed'inden tekrar üretilebilir rastgele sayı ve kimlik üretir.
 - `BankingRules.swift`: Dükkân durumundan kredi limitini, vade faizini ve taksit tutarını deterministik hesaplar.
+- `WashBayRules.swift`: Yıkama bölümünün mevcut ve sıradaki veri tanımını, dükkân ve para yükseltme şartlarını değerlendirir.
 - `VehicleTradingRules.swift`: Hasarlı araç yatırım aralığını, restorasyon maliyetini, adil ilan fiyatını ve satış ihtimalini deterministik hesaplar.
 - `ProgressionRules.swift`: Alan uzmanlığı ve dükkân seviyesinden açık arıza, müşteri ve araç havuzunu deterministik hesaplar.
 - `GameEngine.swift`: Komutları doğrular ve ilgili kural uzantısına yönlendiren küçük oyun motoru girişidir.
@@ -85,5 +86,5 @@
 
 ## Testler
 
-- `GameLogicTests.swift`: Determinizm, müşteri, teşhis, bakım, adım adım proje restorasyonu, yıkama, çırak, kredi/taksit, olay defteri, yatırım hesabı, ilan satışı, gider dökümü, kriz, satın alma ve sürüm 7 kayıt göçünü doğrular.
+- `GameLogicTests.swift`: Determinizm, müşteri, teşhis, bakım, adım adım proje restorasyonu, üç seviyeli yıkama, çırak, kredi/taksit, olay defteri, yatırım hesabı, teklif/pazarlık, gider dökümü, kriz, satın alma ve sürüm 10 kayıt göçünü doğrular.
 - `GameContentTests.swift`: İçerik sayısı, kontrol bağlantıları, yorumlar, benzersiz kimlik ve kapsama kurallarını doğrular.

@@ -223,6 +223,8 @@ public final class GameStore: ObservableObject {
             bannerMessage = "Araç yatırım kredisi tamamen kapandı."
         case .shopUpgraded(let level):
             bannerMessage = "Dükkân \(level). seviyeye yükseldi."
+        case .washBayUpgraded(let level):
+            bannerMessage = "Yıkama bölümü Seviye \(level) oldu. Daha hızlı ve etkili temiz teslim açıldı."
         default:
             break
         }

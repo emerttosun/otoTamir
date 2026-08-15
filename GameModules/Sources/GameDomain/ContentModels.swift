@@ -288,6 +288,37 @@ public struct ShopLevelDefinition: Codable, Hashable, Identifiable, Sendable {
     }
 }
 
+public struct WashLevelDefinition: Codable, Hashable, Identifiable, Sendable {
+    public let id: Int
+    public let name: String
+    public let upgradeCost: Money
+    public let requiredShopLevel: Int
+    public let washCost: Money
+    public let durationMinutes: Int
+    public let trustBonus: Int
+    public let detail: String
+
+    public init(
+        id: Int,
+        name: String,
+        upgradeCost: Money,
+        requiredShopLevel: Int,
+        washCost: Money,
+        durationMinutes: Int,
+        trustBonus: Int,
+        detail: String
+    ) {
+        self.id = id
+        self.name = name
+        self.upgradeCost = upgradeCost
+        self.requiredShopLevel = requiredShopLevel
+        self.washCost = washCost
+        self.durationMinutes = durationMinutes
+        self.trustBonus = trustBonus
+        self.detail = detail
+    }
+}
+
 public struct BalanceDefinition: Codable, Hashable, Sendable {
     public let startingCash: Money
     public let daySlots: Int
@@ -296,7 +327,6 @@ public struct BalanceDefinition: Codable, Hashable, Sendable {
     public let dailyRent: Money
     public let dailyUtilities: Money
     public let dailySupplies: Money
-    public let washCost: Money
     public let apprenticeHireCost: Money
     public let apprenticeDailyWage: Money
 
@@ -308,7 +338,6 @@ public struct BalanceDefinition: Codable, Hashable, Sendable {
         dailyRent: Money = Money(minorUnits: 75_000),
         dailyUtilities: Money = Money(minorUnits: 30_000),
         dailySupplies: Money = Money(minorUnits: 20_000),
-        washCost: Money = Money(minorUnits: 35_000),
         apprenticeHireCost: Money = Money(minorUnits: 750_000),
         apprenticeDailyWage: Money = Money(minorUnits: 90_000)
     ) {
@@ -319,7 +348,6 @@ public struct BalanceDefinition: Codable, Hashable, Sendable {
         self.dailyRent = dailyRent
         self.dailyUtilities = dailyUtilities
         self.dailySupplies = dailySupplies
-        self.washCost = washCost
         self.apprenticeHireCost = apprenticeHireCost
         self.apprenticeDailyWage = apprenticeDailyWage
     }
@@ -331,6 +359,7 @@ public struct ContentCatalog: Codable, Hashable, Sendable {
     public let customers: [CustomerDefinition]
     public let reviews: [ReviewTemplateDefinition]
     public let shopLevels: [ShopLevelDefinition]
+    public let washLevels: [WashLevelDefinition]
     public let balance: BalanceDefinition
 
     public init(
@@ -339,6 +368,7 @@ public struct ContentCatalog: Codable, Hashable, Sendable {
         customers: [CustomerDefinition],
         reviews: [ReviewTemplateDefinition] = [],
         shopLevels: [ShopLevelDefinition],
+        washLevels: [WashLevelDefinition] = [],
         balance: BalanceDefinition
     ) {
         self.vehicles = vehicles
@@ -346,6 +376,7 @@ public struct ContentCatalog: Codable, Hashable, Sendable {
         self.customers = customers
         self.reviews = reviews
         self.shopLevels = shopLevels
+        self.washLevels = washLevels
         self.balance = balance
     }
 
@@ -353,4 +384,5 @@ public struct ContentCatalog: Codable, Hashable, Sendable {
     public func fault(id: String) -> FaultDefinition? { faults.first { $0.id == id } }
     public func customer(id: String) -> CustomerDefinition? { customers.first { $0.id == id } }
     public func shopLevel(_ id: Int) -> ShopLevelDefinition? { shopLevels.first { $0.id == id } }
+    public func washLevel(_ id: Int) -> WashLevelDefinition? { washLevels.first { $0.id == id } }
 }

@@ -213,11 +213,12 @@ struct GameLogicTests {
         #expect(categories.contains(.supplies))
     }
 
-    @Test("Büyük dükkânda araç yıkanabilir ve gider kaydı oluşur")
+    @Test("Yıkama alanı açıldıktan sonra araç yıkanır ve gider kaydı oluşur")
     func vehicleWashBeforeDelivery() throws {
         let catalog = try DefaultContentRepository().load()
         let fault = catalog.faults[0]
         var engine = try makeReadyForRepairEngine(catalog: catalog, fault: fault, shopLevel: 3)
+        try engine.handle(.upgradeWashBay)
         let id = try #require(engine.state.activeJobs.first?.id)
         try engine.handle(.completeRepair(jobID: id, performance: 90))
 
@@ -225,6 +226,24 @@ struct GameLogicTests {
 
         #expect(engine.state.activeJobs[0].isWashed)
         #expect(engine.state.financeEntries.last?.category == .wash)
+    }
+
+    @Test("Yıkama bölümü dükkân şartlarıyla üç seviyeye ilerler")
+    func washBayHasThreeProgressionLevels() throws {
+        let catalog = try DefaultContentRepository().load()
+        var state = GameState(startingCash: Money(minorUnits: 100_000_000), daySlots: 8)
+        state.shopLevel = 7
+        var engine = GameEngine(state: state, catalog: catalog)
+
+        try engine.handle(.upgradeWashBay)
+        try engine.handle(.upgradeWashBay)
+        try engine.handle(.upgradeWashBay)
+
+        #expect(engine.state.washLevel == 3)
+        #expect(WashBayRules.currentDefinition(for: engine.state, catalog: catalog)?.trustBonus == 3)
+        #expect(throws: GameRuleError.self) {
+            try engine.handle(.upgradeWashBay)
+        }
     }
 
     @Test("Çırak işe alınır, tamire atanır ve tecrübe kazanır")
@@ -513,7 +532,7 @@ struct GameLogicTests {
         encoder.dateEncodingStrategy = .iso8601
         let encoded = try encoder.encode(legacy)
         var object = try #require(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
-        for key in ["inventory", "totalMinutes", "nextCustomerArrivalMinute", "expertise", "reviews", "ratingTenths", "apprentices", "financeEntries", "loans", "incidents"] {
+        for key in ["inventory", "totalMinutes", "nextCustomerArrivalMinute", "expertise", "reviews", "ratingTenths", "apprentices", "financeEntries", "loans", "incidents", "washLevel"] {
             object.removeValue(forKey: key)
         }
         let legacyData = try JSONSerialization.data(withJSONObject: object)

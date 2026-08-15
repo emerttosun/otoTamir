@@ -267,7 +267,7 @@ extension GameEngine {
         state.activeJobs[index].quote = paid
         applyReputation(for: workmanship, strategy: strategy, concealed: hidePartQuality, noticed: noticed)
         if job.isWashed {
-            state.reputation.trust += 1
+            state.reputation.trust += max(1, job.washTrustBonus)
             state.reputation.clamp()
         }
         let newReview = makeReview(
@@ -302,20 +302,21 @@ extension GameEngine {
     }
 
     mutating func washVehicle(jobID: UUID) throws -> [GameEvent] {
-        guard supports(.washBay) else {
-            throw GameRuleError.invalidCommand("Araç yıkamak için dükkânı büyütüp yıkama alanını açmalısın.")
+        guard let wash = WashBayRules.currentDefinition(for: state, catalog: catalog) else {
+            throw GameRuleError.invalidCommand("Araç yıkamak için Gelişim bölümünden Yıkama Seviye 1'i açmalısın.")
         }
         guard let index = state.activeJobs.firstIndex(where: { $0.id == jobID }),
               state.activeJobs[index].stage == .awaitingPrice,
               !state.activeJobs[index].isWashed else {
             throw GameRuleError.invalidCommand("Bu araç şu anda yıkanamaz.")
         }
-        let cost = catalog.balance.washCost
+        let cost = wash.washCost
         guard state.cash >= cost else { throw GameRuleError.notEnoughMoney }
         state.cash = state.cash - cost
         state.activeJobs[index].isWashed = true
-        recordFinance(amount: Money(minorUnits: -cost.minorUnits), category: .wash, note: "Teslim öncesi araç yıkama")
-        var events = advanceClock(by: 30)
+        state.activeJobs[index].washTrustBonus = wash.trustBonus
+        recordFinance(amount: Money(minorUnits: -cost.minorUnits), category: .wash, note: wash.name)
+        var events = advanceClock(by: wash.durationMinutes)
         events.append(.vehicleWashed(jobID))
         events.append(.moneyChanged(Money(minorUnits: -cost.minorUnits), reason: "Araç yıkama"))
         return events

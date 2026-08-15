@@ -278,6 +278,7 @@ public struct RepairJob: Codable, Hashable, Identifiable, Sendable {
     public var repairPerformanceTotal: Int
     public var repairPerformanceCount: Int
     public var isWashed: Bool
+    public var washTrustBonus: Int
     public var repairedByApprenticeID: UUID?
 
     public init(offer: CustomerOffer) {
@@ -304,6 +305,7 @@ public struct RepairJob: Codable, Hashable, Identifiable, Sendable {
         repairPerformanceTotal = 0
         repairPerformanceCount = 0
         isWashed = false
+        washTrustBonus = 0
         repairedByApprenticeID = nil
     }
 
@@ -311,7 +313,7 @@ public struct RepairJob: Codable, Hashable, Identifiable, Sendable {
         case id, customerID, vehicleID, serviceKind, actualFaultID, suspectedFaultIDs
         case maintenanceTasks, complaint, acceptedAtMinute, completedMaintenanceTasks, performedInspections, findings, candidateFaultIDs
         case diagnosedFaultID, stage, strategy, hidePartQuality, quote, partQuality, workmanship
-        case repairPerformanceTotal, repairPerformanceCount, isWashed, repairedByApprenticeID
+        case repairPerformanceTotal, repairPerformanceCount, isWashed, washTrustBonus, repairedByApprenticeID
     }
 
     public init(from decoder: any Decoder) throws {
@@ -349,7 +351,7 @@ public struct RepairJob: Codable, Hashable, Identifiable, Sendable {
         repairPerformanceTotal = try values.decodeIfPresent(Int.self, forKey: .repairPerformanceTotal) ?? 0
         repairPerformanceCount = try values.decodeIfPresent(Int.self, forKey: .repairPerformanceCount) ?? 0
         isWashed = try values.decodeIfPresent(Bool.self, forKey: .isWashed) ?? false
+        washTrustBonus = try values.decodeIfPresent(Int.self, forKey: .washTrustBonus) ?? (isWashed ? 1 : 0)
         repairedByApprenticeID = try values.decodeIfPresent(UUID.self, forKey: .repairedByApprenticeID)
     }
 }
-

@@ -29,6 +29,7 @@ struct WorkshopView: View {
                         JobCard(
                             job: selectedJob,
                             shopLevel: store.state.shopLevel,
+                            washLevel: store.state.washLevel,
                             apprentices: store.state.apprentices,
                             catalog: store.catalog
                         ) { command in
@@ -271,6 +272,7 @@ private struct OfferCard: View {
 private struct JobCard: View {
     let job: RepairJob
     let shopLevel: Int
+    let washLevel: Int
     let apprentices: [Apprentice]
     let catalog: ContentCatalog
     let send: (GameCommand) -> Void
@@ -444,18 +446,24 @@ private struct JobCard: View {
             Text("\(customer?.appearance ?? "Müşteri") • \(customer?.profileHint ?? "Fiyat tepkisini kestirmek zor")")
                 .font(.caption).foregroundStyle(.secondary)
             Text("Usta, müşteriye ne fiyat söyleyeceksin?").font(.caption.bold())
-            if currentShop?.facilities.contains(.washBay) == true {
+            if let wash = catalog.washLevel(washLevel) {
                 if job.isWashed {
-                    Label("Araç yıkandı, teslime hazır", systemImage: "sparkles")
+                    Label("\(wash.name) tamamlandı, teslime hazır", systemImage: "sparkles")
                         .font(.caption.bold()).foregroundStyle(.blue)
                 } else {
                     Button {
                         send(.washVehicle(jobID: job.id))
                     } label: {
-                        Label("Teslimden Önce Yıka • \(catalog.balance.washCost.liraText)", systemImage: "drop.fill")
+                        Label(
+                            "\(wash.name) • \(wash.washCost.liraText) • \(wash.durationMinutes) dk",
+                            systemImage: "drop.fill"
+                        )
                     }
                     .buttonStyle(ActionButtonStyle(tint: .blue))
                 }
+            } else {
+                Label("Teslim yıkaması Gelişim bölümünden açılır", systemImage: "lock.fill")
+                    .font(.caption).foregroundStyle(.secondary)
             }
             Toggle("Takılan parçanın kalitesini söyleme", isOn: $concealPartQuality)
                 .font(.caption).tint(GarageStyle.danger)

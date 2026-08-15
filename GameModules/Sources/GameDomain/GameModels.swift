@@ -1,7 +1,7 @@
 import Foundation
 
 public struct GameState: Codable, Hashable, Sendable {
-    public static let currentSchemaVersion = 9
+    public static let currentSchemaVersion = 10
 
     public var schemaVersion: Int
     public var saveID: UUID
@@ -17,6 +17,7 @@ public struct GameState: Codable, Hashable, Sendable {
     public var expertise: [SkillArea: SkillProgress]
     public var reputation: Reputation
     public var shopLevel: Int
+    public var washLevel: Int
     public var offers: [CustomerOffer]
     public var activeJobs: [RepairJob]
     public var inventory: [InventoryItem]
@@ -48,6 +49,7 @@ public struct GameState: Codable, Hashable, Sendable {
         expertise = Dictionary(uniqueKeysWithValues: SkillArea.allCases.map { ($0, SkillProgress()) })
         reputation = Reputation()
         shopLevel = 1
+        washLevel = 0
         offers = []
         activeJobs = []
         inventory = []
@@ -67,7 +69,7 @@ public struct GameState: Codable, Hashable, Sendable {
 
     private enum CodingKeys: String, CodingKey {
         case schemaVersion, saveID, revision, parentRevision, modifiedAt
-        case day, remainingSlots, totalMinutes, nextCustomerArrivalMinute, cash, skills, expertise, reputation, shopLevel
+        case day, remainingSlots, totalMinutes, nextCustomerArrivalMinute, cash, skills, expertise, reputation, shopLevel, washLevel
         case offers, activeJobs, inventory, consequences, auction, projectCars
         case reviews, ratingTenths, apprentices, financeEntries, loans, incidents
         case processedTransactionIDs, selectedThemeID, randomSeed
@@ -91,6 +93,7 @@ public struct GameState: Codable, Hashable, Sendable {
             ?? Dictionary(uniqueKeysWithValues: skills.map { ($0.key, SkillProgress(level: $0.value)) })
         reputation = try values.decodeIfPresent(Reputation.self, forKey: .reputation) ?? Reputation()
         shopLevel = try values.decodeIfPresent(Int.self, forKey: .shopLevel) ?? 1
+        washLevel = try values.decodeIfPresent(Int.self, forKey: .washLevel) ?? 0
         offers = try values.decodeIfPresent([CustomerOffer].self, forKey: .offers) ?? []
         activeJobs = try values.decodeIfPresent([RepairJob].self, forKey: .activeJobs) ?? []
         inventory = try values.decodeIfPresent([InventoryItem].self, forKey: .inventory) ?? []

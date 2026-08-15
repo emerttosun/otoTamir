@@ -12,6 +12,7 @@ struct GameContentTests {
         #expect(catalog.faults.count == 30)
         #expect(catalog.customers.count == 20)
         #expect(catalog.shopLevels.count == 7)
+        #expect(catalog.washLevels.count == 3)
         #expect(catalog.reviews.count >= 24)
         #expect(Set(catalog.faults.map(\.area)) == Set(SkillArea.allCases))
         #expect(Set(catalog.faults.map(\.repairGame)).count == catalog.faults.count)
@@ -27,6 +28,8 @@ struct GameContentTests {
         #expect(catalog.shopLevels[4].facilities.contains(.bodyPaintBooth))
         #expect(catalog.shopLevels[6].facilities.contains(.vehicleShowroom))
         #expect(catalog.shopLevels[6].capacity == 5)
+        #expect(catalog.washLevels.map(\.id) == [1, 2, 3])
+        #expect(catalog.washLevels[2].trustBonus == 3)
         #expect(catalog.balance.dailyRent + catalog.balance.dailyUtilities + catalog.balance.dailySupplies == catalog.balance.dailyExpense)
     }
 
@@ -39,6 +42,7 @@ struct GameContentTests {
             customers: catalog.customers,
             reviews: catalog.reviews,
             shopLevels: catalog.shopLevels,
+            washLevels: catalog.washLevels,
             balance: catalog.balance
         )
 

@@ -67,6 +67,13 @@ public enum ContentValidator {
         guard catalog.shopLevels.map(\.id).sorted() == Array(1...7) else {
             throw ContentError.invalidValue("Dükkân seviyeleri 1 ile 7 arasında kesintisiz olmalı")
         }
+        guard catalog.washLevels.map(\.id).sorted() == Array(1...3),
+              catalog.washLevels.allSatisfy({ $0.requiredShopLevel >= 1 && $0.durationMinutes > 0 && $0.trustBonus > 0 }),
+              zip(catalog.washLevels, catalog.washLevels.dropFirst()).allSatisfy({ current, next in
+                  current.washCost >= next.washCost
+              }) else {
+            throw ContentError.invalidValue("Yıkama seviyeleri 1 ile 3 arasında geçerli ve artan faydalı olmalı")
+        }
         guard catalog.shopLevels.allSatisfy({ $0.facilities.contains(.basicRepair) }) else {
             throw ContentError.invalidValue("Her dükkân seviyesinde temel tamir kabiliyeti bulunmalı")
         }

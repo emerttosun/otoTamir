@@ -157,6 +157,29 @@ extension GameEngine {
         ]
     }
 
+    mutating func upgradeWashBay() throws -> [GameEvent] {
+        guard let definition = WashBayRules.nextDefinition(for: state, catalog: catalog) else {
+            throw GameRuleError.invalidCommand("Yıkama bölümü zaten en yüksek seviyede.")
+        }
+        guard state.shopLevel >= definition.requiredShopLevel else {
+            throw GameRuleError.invalidCommand(
+                "Yıkama Seviye \(definition.id) için dükkân en az Seviye \(definition.requiredShopLevel) olmalı."
+            )
+        }
+        guard state.cash >= definition.upgradeCost else { throw GameRuleError.notEnoughMoney }
+        state.cash = state.cash - definition.upgradeCost
+        state.washLevel = definition.id
+        recordFinance(
+            amount: Money(minorUnits: -definition.upgradeCost.minorUnits),
+            category: .shopUpgrade,
+            note: "Yıkama \(definition.name)"
+        )
+        return [
+            .moneyChanged(Money(minorUnits: -definition.upgradeCost.minorUnits), reason: "Yıkama bölümü geliştirmesi"),
+            .washBayUpgraded(definition.id)
+        ]
+    }
+
     mutating func takeLoan(amount: Money, plan: LoanPlan) throws -> [GameEvent] {
         guard amount >= Money(minorUnits: 1_000_000) else {
             throw GameRuleError.invalidCommand("En düşük kredi tutarı 10.000 ₺ olmalı.")

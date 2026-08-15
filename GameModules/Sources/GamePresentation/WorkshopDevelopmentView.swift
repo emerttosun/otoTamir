@@ -8,9 +8,63 @@ struct WorkshopDevelopmentView: View {
     var body: some View {
         VStack(spacing: 12) {
             shopCard
+            washCard
             masteryCard
         }
         .padding(.horizontal, 12)
+    }
+
+    private var washCard: some View {
+        VStack(alignment: .leading, spacing: 11) {
+            HStack {
+                Label("Yıkama Bölümü", systemImage: "drop.fill").font(.headline)
+                Spacer()
+                Text(store.state.washLevel == 0 ? "KAPALI" : "SEVİYE \(store.state.washLevel)")
+                    .font(.caption2.bold())
+                    .foregroundStyle(store.state.washLevel == 0 ? Color.secondary : Color.blue)
+            }
+
+            HStack(spacing: 8) {
+                ForEach(store.catalog.washLevels) { level in
+                    VStack(spacing: 4) {
+                        Image(systemName: level.id <= store.state.washLevel ? "drop.circle.fill" : "drop.circle")
+                            .font(.title3)
+                        Text("Sv. \(level.id)").font(.caption2.bold())
+                    }
+                    .foregroundStyle(level.id <= store.state.washLevel ? Color.blue : Color.secondary)
+                    .frame(maxWidth: .infinity)
+                }
+            }
+
+            if let current = WashBayRules.currentDefinition(for: store.state, catalog: store.catalog) {
+                Text(current.name).font(.subheadline.bold())
+                Text("\(current.detail) • \(current.durationMinutes) dk • kullanım \(current.washCost.liraText)")
+                    .font(.caption).foregroundStyle(.secondary)
+            } else {
+                Text("Teslimden önce araç yıkama henüz açık değil.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+
+            if let next = WashBayRules.nextDefinition(for: store.state, catalog: store.catalog) {
+                Divider().overlay(.white.opacity(0.12))
+                Text("SIRADAKİ: \(next.name.uppercased())")
+                    .font(.caption2.bold()).foregroundStyle(GarageStyle.orange)
+                Text(next.detail).font(.caption)
+                if store.state.shopLevel < next.requiredShopLevel {
+                    Label("Dükkân Seviye \(next.requiredShopLevel) gerekli", systemImage: "lock.fill")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+                Button("Yıkamayı Geliştir • \(next.upgradeCost.liraText)") {
+                    store.send(.upgradeWashBay)
+                }
+                .buttonStyle(ActionButtonStyle(tint: .blue))
+                .disabled(store.state.shopLevel < next.requiredShopLevel)
+            } else {
+                Label("Yıkama bölümü en yüksek seviyede", systemImage: "checkmark.seal.fill")
+                    .font(.subheadline).foregroundStyle(GarageStyle.mint)
+            }
+        }
+        .garageCard()
     }
 
     private var shopCard: some View {

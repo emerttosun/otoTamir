@@ -41,13 +41,13 @@ Sistem uyarısı veya ayrı iPhone penceresi açılmaz; oyunlar dükkân ekranı
 
 - Seviye 1: temel lift ve tek araç kapasitesi.
 - Seviye 2: ikinci lift, oturma alanı, yıllık bakım ve ilk çırak tezgâhı.
-- Seviye 3: yıkama alanı ve parça deposu.
+- Dükkân Seviye 3'te bağımsız yıkama gelişimi açılır. Yıkama Seviye 1 temel dış yıkama, Seviye 2 iç-dış detaylı temizlik, Seviye 3 premium teslim sunar; ilerledikçe işlem süresi ve sarf maliyeti düşer, güven katkısı artar.
 - Seviye 4: üç araç kapasitesi, ikinci çırak ve kontrolleri hızlandıran teşhis laboratuvarı.
 - Seviye 5: hasarlı araç restorasyon giderini azaltan kaporta-boya kabini.
 - Seviye 6: dört araç kapasitesi, detaylı temizlik ve üçüncü çırak.
 - Seviye 7: beş araç kapasitesi, dört çırak ve ilan satış ihtimalini yükselten araç vitrini.
 
-Çırak tamir veya tek bir bakım adımına atanabilir. Başlangıçta ustadan daha düşük ve değişken performans gösterir; tamamladığı işlerden XP kazanıp seviye atlar. Araç, fiyat söylenmeden önce yıkanabilir; yıkama maliyet üretir fakat müşteri memnuniyetine katkı sağlar.
+Çırak tamir veya tek bir bakım adımına atanabilir. Başlangıçta ustadan daha düşük ve değişken performans gösterir; tamamladığı işlerden XP kazanıp seviye atlar. Araç, fiyat söylenmeden önce mevcut yıkama seviyesinde temizlenebilir; o seviyenin sarf maliyetini ve süresini kullanır, temiz teslim seviyesine göre güven kazandırır.
 
 ## Ağır hasarlı araç raporu
 

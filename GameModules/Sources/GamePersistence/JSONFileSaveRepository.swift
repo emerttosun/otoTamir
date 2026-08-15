@@ -106,6 +106,12 @@ enum SaveMigrator {
         if state.schemaVersion < 9 {
             state.schemaVersion = 9
         }
+        if state.schemaVersion < 10 {
+            if state.shopLevel >= 3, state.washLevel == 0 {
+                state.washLevel = 1
+            }
+            state.schemaVersion = 10
+        }
         return state
     }
 }
