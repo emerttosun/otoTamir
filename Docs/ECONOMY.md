@@ -2,7 +2,8 @@
 
 Bütün tutarlar kuruş cinsinden `Int64` olarak saklanır. Başlangıç değerleri `catalog.json` içindeki balance bölümündedir.
 
-- Parça maliyeti: çıkma `%55`, yan sanayi `%100`, orijinal `%140`.
+- Normal tamir parçası maliyeti: çıkma `%55`, yan sanayi `%100`, orijinal `%140`.
+- Bakım sarflarında çıkma ürün bulunmaz: ekonomik `%85`, standart `%100`, premium `%135` kullanılır. Kayıt uyumluluğu için bu seçenekler içeride aynı üç kalite kimliğini korur, oyuncuya hizmete uygun adla gösterilir.
 - Yıllık bakımda motor yağı, yağ filtresi, hava filtresi, polen filtresi, antifriz ve fren hidroliği ayrı katalog kayıtlarıdır. Her kaydın kendi taban fiyatı vardır.
 - Bakım görevi hangi parçaları değiştirdiğini ve kendi işçilik değerini katalogda belirtir. Akü ölçümü ile lastik/fren kontrolü yalnız kontrol bedeli üretir; otomatik parça bedeli eklemez.
 - Bakım parça alış tutarı, seçili görevlerin benzersiz parçalarının taban fiyat toplamına kalite katsayısı uygulanarak hesaplanır. Parça deposu varsa sonuç ayrıca `%10` azalır.

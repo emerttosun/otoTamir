@@ -397,7 +397,7 @@ private struct JobCard: View {
                 } label: {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack(alignment: .firstTextBaseline, spacing: 10) {
-                            Text(quality.title)
+                            Text(quality.title(for: qualityProfile))
                                 .font(.subheadline.bold())
                                 .lineLimit(1)
                             Spacer()
@@ -407,7 +407,7 @@ private struct JobCard: View {
                                 .minimumScaleFactor(0.8)
                                 .fixedSize(horizontal: true, vertical: false)
                         }
-                        Text(quality.detail)
+                        Text(quality.detail(for: qualityProfile))
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.leading)
@@ -584,8 +584,13 @@ private struct JobCard: View {
         return PartPricingRules.purchasePrice(
             baseCost: baseCost,
             quality: quality,
+            profile: qualityProfile,
             hasPartsStorage: hasPartsStorage
         )
+    }
+
+    private var qualityProfile: PartQualityProfile {
+        job.serviceKind == .periodicMaintenance ? .maintenanceSupply : .replacementPart
     }
 
     private var maintenanceParts: [PartDefinition] {

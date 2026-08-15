@@ -53,12 +53,12 @@
     { "id": "body_paint", "name": "Lokal Boya", "area": "body", "complaint": "Sürtme izi sacı açmış, paslanmadan toplansın.", "complaintVariants": ["Kapıdaki çizik tırnağa takılıyor; pasta kurtarmadı.", "Boya kalkmış ama göçük yok, rengi de yamalı durmasın."], "clues": ["Hasar astar altına geçmiş", "Sac düz", "Renk geçişi gerekiyor"], "inspectionFindings": { "visual": "Kapı yüzeyindeki çizik astarı geçmiş, sacda yüzeysel oksit başlamış.", "lift": "Panel ve kapı bağlantıları düz; yalnız yüzey işlemi gerekiyor." }, "partName": "astar, baz boya ve vernik seti", "basePartCost": { "minorUnits": 420000 }, "laborValue": { "minorUnits": 760000 }, "requiredSkill": 4, "repairGame": "paintLayers" }
   ],
   "parts": [
-    { "id": "engine_oil_4l", "name": "Motor Yağı (4 L)", "category": "lubricant", "basePrice": { "minorUnits": 240000 } },
-    { "id": "oil_filter", "name": "Yağ Filtresi", "category": "filter", "basePrice": { "minorUnits": 45000 } },
-    { "id": "air_filter", "name": "Hava Filtresi", "category": "filter", "basePrice": { "minorUnits": 65000 } },
-    { "id": "cabin_filter", "name": "Polen Filtresi", "category": "filter", "basePrice": { "minorUnits": 75000 } },
-    { "id": "coolant_3l", "name": "Antifriz (3 L)", "category": "fluid", "basePrice": { "minorUnits": 90000 } },
-    { "id": "brake_fluid_1l", "name": "Fren Hidroliği (1 L)", "category": "fluid", "basePrice": { "minorUnits": 60000 } }
+    { "id": "engine_oil_4l", "name": "Motor Yağı (4 L)", "category": "lubricant", "basePrice": { "minorUnits": 240000 }, "qualityProfile": "maintenanceSupply" },
+    { "id": "oil_filter", "name": "Yağ Filtresi", "category": "filter", "basePrice": { "minorUnits": 45000 }, "qualityProfile": "maintenanceSupply" },
+    { "id": "air_filter", "name": "Hava Filtresi", "category": "filter", "basePrice": { "minorUnits": 65000 }, "qualityProfile": "maintenanceSupply" },
+    { "id": "cabin_filter", "name": "Polen Filtresi", "category": "filter", "basePrice": { "minorUnits": 75000 }, "qualityProfile": "maintenanceSupply" },
+    { "id": "coolant_3l", "name": "Antifriz (3 L)", "category": "fluid", "basePrice": { "minorUnits": 90000 }, "qualityProfile": "maintenanceSupply" },
+    { "id": "brake_fluid_1l", "name": "Fren Hidroliği (1 L)", "category": "fluid", "basePrice": { "minorUnits": 60000 }, "qualityProfile": "maintenanceSupply" }
   ],
   "maintenanceServices": [
     { "task": "oilAndFilter", "partIDs": ["engine_oil_4l", "oil_filter"], "laborValue": { "minorUnits": 150000 } },

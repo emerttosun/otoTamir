@@ -91,6 +91,16 @@ struct WorkshopDevelopmentView: View {
                             .font(.caption2).foregroundStyle(GarageStyle.mint)
                     }
                 }
+
+                if current.facilities.contains(.partsStorage) {
+                    Label("Parça deposu açık • bütün parça alışlarında %10 esnaf indirimi", systemImage: "shippingbox.fill")
+                        .font(.caption)
+                        .foregroundStyle(GarageStyle.mint)
+                } else {
+                    Label("Parça deposu Düzenli Atölye (Seviye 3) ile açılır", systemImage: "shippingbox")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
 
             if let next = store.catalog.shopLevel(store.state.shopLevel + 1) {

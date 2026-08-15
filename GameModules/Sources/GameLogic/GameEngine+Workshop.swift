@@ -87,6 +87,7 @@ extension GameEngine {
         let partName: String
         let faultID: String
         let baseCost: Money
+        let qualityProfile: PartQualityProfile
         if job.serviceKind == .periodicMaintenance {
             let parts = PartPricingRules.maintenanceParts(for: job.maintenanceTasks, catalog: catalog)
             guard !parts.isEmpty else {
@@ -95,10 +96,12 @@ extension GameEngine {
             partName = parts.map(\.name).joined(separator: ", ")
             faultID = "periodic_maintenance"
             baseCost = PartPricingRules.maintenanceBasePartCost(for: job.maintenanceTasks, catalog: catalog)
+            qualityProfile = .maintenanceSupply
         } else if let diagnosedID = job.diagnosedFaultID, let fault = catalog.fault(id: diagnosedID) {
             partName = fault.partName
             faultID = diagnosedID
             baseCost = fault.basePartCost
+            qualityProfile = .replacementPart
         } else {
             throw GameRuleError.invalidCommand("Önce doğru teşhisi koymalısın.")
         }
@@ -106,6 +109,7 @@ extension GameEngine {
         let cost = PartPricingRules.purchasePrice(
             baseCost: baseCost,
             quality: quality,
+            profile: qualityProfile,
             hasPartsStorage: supports(.partsStorage)
         )
         let creditLimit = Money(minorUnits: -1_000_000)
@@ -124,10 +128,13 @@ extension GameEngine {
         recordFinance(
             amount: Money(minorUnits: -cost.minorUnits),
             category: .parts,
-            note: "\(quality.title) \(partName)"
+            note: "\(quality.title(for: qualityProfile)) \(partName)"
         )
         var events = advanceClock(by: 30)
-        events.append(.moneyChanged(Money(minorUnits: -cost.minorUnits), reason: "\(quality.title) \(partName)"))
+        events.append(.moneyChanged(
+            Money(minorUnits: -cost.minorUnits),
+            reason: "\(quality.title(for: qualityProfile)) \(partName)"
+        ))
         return events
     }
 

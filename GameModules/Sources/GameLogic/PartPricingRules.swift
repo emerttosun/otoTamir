@@ -32,9 +32,10 @@ public enum PartPricingRules {
     public static func purchasePrice(
         baseCost: Money,
         quality: PartQuality,
+        profile: PartQualityProfile,
         hasPartsStorage: Bool
     ) -> Money {
-        var price = percent(baseCost, quality.costPercent)
+        var price = percent(baseCost, quality.costPercent(for: profile))
         if hasPartsStorage {
             price = percent(price, 90)
         }

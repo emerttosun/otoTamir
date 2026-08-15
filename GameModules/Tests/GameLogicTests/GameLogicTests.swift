@@ -145,6 +145,7 @@ struct GameLogicTests {
                 catalog: catalog
             ),
             quality: .aftermarket,
+            profile: .maintenanceSupply,
             hasPartsStorage: false
         )
         try engine.handle(.buyPart(jobID: id, quality: .aftermarket))
@@ -170,13 +171,17 @@ struct GameLogicTests {
         #expect(PartPricingRules.purchasePrice(
             baseCost: Money(minorUnits: 575_000),
             quality: .original,
+            profile: .maintenanceSupply,
             hasPartsStorage: false
-        ) == Money(minorUnits: 805_000))
+        ) == Money(minorUnits: 776_250))
         #expect(PartPricingRules.purchasePrice(
             baseCost: Money(minorUnits: 575_000),
             quality: .original,
+            profile: .maintenanceSupply,
             hasPartsStorage: true
-        ) == Money(minorUnits: 724_500))
+        ) == Money(minorUnits: 698_625))
+        #expect(PartQuality.used.title(for: .maintenanceSupply) == "Ekonomik")
+        #expect(PartQuality.used.title(for: .replacementPart) == "Çıkma")
     }
 
     @Test("Hasarlı araç pazarı sabit fiyat ve tam ekspertiz raporuyla satın alınır")
