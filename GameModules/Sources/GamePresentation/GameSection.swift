@@ -46,7 +46,7 @@ enum GameSection: String, CaseIterable, Identifiable {
         case .progress:
             "Dükkânı geliştir; motor, elektrik, yürüyen ve kaporta ustalığını, puanını, yorumları ve Olay Defteri'ni takip et."
         case .apprentices:
-            "Dükkânda tezgâh açıldığında çırak al. Tamir veya bakım adımı verdikçe çırak tecrübe kazanır."
+            "Çırak ilanı verip adayları değerlendir. İş ve yıkama verdikçe alan seviyeleri, mutluluğu ve zamanla tanıdığın kişisel özellikleri gelişir."
         case .bank:
             "Dükkân puanı ve güvene bağlı limitten araç yatırım kredisi kullan; faiz, taksit ve kalan borcu buradan izle."
         case .store:

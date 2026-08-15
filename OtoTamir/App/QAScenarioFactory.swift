@@ -207,7 +207,27 @@ enum QAScenarioFactory {
     private static func apprenticeRecruitmentState(catalog: ContentCatalog) throws -> GameState {
         var state = baseState(catalog: catalog, seed: 123)
         state.shopLevel = 4
-        state.apprentices = []
+        state.apprentices = [Apprentice(
+            id: UUID(uuidString: "00000000-0000-0000-0000-000000000701")!,
+            name: "Mert",
+            level: 2,
+            experience: 45,
+            background: .vocationalHighSchool,
+            expertise: [
+                .engine: SkillProgress(level: 2, experience: 35),
+                .electrical: SkillProgress(level: 1, experience: 70),
+                .chassis: SkillProgress(level: 1, experience: 40),
+                .body: SkillProgress(level: 1, experience: 15)
+            ],
+            traits: [.hardworking, .entrepreneurial],
+            revealedTraits: [.hardworking, .entrepreneurial],
+            happiness: 62,
+            hiredAtMinute: state.totalMinutes - 8 * 1_440,
+            jobsCompleted: 8,
+            washesCompleted: 3,
+            customerFans: Set(catalog.customers.prefix(2).map(\.id)),
+            departureWarningMinute: state.totalMinutes
+        )]
         var engine = GameEngine(state: state, catalog: catalog)
         try engine.handle(.postApprenticeAd)
         try engine.handle(.checkApprenticeApplications)
