@@ -106,6 +106,24 @@ struct ProjectCarCard: View {
                 .font(.caption2)
                 .foregroundStyle(project.disclosedDamage ? GarageStyle.mint : GarageStyle.danger)
             RestoredBodyHistoryView(project: project)
+            Divider().overlay(.white.opacity(0.12))
+            Text("ALICI TEKLİFLERİ")
+                .font(.caption2.weight(.black))
+                .foregroundStyle(GarageStyle.orange)
+            if project.buyerOffers.isEmpty {
+                Text("Henüz ciddi teklif yok. Aşağıdaki düğmeyle yeni alıcıları kontrol edebilirsin.")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(project.buyerOffers) { offer in
+                    VehicleBuyerOfferCard(
+                        projectID: project.id,
+                        askingPrice: price,
+                        offer: offer,
+                        send: send
+                    )
+                }
+            }
             Button("İlanı Geri Çek") {
                 send(.cancelProjectListing(projectID: project.id))
             }

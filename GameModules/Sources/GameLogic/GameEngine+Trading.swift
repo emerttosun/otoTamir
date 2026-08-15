@@ -158,6 +158,7 @@ extension GameEngine {
         state.projectCars[index].disclosedDamage = discloseDamage
         state.projectCars[index].listedAtMinute = state.totalMinutes
         state.projectCars[index].nextBuyerCheckMinute = state.totalMinutes + 180
+        state.projectCars[index].buyerOffers = []
         return [
             .moneyChanged(Money(minorUnits: -VehicleTradingRules.listingFee.minorUnits), reason: "Araç ilanı"),
             .projectCarListed(price: askingPrice, saleChance: estimate.saleChancePercent)
@@ -173,25 +174,24 @@ extension GameEngine {
         state.projectCars[index].askingPrice = nil
         state.projectCars[index].listedAtMinute = nil
         state.projectCars[index].nextBuyerCheckMinute = nil
+        state.projectCars[index].buyerOffers = []
         return [.projectListingExpired(projectID)]
     }
 
     mutating func processVehicleListings() -> [GameEvent] {
         var events: [GameEvent] = []
         var random = SeededRandomSource(seed: state.randomSeed)
-        var index = 0
-        while index < state.projectCars.count {
+        for index in state.projectCars.indices {
             guard state.projectCars[index].stage == .listed,
                   let askingPrice = state.projectCars[index].askingPrice,
                   let vehicle = catalog.vehicle(id: state.projectCars[index].vehicleID),
                   var nextCheck = state.projectCars[index].nextBuyerCheckMinute,
                   nextCheck <= state.totalMinutes else {
-                index += 1
                 continue
             }
 
-            var sold = false
-            while nextCheck <= state.totalMinutes, !sold {
+            var receivedCount = 0
+            while nextCheck <= state.totalMinutes, state.projectCars[index].buyerOffers.count < 4 {
                 let estimate = VehicleTradingRules.listingEstimate(
                     project: state.projectCars[index],
                     vehicle: vehicle,
@@ -200,53 +200,158 @@ extension GameEngine {
                     hasShowroom: supports(.vehicleShowroom),
                     discloseDamage: state.projectCars[index].disclosedDamage
                 )
-                sold = random.next(upperBound: 100) < estimate.saleChancePercent
+                if random.next(upperBound: 100) < estimate.saleChancePercent,
+                   let offer = makeBuyerOffer(
+                       project: state.projectCars[index],
+                       vehicle: vehicle,
+                       askingPrice: askingPrice,
+                       random: &random
+                   ) {
+                    state.projectCars[index].buyerOffers.append(offer)
+                    receivedCount += 1
+                }
                 nextCheck += 360
             }
 
-            if sold {
-                let project = state.projectCars[index]
-                state.cash = state.cash + askingPrice
-                recordFinance(amount: askingPrice, category: .vehicleSale, note: vehicle.name)
-                if project.disclosedDamage {
-                    state.reputation.trust += 3
-                } else {
-                    state.reputation.suspicion += 8
-                    if project.restorationQuality < 85 {
-                        state.consequences.append(ScheduledConsequence(
-                            id: random.nextUUID(),
-                            dueDay: state.day + 2,
-                            kind: .complaint,
-                            amount: percent(askingPrice, 15),
-                            message: "İlanda ağır hasar geçmişi saklanan aracın alıcısı ekspertiz raporuyla geri döndü; uzlaşma bedeli çıktı."
-                        ))
-                    }
-                }
-                state.reputation.clamp()
-                recordIncident(
-                    kind: .vehicleSale,
-                    message: project.disclosedDamage
-                        ? "\(vehicle.name), hasar geçmişi alıcıya anlatılarak \(askingPrice.liraText) bedelle satıldı."
-                        : "\(vehicle.name), hasar geçmişi saklanarak \(askingPrice.liraText) bedelle satıldı; sonradan geri dönüş riski oluştu.",
-                    cashImpact: askingPrice,
-                    trustImpact: project.disclosedDamage ? 3 : 0,
-                    suspicionImpact: project.disclosedDamage ? 0 : 8
-                )
-                state.projectCars.remove(at: index)
-                events.append(.projectCarSold(price: askingPrice, honest: project.disclosedDamage))
-                events.append(.reputationChanged(state.reputation))
-            } else {
-                state.projectCars[index].nextBuyerCheckMinute = nextCheck
+            state.projectCars[index].nextBuyerCheckMinute = nextCheck
+            if receivedCount > 0 {
                 recordIncident(
                     kind: .listing,
-                    message: "\(vehicle.name) ilanı bu alıcı kontrolünde satılmadı; fiyat değiştirilebilir veya yeni alıcı beklenebilir."
+                    message: "\(vehicle.name) ilanına \(receivedCount) yeni alıcı teklifi geldi. Satış için ustanın onayı bekleniyor."
+                )
+                events.append(.buyerOffersReceived(
+                    projectID: state.projectCars[index].id,
+                    count: receivedCount
+                ))
+            } else {
+                recordIncident(
+                    kind: .listing,
+                    message: "\(vehicle.name) ilanına bu kontrolde ciddi teklif gelmedi; ilan yayında kalıyor."
                 )
                 events.append(.projectListingExpired(state.projectCars[index].id))
-                index += 1
             }
         }
         state.randomSeed = random.state
         return events
+    }
+
+    mutating func acceptVehicleOffer(projectID: UUID, offerID: UUID) throws -> [GameEvent] {
+        guard let projectIndex = state.projectCars.firstIndex(where: { $0.id == projectID }),
+              state.projectCars[projectIndex].stage == .listed,
+              let offer = state.projectCars[projectIndex].buyerOffers.first(where: { $0.id == offerID }) else {
+            throw GameRuleError.invalidCommand("Bu alıcı teklifi artık geçerli değil.")
+        }
+        var random = SeededRandomSource(seed: state.randomSeed)
+        let events = finalizeProjectSale(at: projectIndex, price: offer.amount, random: &random)
+        state.randomSeed = random.state
+        return events
+    }
+
+    mutating func rejectVehicleOffer(projectID: UUID, offerID: UUID) throws -> [GameEvent] {
+        guard let projectIndex = state.projectCars.firstIndex(where: { $0.id == projectID }),
+              state.projectCars[projectIndex].stage == .listed,
+              let offerIndex = state.projectCars[projectIndex].buyerOffers.firstIndex(where: { $0.id == offerID }) else {
+            throw GameRuleError.invalidCommand("Bu alıcı teklifi artık geçerli değil.")
+        }
+        let buyerName = state.projectCars[projectIndex].buyerOffers[offerIndex].buyerName
+        state.projectCars[projectIndex].buyerOffers.remove(at: offerIndex)
+        return [.buyerOfferRejected(name: buyerName)]
+    }
+
+    mutating func negotiateVehicleOffer(
+        projectID: UUID,
+        offerID: UUID,
+        counterOffer: Money
+    ) throws -> [GameEvent] {
+        guard let projectIndex = state.projectCars.firstIndex(where: { $0.id == projectID }),
+              state.projectCars[projectIndex].stage == .listed,
+              let offerIndex = state.projectCars[projectIndex].buyerOffers.firstIndex(where: { $0.id == offerID }),
+              let askingPrice = state.projectCars[projectIndex].askingPrice else {
+            throw GameRuleError.invalidCommand("Bu alıcı teklifi artık geçerli değil.")
+        }
+        let offer = state.projectCars[projectIndex].buyerOffers[offerIndex]
+        guard counterOffer > offer.amount, counterOffer <= askingPrice else {
+            throw GameRuleError.invalidCommand("Karşı teklif, alıcının teklifinden yüksek ve ilan fiyatını aşmayacak şekilde olmalı.")
+        }
+
+        if counterOffer <= offer.maximumAmount {
+            state.projectCars[projectIndex].buyerOffers[offerIndex].amount = counterOffer
+            state.projectCars[projectIndex].buyerOffers[offerIndex].negotiationCount += 1
+            return [.buyerNegotiationUpdated(name: offer.buyerName, price: counterOffer)]
+        }
+
+        let nearLimit = percent(offer.maximumAmount, 103)
+        if counterOffer <= nearLimit {
+            state.projectCars[projectIndex].buyerOffers[offerIndex].amount = offer.maximumAmount
+            state.projectCars[projectIndex].buyerOffers[offerIndex].negotiationCount += 1
+            return [.buyerNegotiationUpdated(name: offer.buyerName, price: offer.maximumAmount)]
+        }
+
+        state.projectCars[projectIndex].buyerOffers.remove(at: offerIndex)
+        return [.buyerWalkedAway(name: offer.buyerName)]
+    }
+
+    private func makeBuyerOffer(
+        project: ProjectCar,
+        vehicle: VehicleDefinition,
+        askingPrice: Money,
+        random: inout SeededRandomSource
+    ) -> VehicleBuyerOffer? {
+        let usedNames = Set(project.buyerOffers.map(\.buyerName))
+        let candidates = catalog.customers.filter { !usedNames.contains($0.name) }
+        guard !candidates.isEmpty else { return nil }
+        let buyer = candidates[random.next(upperBound: candidates.count)]
+        let fairPrice = VehicleTradingRules.fairPrice(project: project, vehicle: vehicle)
+        let maximumFromBudget = percent(fairPrice, 88 + random.next(upperBound: 21))
+        let maximum = min(askingPrice, maximumFromBudget)
+        let opening = percent(maximum, 90 + random.next(upperBound: 7))
+        return VehicleBuyerOffer(
+            id: random.nextUUID(),
+            buyerName: buyer.name,
+            amount: opening,
+            maximumAmount: maximum,
+            createdAtMinute: state.totalMinutes
+        )
+    }
+
+    private mutating func finalizeProjectSale(
+        at projectIndex: Int,
+        price: Money,
+        random: inout SeededRandomSource
+    ) -> [GameEvent] {
+        let project = state.projectCars[projectIndex]
+        let vehicleName = catalog.vehicle(id: project.vehicleID)?.name ?? "Proje araç"
+        state.cash = state.cash + price
+        recordFinance(amount: price, category: .vehicleSale, note: vehicleName)
+        if project.disclosedDamage {
+            state.reputation.trust += 3
+        } else {
+            state.reputation.suspicion += 8
+            if project.restorationQuality < 85 {
+                state.consequences.append(ScheduledConsequence(
+                    id: random.nextUUID(),
+                    dueDay: state.day + 2,
+                    kind: .complaint,
+                    amount: percent(price, 15),
+                    message: "İlanda ağır hasar geçmişi saklanan aracın alıcısı ekspertiz raporuyla geri döndü; uzlaşma bedeli çıktı."
+                ))
+            }
+        }
+        state.reputation.clamp()
+        recordIncident(
+            kind: .vehicleSale,
+            message: project.disclosedDamage
+                ? "\(vehicleName), hasar geçmişi alıcıya anlatılarak \(price.liraText) bedelle satıldı."
+                : "\(vehicleName), hasar geçmişi saklanarak \(price.liraText) bedelle satıldı; sonradan geri dönüş riski oluştu.",
+            cashImpact: price,
+            trustImpact: project.disclosedDamage ? 3 : 0,
+            suspicionImpact: project.disclosedDamage ? 0 : 8
+        )
+        state.projectCars.remove(at: projectIndex)
+        return [
+            .projectCarSold(price: price, honest: project.disclosedDamage),
+            .reputationChanged(state.reputation)
+        ]
     }
 
     mutating func makeAuction() -> AuctionState {

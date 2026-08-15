@@ -207,6 +207,14 @@ public final class GameStore: ObservableObject {
             bannerMessage = "İlan \(price.liraText) fiyatla yayında. İlk alıcı kontrolündeki tahmini satış ihtimali %\(chance)."
         case .projectListingExpired:
             bannerMessage = "İlanı görenler oldu ama bu kontrolde ciddi bir alıcı çıkmadı. Fiyatı değiştirebilir veya bekleyebilirsin."
+        case .buyerOffersReceived(_, let count):
+            bannerMessage = "İlana \(count) yeni teklif geldi. Kabul edebilir, reddedebilir veya pazarlık yapabilirsin."
+        case .buyerOfferRejected(let name):
+            bannerMessage = "\(name) adlı alıcının teklifi reddedildi."
+        case .buyerNegotiationUpdated(let name, let price):
+            bannerMessage = "\(name) pazarlıkta \(price.liraText) bedeli kabul etti. Satış için son karar sende."
+        case .buyerWalkedAway(let name):
+            bannerMessage = "Karşı teklif \(name) için yüksek kaldı; alıcı pazarlıktan çekildi."
         case .loanTaken(let amount, let total):
             bannerMessage = "Bankadan \(amount.liraText) geldi. Vade sonunda toplam geri ödeme \(total.liraText)."
         case .loanInstallmentPaid(let amount, let remaining):

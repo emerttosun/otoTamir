@@ -20,6 +20,9 @@ public enum GameCommand: Sendable {
     case listProjectCar(projectID: UUID, askingPrice: Money, discloseDamage: Bool)
     case cancelProjectListing(projectID: UUID)
     case checkVehicleListings
+    case acceptVehicleOffer(projectID: UUID, offerID: UUID)
+    case rejectVehicleOffer(projectID: UUID, offerID: UUID)
+    case negotiateVehicleOffer(projectID: UUID, offerID: UUID, counterOffer: Money)
     case takeLoan(amount: Money, plan: LoanPlan)
     case grantPurchase(transactionID: String, cash: Money?, themeID: String?)
 }
@@ -50,6 +53,10 @@ public enum GameEvent: Equatable, Sendable {
     case projectRepairCompleted(projectID: UUID, task: ProjectRepairTask)
     case projectCarListed(price: Money, saleChance: Int)
     case projectListingExpired(UUID)
+    case buyerOffersReceived(projectID: UUID, count: Int)
+    case buyerOfferRejected(name: String)
+    case buyerNegotiationUpdated(name: String, price: Money)
+    case buyerWalkedAway(name: String)
     case projectCarSold(price: Money, honest: Bool)
     case loanTaken(amount: Money, totalRepayment: Money)
     case loanInstallmentPaid(amount: Money, remainingBalance: Money)

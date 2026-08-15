@@ -21,7 +21,7 @@
 
 - `Money.swift`: Kuruş tabanlı güvenli para değerini ve Türk lirası gösterimini sağlar.
 - `ContentModels.swift`: JSON'dan gelen araç, kontrol bulgusu, arıza, müşteri, yorum, dükkân kabiliyeti ve ayrıntılı gider dengelerini tanımlar.
-- `GameModels.swift`: Sürüm 8 `GameState` kayıt kökünü ve eylem tabanlı zaman gösterimini tanımlar.
+- `GameModels.swift`: Sürüm 9 `GameState` kayıt kökünü ve eylem tabanlı zaman gösterimini tanımlar.
 - `RepairModels.swift`: Müşteri teklifi, iş emri, parça kalitesi, bakım, ustalık ve itibar modellerini toplar.
 - `ApprenticeModels.swift`: Çırak seviyesi ve deneyim ilerlemesini tanımlar.
 - `FinanceModels.swift`: Kredi, kasa hareketi, yorum, envanter ve gecikmeli sonuç modellerini tanımlar.
@@ -60,6 +60,7 @@
 - `AuctionView.swift`: Sabit ihale bedelli ağır hasarlı araçları, ayrıntılı ekspertiz ve yatırım hesabını ve satın alma akışını sunar.
 - `VehicleInspectionDiagram.swift`: Hasarlı veya eksik dış parçaları sade üstten 2B kaporta şemasında; şasi, podye, kule, direk, panel ve bagaj havuzunu ayrı metin satırlarında ve VoiceOver özetiyle gösterir.
 - `RestoredBodyHistoryView.swift`: İlan hazırlığında ve yayındaki ilanda restorasyon sonrası boyalı/değişen parçaları, yapısal onarımları ve airbag geçmişini açılır bölümde gösterir.
+- `VehicleBuyerOfferCard.swift`: Gelen araç teklifini kabul etme, reddetme ve alıcının bütçesine karşı fiyatla pazarlık yapma arayüzünü sunar.
 - `ProjectCarCard.swift`: Restorasyonu tamamlanan proje aracının ilan hazırlama ve yayındaki ilan durumlarını gösterir.
 - `ProjectRestorationCard.swift`: İhale aracının mekanik, kaporta, taşıyıcı yapı ve güvenlik eksiklerini ayrı maliyet ve mini oyun görevleri halinde gösterir.
 - `ListingsView.swift`: Restorasyonu tamamlanan araçların fiyatlandırıldığı ve yayındaki alıcıların kontrol edildiği bağımsız ilan alanıdır.

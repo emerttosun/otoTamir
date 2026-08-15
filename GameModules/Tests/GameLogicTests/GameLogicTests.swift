@@ -320,7 +320,7 @@ struct GameLogicTests {
         #expect(fairEstimate.saleChancePercent > expensiveEstimate.saleChancePercent)
     }
 
-    @Test("Proje araç doğrudan satılmaz; fiyat belirlenip ilana konur ve alıcı bekler")
+    @Test("Alıcı kontrolü aracı satmaz; teklif oyuncunun onayını bekler")
     func projectCarListingFlow() throws {
         let catalog = try DefaultContentRepository().load()
         let vehicle = catalog.vehicles[0]
@@ -344,11 +344,62 @@ struct GameLogicTests {
         #expect(engine.state.financeEntries.last?.category == .listingFee)
 
         for _ in 0..<10 {
-            if engine.state.projectCars.isEmpty { break }
+            if engine.state.projectCars.first?.buyerOffers.isEmpty == false { break }
             try engine.handle(.checkVehicleListings)
         }
+        let offer = try #require(engine.state.projectCars.first?.buyerOffers.first)
+        #expect(engine.state.projectCars.count == 1)
+        #expect(!engine.state.financeEntries.contains { $0.category == .vehicleSale })
+
+        try engine.handle(.acceptVehicleOffer(projectID: project.id, offerID: offer.id))
         #expect(engine.state.projectCars.isEmpty)
         #expect(engine.state.financeEntries.contains { $0.category == .vehicleSale })
+    }
+
+    @Test("Pazarlık alıcının gizli limitine yakınsa karşı teklif üretir, çok yüksekse alıcı çekilir")
+    func vehicleOfferNegotiationUsesBuyerLimit() throws {
+        let catalog = try DefaultContentRepository().load()
+        let vehicle = catalog.vehicles[0]
+        var state = GameState(startingCash: Money(minorUnits: 100_000_000), daySlots: 8)
+        var project = ProjectCar(
+            id: UUID(),
+            vehicleID: vehicle.id,
+            faultIDs: [],
+            purchasePrice: Money(minorUnits: 5_000_000)
+        )
+        project.stage = .listed
+        project.askingPrice = Money(minorUnits: 10_000_000)
+        let nearOffer = VehicleBuyerOffer(
+            id: UUID(),
+            buyerName: "Pazarlıkçı alıcı",
+            amount: Money(minorUnits: 8_000_000),
+            maximumAmount: Money(minorUnits: 9_000_000),
+            createdAtMinute: state.totalMinutes
+        )
+        let lowBudgetOffer = VehicleBuyerOffer(
+            id: UUID(),
+            buyerName: "Temkinli alıcı",
+            amount: Money(minorUnits: 7_000_000),
+            maximumAmount: Money(minorUnits: 8_000_000),
+            createdAtMinute: state.totalMinutes
+        )
+        project.buyerOffers = [nearOffer, lowBudgetOffer]
+        state.projectCars = [project]
+        var engine = GameEngine(state: state, catalog: catalog)
+
+        try engine.handle(.negotiateVehicleOffer(
+            projectID: project.id,
+            offerID: nearOffer.id,
+            counterOffer: Money(minorUnits: 9_200_000)
+        ))
+        #expect(engine.state.projectCars[0].buyerOffers.first { $0.id == nearOffer.id }?.amount == Money(minorUnits: 9_000_000))
+
+        try engine.handle(.negotiateVehicleOffer(
+            projectID: project.id,
+            offerID: lowBudgetOffer.id,
+            counterOffer: Money(minorUnits: 9_000_000)
+        ))
+        #expect(!engine.state.projectCars[0].buyerOffers.contains { $0.id == lowBudgetOffer.id })
     }
 
     @Test("İhale aracı mekanik, kaporta ve güvenlik işleri tek tek bitmeden satışa hazır olmaz")

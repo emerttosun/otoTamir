@@ -55,7 +55,7 @@ Teklif turu bulunmaz. Her araçta sabit alış fiyatı, onarılabilir ağır has
 
 Tam hasarlı ve hurda tescilli araçlar onarım kabul etmediği için oyuncuya satılmaz. Oyun pazarı yalnız onarımı mümkün ağır hasarlı araçları kapsar. Ağır hasar üretiminde onarım maliyetinin araç rayicinin en az %60'ına ulaşması veya kritik yapısal hasar bulunması esas alınır.
 
-Ekspertizde `Usta Hesabı` bölümü; tahmini onarım giderini, alış dahil toplam yatırımı, adil satış bandını ve kötümser/iyimser kâr aralığını gösterir. Bu değer piyasa ve parça belirsizliğini koruyan bir karar desteğidir, kâr garantisi değildir. Restorasyondan sonra oyuncu adil fiyat önerisini görür, ilan fiyatını belirler ve fiyat yükseldikçe düşen tahmini satış ihtimalini izler. Satış anlık değildir; oyun içi eylemler zaman ilerlettikçe alıcı kontrolleri oluşur.
+Ekspertizde `Usta Hesabı` bölümü; tahmini onarım giderini, alış dahil toplam yatırımı, adil satış bandını ve kötümser/iyimser kâr aralığını gösterir. Bu değer piyasa ve parça belirsizliğini koruyan bir karar desteğidir, kâr garantisi değildir. Restorasyondan sonra oyuncu adil fiyat önerisini görür, ilan fiyatını belirler ve fiyat yükseldikçe düşen tahmini satış ihtimalini izler. Alıcı kontrolü aracı otomatik satmaz. İsimli teklifler ilanın altında birikir; oyuncu teklifi kabul eder, reddeder veya ilan fiyatını aşmadan karşı fiyat gönderir. Karşı fiyat alıcının gizli limitine yakınsa alıcı üst sınırıyla pazarlığa devam eder, çok yüksekse çekilir.
 
 ## Banka kredisi
 

@@ -64,6 +64,16 @@ public struct GameEngine: Sendable {
             events = try cancelProjectListing(projectID: projectID)
         case .checkVehicleListings:
             events = advanceClock(by: 180)
+        case .acceptVehicleOffer(let projectID, let offerID):
+            events = try acceptVehicleOffer(projectID: projectID, offerID: offerID)
+        case .rejectVehicleOffer(let projectID, let offerID):
+            events = try rejectVehicleOffer(projectID: projectID, offerID: offerID)
+        case .negotiateVehicleOffer(let projectID, let offerID, let counterOffer):
+            events = try negotiateVehicleOffer(
+                projectID: projectID,
+                offerID: offerID,
+                counterOffer: counterOffer
+            )
         case .takeLoan(let amount, let plan):
             events = try takeLoan(amount: amount, plan: plan)
         case .grantPurchase(let transactionID, let cash, let themeID):

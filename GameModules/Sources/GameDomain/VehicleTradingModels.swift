@@ -247,6 +247,31 @@ public enum ProjectCarStage: String, Codable, Sendable {
     case listed
 }
 
+public struct VehicleBuyerOffer: Codable, Hashable, Identifiable, Sendable {
+    public let id: UUID
+    public let buyerName: String
+    public var amount: Money
+    public let maximumAmount: Money
+    public let createdAtMinute: Int
+    public var negotiationCount: Int
+
+    public init(
+        id: UUID,
+        buyerName: String,
+        amount: Money,
+        maximumAmount: Money,
+        createdAtMinute: Int,
+        negotiationCount: Int = 0
+    ) {
+        self.id = id
+        self.buyerName = buyerName
+        self.amount = amount
+        self.maximumAmount = maximumAmount
+        self.createdAtMinute = createdAtMinute
+        self.negotiationCount = negotiationCount
+    }
+}
+
 public enum ProjectRepairTask: Codable, Hashable, Identifiable, Sendable {
     case mechanical(faultID: String)
     case panel(VehiclePanel)
@@ -281,6 +306,7 @@ public struct ProjectCar: Codable, Hashable, Identifiable, Sendable {
     public var disclosedDamage: Bool
     public var listedAtMinute: Int?
     public var nextBuyerCheckMinute: Int?
+    public var buyerOffers: [VehicleBuyerOffer]
     public var completedRepairTasks: Set<ProjectRepairTask>
     public var restorationScoreTotal: Int
 
@@ -313,6 +339,7 @@ public struct ProjectCar: Codable, Hashable, Identifiable, Sendable {
         disclosedDamage = true
         listedAtMinute = nil
         nextBuyerCheckMinute = nil
+        buyerOffers = []
         completedRepairTasks = []
         restorationScoreTotal = 0
     }
@@ -321,6 +348,7 @@ public struct ProjectCar: Codable, Hashable, Identifiable, Sendable {
         case id, vehicleID, faultIDs, purchasePrice, purchasedAtMinute, stage, restorationQuality, restorationCost
         case panelDamages, structuralDamages, airbagsDeployed, startsAndDrives, recordedDamage
         case askingPrice, disclosedDamage, listedAtMinute, nextBuyerCheckMinute
+        case buyerOffers
         case completedRepairTasks, restorationScoreTotal
     }
 
@@ -344,6 +372,7 @@ public struct ProjectCar: Codable, Hashable, Identifiable, Sendable {
         disclosedDamage = try values.decodeIfPresent(Bool.self, forKey: .disclosedDamage) ?? true
         listedAtMinute = try values.decodeIfPresent(Int.self, forKey: .listedAtMinute)
         nextBuyerCheckMinute = try values.decodeIfPresent(Int.self, forKey: .nextBuyerCheckMinute)
+        buyerOffers = try values.decodeIfPresent([VehicleBuyerOffer].self, forKey: .buyerOffers) ?? []
         completedRepairTasks = try values.decodeIfPresent(Set<ProjectRepairTask>.self, forKey: .completedRepairTasks) ?? []
         restorationScoreTotal = try values.decodeIfPresent(Int.self, forKey: .restorationScoreTotal) ?? 0
     }

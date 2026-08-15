@@ -28,7 +28,7 @@ struct ListingsView: View {
                         Button {
                             store.send(.checkVehicleListings)
                         } label: {
-                            Label("İlanlardaki Alıcıları Kontrol Et", systemImage: "arrow.clockwise.circle.fill")
+                            Label("Yeni Alıcı Tekliflerini Kontrol Et", systemImage: "arrow.clockwise.circle.fill")
                         }
                         .buttonStyle(ActionButtonStyle(tint: GarageStyle.orange))
                         .padding(.horizontal, 12)

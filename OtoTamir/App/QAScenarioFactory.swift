@@ -171,6 +171,9 @@ enum QAScenarioFactory {
             let vehicle = try required(catalog.vehicle(id: project.vehicleID), "QA araç içeriği")
             let fairPrice = VehicleTradingRules.fairPrice(project: project, vehicle: vehicle)
             try engine.handle(.listProjectCar(projectID: project.id, askingPrice: fairPrice, discloseDamage: true))
+            for _ in 0..<10 where engine.state.projectCars.first?.buyerOffers.isEmpty == true {
+                try engine.handle(.checkVehicleListings)
+            }
         }
         var state = engine.state
         state.auction = AuctionState(lots: [])
