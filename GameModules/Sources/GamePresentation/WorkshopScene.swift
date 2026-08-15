@@ -16,6 +16,7 @@ enum WorkshopVehicleSelection: Hashable {
 @MainActor
 public final class WorkshopScene: SKScene {
     private let catalog: ContentCatalog
+    private var currentState: GameState
     private var selectedVehicle: WorkshopVehicleSelection?
     private var selectionHandler: (WorkshopVehicleSelection) -> Void
 
@@ -27,6 +28,7 @@ public final class WorkshopScene: SKScene {
         onSelect: @escaping (WorkshopVehicleSelection) -> Void
     ) {
         self.catalog = catalog
+        currentState = state
         selectedVehicle = selection
         selectionHandler = onSelect
         super.init(size: size)
@@ -42,14 +44,21 @@ public final class WorkshopScene: SKScene {
     override public func didChangeSize(_ oldSize: CGSize) {
         super.didChangeSize(oldSize)
         resizeBackground()
+        guard childNode(withName: "workshop-background") != nil else { return }
+        renderVehicles()
     }
 
     func update(state: GameState, selection: WorkshopVehicleSelection?) {
+        currentState = state
         selectedVehicle = selection
+        renderVehicles()
+    }
+
+    private func renderVehicles() {
         childNode(withName: "vehicle-layer")?.removeFromParent()
         childNode(withName: "empty-state")?.removeFromParent()
 
-        let vehicles = workshopVehicles(state: state)
+        let vehicles = workshopVehicles(state: currentState)
         guard !vehicles.isEmpty else {
             addEmptyState()
             return
@@ -302,21 +311,14 @@ struct GarageSceneView: View {
     }
 
     var body: some View {
-        Group {
-            if vehicles.isEmpty {
-                GarageVehiclePage(state: state, catalog: catalog, vehicle: nil, selection: $selection)
-            } else {
-                vehiclePager
-                    .overlay(alignment: .topTrailing) {
-                        if vehicles.count > 1 {
-                            Label("\(visiblePage + 1)/\(vehicles.count) • Kaydır", systemImage: "arrow.left.and.right")
-                                .font(.caption2.bold().monospacedDigit())
-                                .padding(.horizontal, 9).padding(.vertical, 6)
-                                .background(.black.opacity(0.72), in: Capsule())
-                                .padding(10)
-                                .accessibilityLabel("Araç \(visiblePage + 1) / \(vehicles.count), yana kaydır")
-                        }
-                    }
+        VStack(spacing: 0) {
+            vehicleStatusBar
+            Group {
+                if vehicles.isEmpty {
+                    GarageVehiclePage(state: state, catalog: catalog, vehicle: nil, selection: $selection)
+                } else {
+                    vehiclePager
+                }
             }
         }
         .onChange(of: state.revision) { _, _ in
@@ -324,6 +326,27 @@ struct GarageSceneView: View {
         }
         .accessibilityElement(children: .contain)
         .accessibilityLabel(sceneDescription)
+    }
+
+    private var vehicleStatusBar: some View {
+        HStack(spacing: 10) {
+            Label("Aktif Araç \(vehicles.count)/\(shopCapacity)", systemImage: "car.2.fill")
+                .accessibilityLabel("Dükkânda \(vehicles.count) aktif araç var. Kapasite \(shopCapacity) araç.")
+            Spacer(minLength: 8)
+            if vehicles.count > 1 {
+                Label("\(visiblePage + 1)/\(vehicles.count) • Kaydır", systemImage: "arrow.left.and.right")
+                    .accessibilityLabel("Araç \(visiblePage + 1) / \(vehicles.count), yana kaydır")
+            }
+        }
+        .font(.caption.bold().monospacedDigit())
+        .padding(.horizontal, 12)
+        .frame(height: 36)
+        .foregroundStyle(.white)
+        .background(.black.opacity(0.78))
+    }
+
+    private var shopCapacity: Int {
+        catalog.shopLevel(state.shopLevel)?.capacity ?? 1
     }
 
     private var vehicles: [WorkshopVehicleSelection] {
