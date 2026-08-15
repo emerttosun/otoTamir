@@ -25,7 +25,7 @@
 - `RepairModels.swift`: Müşteri teklifi, iş emri, parça kalitesi, bakım, ustalık ve itibar modellerini toplar.
 - `ApprenticeModels.swift`: Çırak seviyesi ve deneyim ilerlemesini tanımlar.
 - `FinanceModels.swift`: Kredi, kasa hareketi, yorum, envanter ve gecikmeli sonuç modellerini tanımlar.
-- `VehicleTradingModels.swift`: Hasarlı araç, kaporta paneli, restorasyon görevi ve ilan durumunu tanımlar.
+- `VehicleTradingModels.swift`: Onarılabilir ağır hasarlı araç, dış panel, ayrıntılı şasi/podye/direk ölçümü, restorasyon görevi ve ilan durumunu tanımlar.
 - `IncidentModels.swift`: Denetim, şikâyet, kredi, ilan ve benzeri dükkân olaylarını para ve itibar etkileriyle sürümlü kayda uygun tanımlar.
 - `GameContracts.swift`: Komut, olay, hata ve kayıt/bulut/satın alma portlarını tanımlar.
 
@@ -58,9 +58,9 @@
 - `SectionIntroductionCard.swift`: Bir sekme ilk kez açıldığında akışı kilitlemeden kısa kullanım açıklamasını gösterir.
 - `WorkshopView.swift`: Yeniden yüklenmeden çalışan araç seçimini, müşteri kuyruğunu, proje restorasyonunu ve kontrol, teşhis, parça, tamir/bakım, fiyat sıralı iş akışını gösterir.
 - `AuctionView.swift`: Sabit ihale bedelli ağır hasarlı araçları, ayrıntılı ekspertiz ve yatırım hesabını ve satın alma akışını sunar.
-- `VehicleInspectionDiagram.swift`: Ekspertiz panel durumlarını sade üstten 2B kaporta şemasında, taşıyıcı yapıyı ayrı rapor satırında ve VoiceOver özetiyle gösterir.
+- `VehicleInspectionDiagram.swift`: Hasarlı veya eksik dış parçaları sade üstten 2B kaporta şemasında; şasi, podye, kule, direk, panel ve bagaj havuzunu ayrı metin satırlarında ve VoiceOver özetiyle gösterir.
 - `ProjectCarCard.swift`: Restorasyonu tamamlanan proje aracının ilan hazırlama ve yayındaki ilan durumlarını gösterir.
-- `ProjectRestorationCard.swift`: İhale aracının mekanik, kaporta ve güvenlik eksiklerini ayrı maliyet ve mini oyun görevleri halinde gösterir.
+- `ProjectRestorationCard.swift`: İhale aracının mekanik, kaporta, taşıyıcı yapı ve güvenlik eksiklerini ayrı maliyet ve mini oyun görevleri halinde gösterir.
 - `ListingsView.swift`: Restorasyonu tamamlanan araçların fiyatlandırıldığı ve yayındaki alıcıların kontrol edildiği bağımsız ilan alanıdır.
 - `WorkshopDevelopmentView.swift`: Dükkân seviyesini, tesisleri, kapasite yükseltmelerini, uzmanlığı ve itibarı Gelişim sayfasında gösterir.
 - `ProgressViewScreen.swift`: Dükkân/ustalık gelişimini, yıldız puanını ve gelen müşteri yorumlarını tek bölümde gösterir.

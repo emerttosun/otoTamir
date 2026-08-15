@@ -194,6 +194,8 @@ public final class GameStore: ObservableObject {
                 bannerMessage = "\(catalog.fault(id: faultID)?.partName ?? "Mekanik iş") tamamlandı. Sıradaki eksiği seç."
             case .panel(let panel):
                 bannerMessage = "\(panel.title) işi tamamlandı. Sıradaki eksiği seç."
+            case .structural(let area):
+                bannerMessage = "\(area.title) yapısal onarımı tamamlandı. Sıradaki eksiği seç."
             case .airbag:
                 bannerMessage = "Hava yastığı sistemi tamamlandı. Sıradaki eksiği seç."
             }

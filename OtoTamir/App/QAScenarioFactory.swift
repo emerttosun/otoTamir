@@ -157,7 +157,10 @@ enum QAScenarioFactory {
         if stage != .awaitingRepair {
             let project = try required(engine.state.projectCars.first, "QA proje aracı")
             let tasks: [ProjectRepairTask] = project.faultIDs.map { .mechanical(faultID: $0) }
-                + project.panelDamages.filter { $0.condition != .original }.map { .panel($0.panel) }
+                + project.panelDamages.filter {
+                    VehiclePanel.exteriorCases.contains($0.panel) && $0.condition != .original
+                }.map { .panel($0.panel) }
+                + project.structuralDamages.filter { $0.condition.requiresRepair }.map { .structural($0.area) }
                 + (project.airbagsDeployed ? [.airbag] : [])
             for task in tasks {
                 try engine.handle(.completeProjectRepair(projectID: lot.id, task: task, performance: 88))

@@ -3,6 +3,12 @@ import SwiftUI
 
 struct VehicleInspectionDiagram: View {
     let damages: [PanelDamage]
+    let structuralDamages: [StructuralDamage]
+
+    init(damages: [PanelDamage], structuralDamages: [StructuralDamage] = []) {
+        self.damages = damages
+        self.structuralDamages = structuralDamages
+    }
 
     private let columns = [
         GridItem(.flexible(), alignment: .leading),
@@ -12,16 +18,17 @@ struct VehicleInspectionDiagram: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("KAPORTA DURUM ŞEMASI")
+            Text("HASARLI ARAÇ KAPORTA ŞEMASI")
                 .font(.caption.weight(.black))
                 .foregroundStyle(GarageStyle.orange)
 
             LazyVGrid(columns: columns, alignment: .leading, spacing: 7) {
-                legend("Orijinal", .original)
+                legend("Sağlam", .original)
                 legend("Boyalı", .painted)
                 legend("Değişen", .replaced)
-                legend("Hasarlı", .damaged)
-                legend("Ağır hasarlı", .heavyDamage)
+                legend("Ezik", .damaged)
+                legend("Ağır ezik", .heavyDamage)
+                legend("Eksik", .missing)
             }
 
             ZStack {
@@ -45,13 +52,21 @@ struct VehicleInspectionDiagram: View {
             .frame(height: 330)
             .frame(maxWidth: .infinity)
 
-            VStack(alignment: .leading, spacing: 7) {
-                Text("TAŞIYICI YAPI")
-                    .font(.system(size: 9, weight: .black)).foregroundStyle(.secondary)
-                HStack(spacing: 7) {
-                    structurePill(.chassis)
-                    structurePill(.leftPillar)
-                    structurePill(.rightPillar)
+            VStack(alignment: .leading, spacing: 8) {
+                Text("ŞASİ VE TAŞIYICI YAPI ÖLÇÜMÜ")
+                    .font(.system(size: 10, weight: .black))
+                    .foregroundStyle(GarageStyle.orange)
+                ForEach(structuralRows, id: \.0) { area, condition in
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        Text(area.title)
+                            .font(.caption2.weight(.semibold))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Text(condition.title)
+                            .font(.caption2.bold())
+                            .foregroundStyle(condition.requiresRepair ? GarageStyle.danger : GarageStyle.mint)
+                            .multilineTextAlignment(.trailing)
+                    }
+                    Divider().overlay(Color.white.opacity(0.06))
                 }
             }
         }
@@ -179,14 +194,10 @@ struct VehicleInspectionDiagram: View {
         }
     }
 
-    private func structurePill(_ panel: VehiclePanel) -> some View {
-        HStack(spacing: 4) {
-            Circle().fill(color(condition(for: panel))).frame(width: 8, height: 8)
-            Text(panel == .chassis ? "Şasi" : (panel == .leftPillar ? "Sol direk" : "Sağ direk"))
-                .font(.system(size: 9, weight: .semibold)).lineLimit(1)
+    private var structuralRows: [(StructuralArea, StructuralCondition)] {
+        StructuralArea.allCases.map { area in
+            (area, structuralDamages.first { $0.area == area }?.condition ?? .intact)
         }
-        .padding(.horizontal, 7).padding(.vertical, 6)
-        .background(Color.white.opacity(0.05), in: Capsule())
     }
 
     private func color(_ condition: PanelCondition) -> Color {
@@ -196,6 +207,7 @@ struct VehicleInspectionDiagram: View {
         case .replaced: Color(red: 1.0, green: 0.33, blue: 0.23)
         case .damaged: Color(red: 1.0, green: 0.58, blue: 0.28)
         case .heavyDamage: Color(red: 0.68, green: 0.12, blue: 0.13)
+        case .missing: Color(red: 0.20, green: 0.20, blue: 0.22)
         }
     }
 
@@ -203,6 +215,10 @@ struct VehicleInspectionDiagram: View {
         let changed = damages.filter { $0.condition != .original }
             .map { "\($0.panel.title): \($0.condition.title)" }
             .joined(separator: ", ")
-        return changed.isEmpty ? "Kaporta durum şeması, bütün parçalar orijinal" : "Kaporta durum şeması, \(changed)"
+        let structure = structuralRows.filter { $0.1.requiresRepair }
+            .map { "\($0.0.title): \($0.1.title)" }
+            .joined(separator: ", ")
+        if changed.isEmpty, structure.isEmpty { return "Kaporta ve taşıyıcı yapı raporu, hasar bulunamadı" }
+        return "Kaporta raporu: \(changed). Taşıyıcı yapı: \(structure)"
     }
 }

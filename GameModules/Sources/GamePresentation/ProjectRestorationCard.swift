@@ -65,7 +65,10 @@ struct ProjectRestorationCard: View {
 
     private var tasks: [ProjectRepairTask] {
         project.faultIDs.map { .mechanical(faultID: $0) }
-            + project.panelDamages.filter { $0.condition != .original }.map { .panel($0.panel) }
+            + project.panelDamages.filter {
+                VehiclePanel.exteriorCases.contains($0.panel) && $0.condition != .original
+            }.map { .panel($0.panel) }
+            + project.structuralDamages.filter { $0.condition.requiresRepair }.map { .structural($0.area) }
             + (project.airbagsDeployed ? [.airbag] : [])
     }
 
@@ -75,6 +78,9 @@ struct ProjectRestorationCard: View {
         case .panel(let panel):
             let condition = project.panelDamages.first { $0.panel == panel }?.condition.title ?? "Onarım"
             return "\(panel.title) • \(condition)"
+        case .structural(let area):
+            let condition = project.structuralDamages.first { $0.area == area }?.condition.title ?? "Ölçüm"
+            return "\(area.title) • \(condition)"
         case .airbag: return "Hava yastığı ve emniyet sistemi"
         }
     }
@@ -83,6 +89,7 @@ struct ProjectRestorationCard: View {
         switch task {
         case .mechanical: "wrench.adjustable.fill"
         case .panel: "car.side.fill"
+        case .structural: "ruler.fill"
         case .airbag: "shield.checkered"
         }
     }
@@ -96,6 +103,7 @@ struct ProjectRestorationCard: View {
                  .frontBumper, .rearBumper: .bolts
             default: .alignment
             }
+        case .structural: .panelWeld
         case .airbag: .wiring
         }
     }

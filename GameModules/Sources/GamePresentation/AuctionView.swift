@@ -58,8 +58,8 @@ struct AuctionView: View {
         VStack(alignment: .leading, spacing: 6) {
             Text("HASARLI ARAÇ İHALESİ")
                 .font(.caption.weight(.black)).foregroundStyle(GarageStyle.orange)
-            Text("Sabit ihale bedeli • ağır hasarlı araçlar").font(.title3.bold())
-            Text("Teklif turu yoktur. Ekspertiz raporunu inceleyip aracı ihale bedelinden doğrudan satın alabilirsin.")
+            Text("Sabit ihale bedeli • sigorta çıkması ağır kazalı araçlar").font(.title3.bold())
+            Text("Bu pazarda yalnız eksper tarafından onarılabilir kabul edilen ağır hasarlı araçlar bulunur. Tam hasarlı ve hurda tescilli araçlar satın alınamaz.")
                 .font(.caption).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -93,11 +93,14 @@ private struct SalvageLotCard: View {
                 statusChip(lot.airbagsDeployed ? "Airbag açmış" : "Airbag sağlam", good: !lot.airbagsDeployed)
             }
 
-            VehicleInspectionDiagram(damages: lot.panelDamages)
+            VehicleInspectionDiagram(
+                damages: lot.panelDamages,
+                structuralDamages: lot.structuralDamages
+            )
 
             VStack(alignment: .leading, spacing: 7) {
-                Text("KAPORTA VE TAŞIYICI RAPORU").font(.caption2.bold()).foregroundStyle(GarageStyle.orange)
-                ForEach(lot.panelDamages.filter { $0.condition != .original }) { damage in
+                Text("HASARLI VE EKSİK DIŞ PARÇALAR").font(.caption2.bold()).foregroundStyle(GarageStyle.orange)
+                ForEach(lot.panelDamages.filter { $0.condition != .original && VehiclePanel.exteriorCases.contains($0.panel) }) { damage in
                     HStack {
                         Text(damage.panel.title).font(.caption)
                         Spacer()
@@ -135,9 +138,10 @@ private struct SalvageLotCard: View {
             }
 
             Button(action: purchase) {
-                Label("İhaleden Satın Al", systemImage: "cart.fill")
+                Label(lot.severity == .heavy ? "İhaleden Satın Al" : "Hurda Araç Satın Alınamaz", systemImage: "cart.fill")
             }
             .buttonStyle(ActionButtonStyle(tint: GarageStyle.mint))
+            .disabled(lot.severity != .heavy)
             .id("purchase")
         }
         .garageCard()
@@ -180,6 +184,7 @@ private struct SalvageLotCard: View {
         case .replaced: Color(red: 1.0, green: 0.30, blue: 0.20)
         case .damaged: .purple
         case .heavyDamage: GarageStyle.danger
+        case .missing: .secondary
         }
     }
 

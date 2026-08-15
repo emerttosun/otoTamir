@@ -31,8 +31,11 @@ public enum VehicleTradingRules {
         let body = lot.panelDamages.reduce(Money.zero) { partial, damage in
             partial + panelRepairCost(for: damage.condition, vehicleValue: vehicle.baseValue)
         }
+        let structure = lot.structuralDamages.reduce(Money.zero) { partial, damage in
+            partial + structuralRepairCost(for: damage.condition, vehicleValue: vehicle.baseValue)
+        }
         let airbag = lot.airbagsDeployed ? percent(vehicle.baseValue, 6) : .zero
-        var repairMid = percent(mechanical, 85) + body + airbag
+        var repairMid = percent(mechanical, 85) + body + structure + airbag
         if hasBodyPaintBooth { repairMid = percent(repairMid, 90) }
         let repairLow = percent(repairMid, 85)
         let repairHigh = percent(repairMid, 125)
@@ -98,8 +101,11 @@ public enum VehicleTradingRules {
         let body = project.panelDamages.reduce(Money.zero) { partial, damage in
             partial + panelRepairCost(for: damage.condition, vehicleValue: vehicle.baseValue)
         }
+        let structure = project.structuralDamages.reduce(Money.zero) { partial, damage in
+            partial + structuralRepairCost(for: damage.condition, vehicleValue: vehicle.baseValue)
+        }
         let airbag = project.airbagsDeployed ? percent(vehicle.baseValue, 6) : .zero
-        let total = percent(mechanical, 85) + body + airbag
+        let total = percent(mechanical, 85) + body + structure + airbag
         return hasBodyPaintBooth ? percent(total, 90) : total
     }
 
@@ -117,6 +123,9 @@ public enum VehicleTradingRules {
         case .panel(let panel):
             let condition = project.panelDamages.first { $0.panel == panel }?.condition ?? .original
             cost = panelRepairCost(for: condition, vehicleValue: vehicle.baseValue)
+        case .structural(let area):
+            let condition = project.structuralDamages.first { $0.area == area }?.condition ?? .intact
+            cost = structuralRepairCost(for: condition, vehicleValue: vehicle.baseValue)
         case .airbag:
             cost = percent(vehicle.baseValue, 6)
         }
@@ -131,6 +140,17 @@ public enum VehicleTradingRules {
         case .replaced: percent(vehicleValue, 2)
         case .damaged: percent(vehicleValue, 3)
         case .heavyDamage: percent(vehicleValue, 5)
+        case .missing: percent(vehicleValue, 4)
+        }
+    }
+
+    private static func structuralRepairCost(for condition: StructuralCondition, vehicleValue: Money) -> Money {
+        switch condition {
+        case .intact: .zero
+        case .measurementDeviation: percent(vehicleValue, 2)
+        case .bent: percent(vehicleValue, 4)
+        case .cracked: percent(vehicleValue, 6)
+        case .cutOrWelded: percent(vehicleValue, 8)
         }
     }
 

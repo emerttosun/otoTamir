@@ -155,11 +155,37 @@ struct GameLogicTests {
         let lot = try #require(engine.state.auction?.lots.first)
 
         #expect(lot.fixedPrice == lot.currentBid)
-        #expect(lot.panelDamages.count == VehiclePanel.allCases.count)
+        #expect(lot.severity == .heavy)
+        #expect(lot.panelDamages.count == VehiclePanel.exteriorCases.count)
+        #expect(lot.structuralDamages.count == StructuralArea.allCases.count)
+        #expect(lot.structuralDamages.contains { $0.condition.requiresRepair })
         #expect(lot.mechanicalFaultIDs.count >= 3)
         try engine.handle(.purchaseAuctionLot(lot.id))
         #expect(engine.state.projectCars.contains { $0.id == lot.id })
         #expect(engine.state.financeEntries.last?.category == .salvageVehicle)
+    }
+
+    @Test("Tam hasarlı hurda araç restorasyon için satın alınamaz")
+    func totalLossCannotBePurchased() throws {
+        let catalog = try DefaultContentRepository().load()
+        let fault = catalog.faults[0]
+        let lot = AuctionLot(
+            id: UUID(),
+            vehicleID: catalog.vehicles[0].id,
+            visibleFaultID: fault.id,
+            hiddenFaultIDs: [],
+            currentBid: Money(minorUnits: 1_000_000),
+            competitorMaximum: Money(minorUnits: 1_000_000),
+            severity: .totalLoss
+        )
+        var state = GameState(startingCash: Money(minorUnits: 10_000_000), daySlots: 8)
+        state.auction = AuctionState(lots: [lot])
+        var engine = GameEngine(state: state, catalog: catalog)
+
+        #expect(throws: GameRuleError.self) {
+            try engine.handle(.purchaseAuctionLot(lot.id))
+        }
+        #expect(engine.state.projectCars.isEmpty)
     }
 
     @Test("Dükkân açık bırakılınca kendiliğinden para harcanmaz")
@@ -338,6 +364,7 @@ struct GameLogicTests {
             faultIDs: [fault.id],
             purchasePrice: Money(minorUnits: 5_000_000),
             panelDamages: [PanelDamage(panel: .leftFrontDoor, condition: .replaced)],
+            structuralDamages: [StructuralDamage(area: .leftPodye, condition: .bent)],
             airbagsDeployed: true,
             startsAndDrives: false
         )
@@ -348,6 +375,13 @@ struct GameLogicTests {
             projectID: project.id,
             task: .mechanical(faultID: fault.id),
             performance: 80
+        ))
+        #expect(engine.state.projectCars[0].stage == .awaitingRepair)
+
+        try engine.handle(.completeProjectRepair(
+            projectID: project.id,
+            task: .structural(.leftPodye),
+            performance: 86
         ))
         #expect(engine.state.projectCars[0].stage == .awaitingRepair)
 
@@ -364,8 +398,8 @@ struct GameLogicTests {
             performance: 88
         ))
         #expect(engine.state.projectCars[0].stage == .readyForSale)
-        #expect(engine.state.projectCars[0].completedRepairTasks.count == 3)
-        #expect(engine.state.financeEntries.filter { $0.category == .restoration }.count == 3)
+        #expect(engine.state.projectCars[0].completedRepairTasks.count == 4)
+        #expect(engine.state.financeEntries.filter { $0.category == .restoration }.count == 4)
     }
 
     @Test("Ekspertiz hesabı alış, onarım, satış ve kâr aralıklarını tutarlı üretir")

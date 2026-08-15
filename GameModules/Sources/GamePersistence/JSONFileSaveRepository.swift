@@ -100,6 +100,9 @@ enum SaveMigrator {
             state.incidents = []
             state.schemaVersion = 7
         }
+        if state.schemaVersion < 8 {
+            state.schemaVersion = 8
+        }
         return state
     }
 }

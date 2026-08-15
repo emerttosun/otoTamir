@@ -8,6 +8,9 @@ extension GameEngine {
             throw GameRuleError.invalidCommand("Bu hasarlı araç artık satışta değil.")
         }
         let lot = auction.lots[lotIndex]
+        guard lot.severity == .heavy else {
+            throw GameRuleError.invalidCommand("Tam hasarlı ve hurda tescilli araç yeniden trafiğe çıkarılamaz.")
+        }
         guard state.cash >= lot.fixedPrice else { throw GameRuleError.notEnoughMoney }
         let capacity = catalog.shopLevel(state.shopLevel)?.capacity ?? 1
         guard state.activeJobs.count + state.projectCars.count < capacity else {
@@ -21,6 +24,7 @@ extension GameEngine {
             purchasePrice: lot.fixedPrice,
             purchasedAtMinute: state.totalMinutes,
             panelDamages: lot.panelDamages,
+            structuralDamages: lot.structuralDamages,
             airbagsDeployed: lot.airbagsDeployed,
             startsAndDrives: lot.startsAndDrives,
             recordedDamage: lot.recordedDamage
@@ -72,7 +76,7 @@ extension GameEngine {
         )
         let skillArea: SkillArea = switch task {
         case .mechanical(let faultID): catalog.fault(id: faultID)?.area ?? .engine
-        case .panel: .body
+        case .panel, .structural: .body
         case .airbag: .electrical
         }
         let skill = state.expertise[skillArea, default: SkillProgress()].level
@@ -96,7 +100,10 @@ extension GameEngine {
 
     func projectRepairTasks(for project: ProjectCar) -> [ProjectRepairTask] {
         project.faultIDs.map { .mechanical(faultID: $0) }
-            + project.panelDamages.filter { $0.condition != .original }.map { .panel($0.panel) }
+            + project.panelDamages.filter {
+                VehiclePanel.exteriorCases.contains($0.panel) && $0.condition != .original
+            }.map { .panel($0.panel) }
+            + project.structuralDamages.filter { $0.condition.requiresRepair }.map { .structural($0.area) }
             + (project.airbagsDeployed ? [.airbag] : [])
     }
 
@@ -104,6 +111,7 @@ extension GameEngine {
         switch task {
         case .mechanical(let faultID): catalog.fault(id: faultID)?.partName ?? "Mekanik onarım"
         case .panel(let panel): "\(panel.title) kaporta onarımı"
+        case .structural(let area): "\(area.title) yapısal onarım"
         case .airbag: "Hava yastığı sistemi"
         }
     }
@@ -112,6 +120,7 @@ extension GameEngine {
         switch task {
         case .mechanical: 60
         case .panel: 75
+        case .structural: 120
         case .airbag: 60
         }
     }
@@ -247,24 +256,35 @@ extension GameEngine {
             let faultCount = min(catalog.faults.count, 3 + random.next(upperBound: 3))
             let faults = Array(catalog.faults.shuffledDeterministically(using: &random).prefix(faultCount))
             let impactSide = random.next(upperBound: 2)
-            let panelDamages = VehiclePanel.allCases.enumerated().map { index, panel -> PanelDamage in
+            let panelDamages = VehiclePanel.exteriorCases.enumerated().map { index, panel -> PanelDamage in
                 let roll = random.next(upperBound: 100)
                 let isImpactPanel = index % 2 == impactSide && index < 12
                 let condition: PanelCondition
-                if panel == .chassis && roll < 62 {
-                    condition = .heavyDamage
-                } else if isImpactPanel && roll < 72 {
-                    condition = roll < 30 ? .heavyDamage : .damaged
-                } else if roll < 18 {
-                    condition = .replaced
-                } else if roll < 34 {
-                    condition = .painted
+                if isImpactPanel && roll < 78 {
+                    condition = roll < 18 ? .missing : (roll < 48 ? .heavyDamage : .damaged)
+                } else if roll < 16 {
+                    condition = .damaged
                 } else {
                     condition = .original
                 }
                 return PanelDamage(panel: panel, condition: condition)
             }
-            let fixedPrice = percent(vehicle.baseValue, 18 + random.next(upperBound: 15))
+            let guaranteedStructuralIndex = random.next(upperBound: StructuralArea.allCases.count)
+            let structuralDamages = StructuralArea.allCases.enumerated().map { index, area -> StructuralDamage in
+                let roll = random.next(upperBound: 100)
+                let condition: StructuralCondition
+                if index == guaranteedStructuralIndex {
+                    condition = roll < 45 ? .bent : (roll < 78 ? .cracked : .cutOrWelded)
+                } else if roll < 8 {
+                    condition = .measurementDeviation
+                } else if roll < 14 {
+                    condition = .bent
+                } else {
+                    condition = .intact
+                }
+                return StructuralDamage(area: area, condition: condition)
+            }
+            let fixedPrice = percent(vehicle.baseValue, 12 + random.next(upperBound: 14))
             return AuctionLot(
                 id: random.nextUUID(),
                 vehicleID: vehicle.id,
@@ -273,12 +293,13 @@ extension GameEngine {
                 currentBid: fixedPrice,
                 competitorMaximum: fixedPrice,
                 fixedPrice: fixedPrice,
-                severity: random.next(upperBound: 100) < 38 ? .totalLoss : .heavy,
+                severity: .heavy,
                 panelDamages: panelDamages,
+                structuralDamages: structuralDamages,
                 mechanicalFaultIDs: faults.map(\.id),
                 airbagsDeployed: random.next(upperBound: 100) < 72,
                 startsAndDrives: random.next(upperBound: 100) < 43,
-                recordedDamage: percent(vehicle.baseValue, 45 + random.next(upperBound: 36))
+                recordedDamage: percent(vehicle.baseValue, 62 + random.next(upperBound: 25))
             )
         }
         state.randomSeed = random.state
