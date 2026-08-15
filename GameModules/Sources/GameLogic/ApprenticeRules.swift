@@ -39,4 +39,15 @@ public enum ApprenticeRules {
         }
         return baseMinutes
     }
+
+    public static func departureRiskPercent(for apprentice: Apprentice, atMinute: Int) -> Int {
+        guard apprentice.traits.contains(.entrepreneurial),
+              apprentice.departureWarningMinute == nil,
+              atMinute >= apprentice.retentionProtectedUntilMinute,
+              atMinute - apprentice.hiredAtMinute >= 4 * 1_440,
+              apprentice.jobsCompleted + apprentice.washesCompleted >= 7,
+              apprentice.level >= 2 else { return 0 }
+        let moodRisk = max(0, 65 - apprentice.happiness)
+        return min(70, 8 + apprentice.level * 6 + moodRisk)
+    }
 }

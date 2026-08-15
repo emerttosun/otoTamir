@@ -156,10 +156,14 @@ extension GameEngine {
         var apprenticeEvents: [GameEvent] = []
         let assignedApprentice = state.activeJobs[index].repairedByApprenticeID
             .flatMap { id in state.apprentices.first(where: { $0.id == id }) }
+        let customerID = state.activeJobs[index].customerID
         if let apprenticeID = state.activeJobs[index].repairedByApprenticeID,
            let apprenticeIndex = state.apprentices.firstIndex(where: { $0.id == apprenticeID }) {
             state.apprentices[apprenticeIndex].addExperience(area: actualFault.area, amount: xp)
             let revealed = state.apprentices[apprenticeIndex].recordRepair(quality: quality)
+            if quality == .good {
+                state.apprentices[apprenticeIndex].customerFans.insert(customerID)
+            }
             experienceEvent = nil
             apprenticeEvents.append(.apprenticeCompleted(
                 name: state.apprentices[apprenticeIndex].name,
@@ -205,6 +209,7 @@ extension GameEngine {
         let xp = 18 + performance / 10
         let assignedApprentice = state.activeJobs[index].repairedByApprenticeID
             .flatMap { id in state.apprentices.first(where: { $0.id == id }) }
+        let customerID = state.activeJobs[index].customerID
         let duration = assignedApprentice.map {
             ApprenticeRules.adjustedDuration(baseMinutes: 25, apprentice: $0)
         } ?? 25
@@ -215,6 +220,9 @@ extension GameEngine {
             state.apprentices[apprenticeIndex].addExperience(area: task.skillArea, amount: xp)
             let taskQuality = workmanship(for: performance)
             let revealed = state.apprentices[apprenticeIndex].recordRepair(quality: taskQuality)
+            if taskQuality == .good {
+                state.apprentices[apprenticeIndex].customerFans.insert(customerID)
+            }
             events.append(.apprenticeCompleted(
                 name: state.apprentices[apprenticeIndex].name,
                 quality: taskQuality

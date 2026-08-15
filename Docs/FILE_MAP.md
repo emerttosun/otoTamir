@@ -21,9 +21,9 @@
 
 - `Money.swift`: Kuruş tabanlı güvenli para değerini ve Türk lirası gösterimini sağlar.
 - `ContentModels.swift`: JSON'dan gelen araç, kontrol bulgusu, arıza, müşteri, yorum, dükkân ve üç seviyeli yıkama gelişimi ile ayrıntılı gider dengelerini tanımlar.
-- `GameModels.swift`: Sürüm 13 `GameState` kayıt kökünü, kişilikli çırakları, alan bazlı çırak yetkinliğini, yıkama seviyesini ve eylem tabanlı zaman gösterimini tanımlar.
+- `GameModels.swift`: Sürüm 14 `GameState` kayıt kökünü, kişilikli çırakları, kaybedilen müşteri havuzunu, alan bazlı yetkinliği ve eylem tabanlı zamanı tanımlar.
 - `RepairModels.swift`: Müşteri teklifi, iş emri, parça kalitesi, bakım, ustalık ve itibar modellerini toplar.
-- `ApprenticeModels.swift`: Çırak geçmişini, ilan başvurusunu, beş gizli kişilik özelliğini, mutluluğu, görev sayısını ve dört alandaki ayrı seviye/deneyim ilerlemesini tanımlar.
+- `ApprenticeModels.swift`: Çırak geçmişini, beş gizli özelliği, mutluluğu, sadık müşterileri, ayrılık uyarısını, görev sayısını ve dört alandaki ilerlemeyi tanımlar.
 - `FinanceModels.swift`: Kredi, kasa hareketi, yorum, envanter ve gecikmeli sonuç modellerini tanımlar.
 - `VehicleTradingModels.swift`: Onarılabilir ağır hasarlı araç, dış panel, ayrıntılı şasi/podye/direk ölçümü, restorasyon görevi ve ilan durumunu tanımlar.
 - `IncidentModels.swift`: Denetim, şikâyet, kredi, ilan ve benzeri dükkân olaylarını para ve itibar etkileriyle sürümlü kayda uygun tanımlar.
@@ -39,7 +39,7 @@
 - `ProgressionRules.swift`: Alan uzmanlığı ve dükkân seviyesinden açık arıza, müşteri ve araç havuzunu deterministik hesaplar.
 - `GameEngine.swift`: Komutları doğrular ve ilgili kural uzantısına yönlendiren küçük oyun motoru girişidir.
 - `GameEngine+Workshop.swift`: Kontrol, teşhis, parça, tamir, fiyat, usta/çırak yıkaması ve seviye kontrollü çırak iş akışını yürütür.
-- `GameEngine+Apprentices.swift`: Çırak ilanı, deterministik aday üretimi, başvuru kabulü ve reddi akışını yürütür.
+- `GameEngine+Apprentices.swift`: Çırak ilanı, deterministik aday üretimi, işe alım, prim, günlük bağlılık kontrolü, ayrılık uyarısı ve müşteri götürme akışını yürütür.
 - `GameEngine+World.swift`: Eylem tabanlı saat, gider, kredi ve dükkân gelişimini yürütür.
 - `GameEngine+Trading.swift`: Hasarlı araç alımı, restorasyon, ilan ve satış akışını yürütür.
 - `GameEngine+Content.swift`: Deterministik müşteri/içerik seçimi, itibar, yorum ve gecikmeli sonuç üretir.

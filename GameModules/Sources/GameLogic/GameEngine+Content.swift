@@ -15,7 +15,9 @@ extension GameEngine {
     mutating func makeCustomerOffer() -> CustomerOffer? {
         let unlockedVehicleCount = ProgressionRules.unlockedVehicleCount(in: catalog, state: state)
         let vehicles = Array(catalog.vehicles.prefix(unlockedVehicleCount))
-        let customers = ProgressionRules.availableCustomers(in: catalog, state: state)
+        let unlockedCustomers = ProgressionRules.availableCustomers(in: catalog, state: state)
+        let retainedCustomers = unlockedCustomers.filter { !state.lostCustomerIDs.contains($0.id) }
+        let customers = retainedCustomers.isEmpty ? unlockedCustomers : retainedCustomers
         let faults = ProgressionRules.availableFaults(in: catalog, state: state)
         guard !customers.isEmpty, !vehicles.isEmpty, !faults.isEmpty else { return nil }
 
@@ -24,6 +26,10 @@ extension GameEngine {
         let vehicle = vehicles[random.next(upperBound: vehicles.count)]
         let isMaintenance = supports(.periodicMaintenance) && random.next(upperBound: 100) < 24
         let waitingAreaBonus = supports(.waitingArea) ? 60 : 0
+        let requestedApprentice = state.apprentices.first { $0.customerFans.contains(customer.id) }
+        let requestPrefix = requestedApprentice.map {
+            "‘\($0.name) burada mı usta? Geçen işi o toplamıştı.’ "
+        } ?? ""
         let offer: CustomerOffer
         if isMaintenance {
             let count = 3 + random.next(upperBound: 3)
@@ -36,7 +42,7 @@ extension GameEngine {
                 actualFaultID: nil,
                 suspectedFaultIDs: [],
                 maintenanceTasks: tasks,
-                complaint: "Yıllık bakım zamanı geldi. Yağına suyuna bakıp içimizi rahatlat usta.",
+                complaint: requestPrefix + "Yıllık bakım zamanı geldi. Yağına suyuna bakıp içimizi rahatlat usta.",
                 arrivedAtMinute: state.totalMinutes,
                 expiresAtMinute: state.totalMinutes + 75 + customer.patience * 15 + waitingAreaBonus
             )
@@ -52,7 +58,7 @@ extension GameEngine {
                 vehicleID: vehicle.id,
                 actualFaultID: actual.id,
                 suspectedFaultIDs: candidateIDs,
-                complaint: ([actual.complaint] + actual.complaintVariants)[
+                complaint: requestPrefix + ([actual.complaint] + actual.complaintVariants)[
                     random.next(upperBound: max(1, actual.complaintVariants.count + 1))
                 ],
                 arrivedAtMinute: state.totalMinutes,

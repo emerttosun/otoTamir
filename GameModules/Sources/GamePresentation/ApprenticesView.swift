@@ -90,7 +90,21 @@ struct ApprenticesView: View {
                         }
                         SwiftUI.ProgressView(value: Double(apprentice.happiness), total: 100)
                             .tint(happinessColor(apprentice.happiness))
+                        if apprentice.departureWarningMinute != nil {
+                            Label(
+                                "Kendi dükkânını açmayı düşünüyor. İki gün dolmadan mutluluğu %80'e çıkar.",
+                                systemImage: "exclamationmark.triangle.fill"
+                            )
+                            .font(.caption.bold()).foregroundStyle(GarageStyle.danger)
+                        }
                         traitRows(apprentice)
+                        if !apprentice.customerFans.isEmpty {
+                            Label(
+                                "\(apprentice.customerFans.count) müşteri dükkâna geldiğinde onu ismen sorabilir.",
+                                systemImage: "person.wave.2.fill"
+                            )
+                            .font(.caption2).foregroundStyle(GarageStyle.mint)
+                        }
                         Button("Performans Primi Ver • \(store.catalog.balance.apprenticeBonusCost.liraText)") {
                             store.send(.giveApprenticeBonus(apprentice.id))
                         }

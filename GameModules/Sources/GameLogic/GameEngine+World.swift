@@ -30,6 +30,7 @@ extension GameEngine {
         if state.day > previousDay {
             for newDay in (previousDay + 1)...state.day {
                 events.append(contentsOf: processNewDay(newDay))
+                events.append(contentsOf: processApprenticeRetention(newDay: newDay))
             }
         }
 

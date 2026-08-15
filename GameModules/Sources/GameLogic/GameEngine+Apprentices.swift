@@ -43,7 +43,8 @@ extension GameEngine {
             background: application.background,
             traits: application.traits,
             revealedTraits: application.revealedTraits,
-            hiredAtMinute: state.totalMinutes
+            hiredAtMinute: state.totalMinutes,
+            lastRetentionCheckDay: state.day
         )
         if let startingArea = application.startingArea {
             apprentice.addExperience(area: startingArea, amount: application.startingExperience)
@@ -113,6 +114,76 @@ extension GameEngine {
         }
         state.randomSeed = random.state
         state.apprenticeRecruitment = recruitment
+        return events
+    }
+
+    mutating func processApprenticeRetention(newDay: Int) -> [GameEvent] {
+        guard !state.apprentices.isEmpty else { return [] }
+        var random = SeededRandomSource(seed: state.randomSeed)
+        var events: [GameEvent] = []
+        var departures: [Int] = []
+
+        for index in state.apprentices.indices {
+            guard state.apprentices[index].lastRetentionCheckDay < newDay else { continue }
+            state.apprentices[index].lastRetentionCheckDay = newDay
+
+            if state.apprentices[index].traits.contains(.loyal) {
+                state.apprentices[index].changeHappiness(by: 1)
+            }
+
+            if let warningMinute = state.apprentices[index].departureWarningMinute {
+                guard state.totalMinutes - warningMinute >= 2 * 1_440 else { continue }
+                let name = state.apprentices[index].name
+                if state.apprentices[index].happiness >= 80 {
+                    state.apprentices[index].departureWarningMinute = nil
+                    state.apprentices[index].retentionProtectedUntilMinute = state.totalMinutes + 10 * 1_440
+                    events.append(.apprenticeStayed(name: name))
+                    recordIncident(
+                        kind: .apprentice,
+                        message: "\(name), dükkândaki ortamdan memnun kalıp ayrılma düşüncesini şimdilik erteledi."
+                    )
+                } else {
+                    departures.append(index)
+                }
+                continue
+            }
+
+            let risk = ApprenticeRules.departureRiskPercent(
+                for: state.apprentices[index],
+                atMinute: state.totalMinutes
+            )
+            guard risk > 0, random.next(upperBound: 100) < risk else { continue }
+            let name = state.apprentices[index].name
+            state.apprentices[index].departureWarningMinute = state.totalMinutes
+            if !state.apprentices[index].revealedTraits.contains(.entrepreneurial) {
+                state.apprentices[index].revealedTraits.append(.entrepreneurial)
+                events.append(.apprenticeTraitRevealed(name: name, trait: .entrepreneurial))
+            }
+            events.append(.apprenticeDepartureWarning(name: name))
+            recordIncident(
+                kind: .apprentice,
+                message: "\(name), kendi dükkânını açmayı düşündüğünü söyledi. İki gün içinde mutluluğu yükselmezse ayrılabilir."
+            )
+        }
+
+        for index in departures.sorted(by: >) {
+            let apprentice = state.apprentices[index]
+            let shuffledFans = Array(apprentice.customerFans).sorted().shuffledDeterministically(using: &random)
+            let takenCount = shuffledFans.isEmpty ? 0 : max(1, (shuffledFans.count + 1) / 2)
+            state.lostCustomerIDs.formUnion(shuffledFans.prefix(takenCount))
+            state.apprentices.remove(at: index)
+            state.reputation.trust -= takenCount
+            state.reputation.clamp()
+            events.append(.apprenticeLeft(name: apprentice.name, customersTaken: takenCount))
+            recordIncident(
+                kind: .apprentice,
+                message: takenCount > 0
+                    ? "\(apprentice.name) kendi yerini açıp ayrıldı; onu seven \(takenCount) müşteri de yeni dükkânına gitti."
+                    : "\(apprentice.name) işi öğrenip kendi yerini açmak için dükkândan ayrıldı.",
+                trustImpact: -takenCount
+            )
+        }
+        state.randomSeed = random.state
         return events
     }
 

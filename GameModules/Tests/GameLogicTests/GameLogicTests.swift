@@ -367,6 +367,80 @@ struct GameLogicTests {
         #expect(engine.state.financeEntries.last?.category == .wages)
     }
 
+    @Test("Memnun müşteri iyi iş çıkaran çırağı sonraki gelişinde ismen sorar")
+    func apprenticeCustomerFansAskForThem() throws {
+        let catalog = try DefaultContentRepository().load()
+        var state = GameState(startingCash: catalog.balance.startingCash, daySlots: 8, randomSeed: 51)
+        state.apprentices = [Apprentice(
+            id: UUID(),
+            name: "Mert",
+            customerFans: Set(catalog.customers.map(\.id))
+        )]
+        var engine = GameEngine(state: state, catalog: catalog)
+
+        try engine.handle(.prepareWorld)
+
+        #expect(engine.state.offers.first?.complaint.contains("Mert burada mı") == true)
+    }
+
+    @Test("Uyarıdan sonra mutsuz girişimci çırak ayrılır ve müşterilerinin bir kısmını götürür")
+    func entrepreneurialApprenticeCanLeaveWithCustomers() throws {
+        let catalog = try DefaultContentRepository().load()
+        var state = GameState(startingCash: Money(minorUnits: 10_000_000), daySlots: 8, randomSeed: 4)
+        state.totalMinutes = 6 * 1_440 + 480
+        state.day = state.totalMinutes / 1_440 + 1
+        let warningMinute = state.totalMinutes - 2 * 1_440
+        let fanIDs = Set(catalog.customers.prefix(3).map(\.id))
+        state.apprentices = [Apprentice(
+            id: UUID(),
+            name: "Can",
+            level: 3,
+            traits: [.entrepreneurial, .disciplined],
+            revealedTraits: [.entrepreneurial, .disciplined],
+            happiness: 55,
+            hiredAtMinute: 0,
+            jobsCompleted: 12,
+            customerFans: fanIDs,
+            departureWarningMinute: warningMinute,
+            lastRetentionCheckDay: state.day
+        )]
+        var engine = GameEngine(state: state, catalog: catalog)
+
+        let events = try engine.handle(.advanceTime(minutes: 1_440))
+
+        #expect(engine.state.apprentices.isEmpty)
+        #expect(!engine.state.lostCustomerIDs.isEmpty)
+        #expect(events.contains { if case .apprenticeLeft(name: "Can", customersTaken: 2) = $0 { true } else { false } })
+    }
+
+    @Test("Ayrılık uyarısı alan çırak yüksek mutlulukla dükkânda kalır")
+    func happyApprenticeStaysAfterWarning() throws {
+        let catalog = try DefaultContentRepository().load()
+        var state = GameState(startingCash: Money(minorUnits: 10_000_000), daySlots: 8)
+        state.totalMinutes = 5 * 1_440 + 480
+        state.day = state.totalMinutes / 1_440 + 1
+        let apprentice = Apprentice(
+            id: UUID(),
+            name: "Efe",
+            level: 2,
+            traits: [.entrepreneurial, .hardworking],
+            revealedTraits: [.entrepreneurial, .hardworking],
+            happiness: 85,
+            hiredAtMinute: 0,
+            jobsCompleted: 8,
+            departureWarningMinute: state.totalMinutes - 2 * 1_440,
+            lastRetentionCheckDay: state.day
+        )
+        state.apprentices = [apprentice]
+        var engine = GameEngine(state: state, catalog: catalog)
+
+        let events = try engine.handle(.advanceTime(minutes: 1_440))
+
+        #expect(engine.state.apprentices.count == 1)
+        #expect(engine.state.apprentices[0].departureWarningMinute == nil)
+        #expect(events.contains(.apprenticeStayed(name: "Efe")))
+    }
+
     @Test("Kredi limit içinde alınır ve oyun zamanı ilerlediğinde taksiti tahsil edilir")
     func bankLoanSchedule() throws {
         let catalog = try DefaultContentRepository().load()
@@ -637,7 +711,7 @@ struct GameLogicTests {
         encoder.dateEncodingStrategy = .iso8601
         let encoded = try encoder.encode(legacy)
         var object = try #require(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
-        for key in ["inventory", "totalMinutes", "nextCustomerArrivalMinute", "expertise", "reviews", "ratingTenths", "apprentices", "apprenticeRecruitment", "financeEntries", "loans", "incidents", "washLevel"] {
+        for key in ["inventory", "totalMinutes", "nextCustomerArrivalMinute", "expertise", "reviews", "ratingTenths", "apprentices", "apprenticeRecruitment", "lostCustomerIDs", "financeEntries", "loans", "incidents", "washLevel"] {
             object.removeValue(forKey: key)
         }
         let legacyData = try JSONSerialization.data(withJSONObject: object)

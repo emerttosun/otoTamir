@@ -128,6 +128,10 @@ public struct Apprentice: Codable, Hashable, Identifiable, Sendable {
     public let hiredAtMinute: Int
     public var jobsCompleted: Int
     public var washesCompleted: Int
+    public var customerFans: Set<String>
+    public var departureWarningMinute: Int?
+    public var retentionProtectedUntilMinute: Int
+    public var lastRetentionCheckDay: Int
 
     public init(
         id: UUID,
@@ -141,7 +145,11 @@ public struct Apprentice: Codable, Hashable, Identifiable, Sendable {
         happiness: Int = 65,
         hiredAtMinute: Int = 0,
         jobsCompleted: Int = 0,
-        washesCompleted: Int = 0
+        washesCompleted: Int = 0,
+        customerFans: Set<String> = [],
+        departureWarningMinute: Int? = nil,
+        retentionProtectedUntilMinute: Int = 0,
+        lastRetentionCheckDay: Int = 0
     ) {
         self.id = id
         self.name = name
@@ -157,6 +165,10 @@ public struct Apprentice: Codable, Hashable, Identifiable, Sendable {
         self.hiredAtMinute = hiredAtMinute
         self.jobsCompleted = jobsCompleted
         self.washesCompleted = washesCompleted
+        self.customerFans = customerFans
+        self.departureWarningMinute = departureWarningMinute
+        self.retentionProtectedUntilMinute = retentionProtectedUntilMinute
+        self.lastRetentionCheckDay = lastRetentionCheckDay
     }
 
     public mutating func addExperience(_ amount: Int) {
@@ -209,6 +221,7 @@ public struct Apprentice: Codable, Hashable, Identifiable, Sendable {
     private enum CodingKeys: String, CodingKey {
         case id, name, level, experience, background, expertise, traits, revealedTraits
         case happiness, hiredAtMinute, jobsCompleted, washesCompleted
+        case customerFans, departureWarningMinute, retentionProtectedUntilMinute, lastRetentionCheckDay
     }
 
     public init(from decoder: any Decoder) throws {
@@ -227,5 +240,9 @@ public struct Apprentice: Codable, Hashable, Identifiable, Sendable {
         hiredAtMinute = try values.decodeIfPresent(Int.self, forKey: .hiredAtMinute) ?? 0
         jobsCompleted = try values.decodeIfPresent(Int.self, forKey: .jobsCompleted) ?? 0
         washesCompleted = try values.decodeIfPresent(Int.self, forKey: .washesCompleted) ?? 0
+        customerFans = try values.decodeIfPresent(Set<String>.self, forKey: .customerFans) ?? []
+        departureWarningMinute = try values.decodeIfPresent(Int.self, forKey: .departureWarningMinute)
+        retentionProtectedUntilMinute = try values.decodeIfPresent(Int.self, forKey: .retentionProtectedUntilMinute) ?? 0
+        lastRetentionCheckDay = try values.decodeIfPresent(Int.self, forKey: .lastRetentionCheckDay) ?? 0
     }
 }
