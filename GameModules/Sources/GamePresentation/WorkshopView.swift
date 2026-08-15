@@ -124,7 +124,7 @@ struct WorkshopView: View {
                   let fault = store.catalog.fault(id: faultID) else { return }
             miniGame = MiniGameRequest(
                 jobID: job.id,
-                title: fault.partName,
+                title: store.catalog.part(for: fault)?.name ?? fault.name,
                 kind: kind,
                 maintenanceTask: nil,
                 projectTask: nil
@@ -388,7 +388,7 @@ private struct JobCard: View {
                 Text("Parça kalitesini seç. Aşağıdaki tutar değişecek parçaların toplam alış fiyatıdır.")
                     .font(.caption).foregroundStyle(.secondary)
             } else if let diagnosedFault {
-                Text("Teşhis: \(diagnosedFault.name) • Gereken: \(diagnosedFault.partName)")
+                Text("Teşhis: \(diagnosedFault.name) • Gereken: \(diagnosedPart?.name ?? "parça kaydı eksik")")
                     .font(.subheadline)
             }
             ForEach(PartQuality.allCases, id: \.self) { quality in
@@ -449,7 +449,7 @@ private struct JobCard: View {
                 Button {
                     startMiniGame(.init(
                         jobID: job.id,
-                        title: fault.partName,
+                        title: diagnosedPart?.name ?? fault.name,
                         kind: fault.repairGame,
                         maintenanceTask: nil,
                         projectTask: nil
@@ -579,7 +579,7 @@ private struct JobCard: View {
     private func partCost(_ quality: PartQuality) -> Money {
         let baseCost = job.serviceKind == .periodicMaintenance
             ? PartPricingRules.maintenanceBasePartCost(for: job.maintenanceTasks, catalog: catalog)
-            : diagnosedFault?.basePartCost ?? .zero
+            : diagnosedPart?.basePrice ?? .zero
         let hasPartsStorage = currentShop?.facilities.contains(.partsStorage) == true
         return PartPricingRules.purchasePrice(
             baseCost: baseCost,
@@ -600,5 +600,6 @@ private struct JobCard: View {
     private var vehicle: VehicleDefinition? { catalog.vehicle(id: job.vehicleID) }
     private var customer: CustomerDefinition? { catalog.customer(id: job.customerID) }
     private var diagnosedFault: FaultDefinition? { job.diagnosedFaultID.flatMap(catalog.fault(id:)) }
+    private var diagnosedPart: PartDefinition? { diagnosedFault.flatMap(catalog.part(for:)) }
     private var currentShop: ShopLevelDefinition? { catalog.shopLevel(shopLevel) }
 }

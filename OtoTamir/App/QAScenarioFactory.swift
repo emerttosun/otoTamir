@@ -61,13 +61,14 @@ enum QAScenarioFactory {
         job.diagnosedFaultID = fault.id
         job.partQuality = .aftermarket
         state.activeJobs = [job]
+        let part = try required(catalog.part(for: fault), "QA arıza parçası")
         state.inventory = [InventoryItem(
             id: offer.id,
             jobID: offer.id,
             faultID: fault.id,
-            partName: fault.partName,
+            partName: part.name,
             quality: .aftermarket,
-            purchasePrice: fault.basePartCost
+            purchasePrice: part.basePrice
         )]
         return state
     }

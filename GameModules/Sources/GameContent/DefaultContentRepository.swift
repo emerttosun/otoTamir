@@ -63,12 +63,19 @@ public enum ContentValidator {
         guard Set(catalog.maintenanceServices.map(\.task)) == Set(MaintenanceTask.allCases) else {
             throw ContentError.invalidValue("Her bakım görevinin fiyat ve işçilik tanımı bulunmalı")
         }
-        guard catalog.parts.allSatisfy({ $0.basePrice > .zero }) else {
-            throw ContentError.invalidValue("Bakım parçalarının fiyatı sıfırdan büyük olmalı")
+        guard catalog.parts.count >= 36, catalog.parts.allSatisfy({ $0.basePrice > .zero }) else {
+            throw ContentError.invalidValue("Ortak parça kataloğu eksik veya fiyatı geçersiz")
         }
         let partIDs = Set(catalog.parts.map(\.id))
+        guard catalog.faults.allSatisfy({ fault in
+            catalog.part(for: fault)?.qualityProfile == .replacementPart
+        }) else {
+            throw ContentError.invalidValue("Her arıza geçerli bir normal tamir parçasına bağlanmalı")
+        }
         guard catalog.maintenanceServices.allSatisfy({ service in
-            service.laborValue > .zero && service.partIDs.allSatisfy(partIDs.contains)
+            service.laborValue > .zero
+                && service.partIDs.allSatisfy(partIDs.contains)
+                && service.partIDs.allSatisfy { catalog.part(id: $0)?.qualityProfile == .maintenanceSupply }
         }) else {
             throw ContentError.invalidValue("Bakım işlemindeki parça referansı veya işçilik değeri geçersiz")
         }

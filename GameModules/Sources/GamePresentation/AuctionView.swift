@@ -118,7 +118,10 @@ private struct SalvageLotCard: View {
                 Text("MEKANİK VE ELEKTRİK KUSURLARI").font(.caption2.bold()).foregroundStyle(GarageStyle.orange)
                 ForEach(lot.mechanicalFaultIDs, id: \.self) { id in
                     if let fault = catalog.fault(id: id) {
-                        Label("\(fault.name) • \(fault.partName)", systemImage: "exclamationmark.triangle.fill")
+                        Label(
+                            "\(fault.name) • \(catalog.part(for: fault)?.name ?? "parça kaydı eksik")",
+                            systemImage: "exclamationmark.triangle.fill"
+                        )
                             .font(.caption).foregroundStyle(.white.opacity(0.84))
                     }
                 }
@@ -152,7 +155,7 @@ private struct SalvageLotCard: View {
         let estimate = VehicleTradingRules.investmentEstimate(
             lot: lot,
             vehicle: vehicle,
-            faults: lot.mechanicalFaultIDs.compactMap { catalog.fault(id: $0) },
+            catalog: catalog,
             hasBodyPaintBooth: hasBodyPaintBooth
         )
         return VStack(alignment: .leading, spacing: 7) {

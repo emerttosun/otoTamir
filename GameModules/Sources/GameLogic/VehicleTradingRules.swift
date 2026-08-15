@@ -24,10 +24,10 @@ public enum VehicleTradingRules {
     public static func investmentEstimate(
         lot: AuctionLot,
         vehicle: VehicleDefinition,
-        faults: [FaultDefinition],
+        catalog: ContentCatalog,
         hasBodyPaintBooth: Bool
     ) -> VehicleInvestmentEstimate {
-        let mechanical = faults.reduce(Money.zero) { $0 + $1.basePartCost }
+        let mechanical = mechanicalPartCost(for: lot.mechanicalFaultIDs, catalog: catalog)
         let body = lot.panelDamages.reduce(Money.zero) { partial, damage in
             partial + panelRepairCost(for: damage.condition, vehicleValue: vehicle.baseValue)
         }
@@ -94,10 +94,10 @@ public enum VehicleTradingRules {
     public static func restorationCost(
         project: ProjectCar,
         vehicle: VehicleDefinition,
-        faults: [FaultDefinition],
+        catalog: ContentCatalog,
         hasBodyPaintBooth: Bool
     ) -> Money {
-        let mechanical = faults.reduce(Money.zero) { $0 + $1.basePartCost }
+        let mechanical = mechanicalPartCost(for: project.faultIDs, catalog: catalog)
         let body = project.panelDamages.reduce(Money.zero) { partial, damage in
             partial + panelRepairCost(for: damage.condition, vehicleValue: vehicle.baseValue)
         }
@@ -119,7 +119,9 @@ public enum VehicleTradingRules {
         let cost: Money
         switch task {
         case .mechanical(let faultID):
-            cost = catalog.fault(id: faultID).map { percent($0.basePartCost, 85) } ?? .zero
+            cost = catalog.fault(id: faultID)
+                .flatMap(catalog.part(for:))
+                .map { percent($0.basePrice, 85) } ?? .zero
         case .panel(let panel):
             let condition = project.panelDamages.first { $0.panel == panel }?.condition ?? .original
             cost = panelRepairCost(for: condition, vehicleValue: vehicle.baseValue)
@@ -152,6 +154,12 @@ public enum VehicleTradingRules {
         case .cracked: percent(vehicleValue, 6)
         case .cutOrWelded: percent(vehicleValue, 8)
         }
+    }
+
+    private static func mechanicalPartCost(for faultIDs: [String], catalog: ContentCatalog) -> Money {
+        faultIDs.compactMap { catalog.fault(id: $0) }
+            .compactMap(catalog.part(for:))
+            .reduce(.zero) { $0 + $1.basePrice }
     }
 
     private static func percent(_ money: Money, _ value: Int) -> Money {

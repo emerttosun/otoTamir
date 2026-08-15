@@ -97,11 +97,13 @@ extension GameEngine {
             faultID = "periodic_maintenance"
             baseCost = PartPricingRules.maintenanceBasePartCost(for: job.maintenanceTasks, catalog: catalog)
             qualityProfile = .maintenanceSupply
-        } else if let diagnosedID = job.diagnosedFaultID, let fault = catalog.fault(id: diagnosedID) {
-            partName = fault.partName
+        } else if let diagnosedID = job.diagnosedFaultID,
+                  let fault = catalog.fault(id: diagnosedID),
+                  let part = PartPricingRules.replacementPart(for: fault, catalog: catalog) {
+            partName = part.name
             faultID = diagnosedID
-            baseCost = fault.basePartCost
-            qualityProfile = .replacementPart
+            baseCost = part.basePrice
+            qualityProfile = part.qualityProfile
         } else {
             throw GameRuleError.invalidCommand("Önce doğru teşhisi koymalısın.")
         }
@@ -158,7 +160,8 @@ extension GameEngine {
         }
         let equipment = catalog.shopLevel(state.shopLevel)?.equipmentBonus ?? 0
         let jitter = random.next(upperBound: 11) - 5
-        let score = max(0, min(100, performance + skill * 3 + equipment + (partQuality.reliabilityScore - 70) / 3 + jitter))
+        let reliability = partQuality.reliabilityScore(for: .replacementPart)
+        let score = max(0, min(100, performance + skill * 3 + equipment + (reliability - 70) / 3 + jitter))
         state.randomSeed = random.state
         let quality = workmanship(for: score)
         state.activeJobs[index].workmanship = quality

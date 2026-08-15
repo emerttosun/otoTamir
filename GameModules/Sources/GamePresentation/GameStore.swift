@@ -212,7 +212,8 @@ public final class GameStore: ObservableObject {
         case .projectRepairCompleted(_, let task):
             switch task {
             case .mechanical(let faultID):
-                bannerMessage = "\(catalog.fault(id: faultID)?.partName ?? "Mekanik iş") tamamlandı. Sıradaki eksiği seç."
+                let partName = catalog.fault(id: faultID).flatMap(catalog.part(for:))?.name ?? "Mekanik iş"
+                bannerMessage = "\(partName) tamamlandı. Sıradaki eksiği seç."
             case .panel(let panel):
                 bannerMessage = "\(panel.title) işi tamamlandı. Sıradaki eksiği seç."
             case .structural(let area):

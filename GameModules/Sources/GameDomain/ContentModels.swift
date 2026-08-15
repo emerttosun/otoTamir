@@ -113,8 +113,7 @@ public struct FaultDefinition: Codable, Hashable, Identifiable, Sendable {
     public let complaintVariants: [String]
     public let clues: [String]
     public let inspectionFindings: [InspectionKind: String]
-    public let partName: String
-    public let basePartCost: Money
+    public let partID: String
     public let laborValue: Money
     public let requiredSkill: Int
     public let repairGame: RepairGameKind
@@ -127,8 +126,7 @@ public struct FaultDefinition: Codable, Hashable, Identifiable, Sendable {
         complaintVariants: [String] = [],
         clues: [String],
         inspectionFindings: [InspectionKind: String] = [:],
-        partName: String,
-        basePartCost: Money,
+        partID: String,
         laborValue: Money,
         requiredSkill: Int,
         repairGame: RepairGameKind
@@ -140,16 +138,15 @@ public struct FaultDefinition: Codable, Hashable, Identifiable, Sendable {
         self.complaintVariants = complaintVariants
         self.clues = clues
         self.inspectionFindings = inspectionFindings
-        self.partName = partName
-        self.basePartCost = basePartCost
+        self.partID = partID
         self.laborValue = laborValue
         self.requiredSkill = requiredSkill
         self.repairGame = repairGame
     }
 
     private enum CodingKeys: String, CodingKey {
-        case id, name, area, complaint, complaintVariants, clues, inspectionFindings, partName
-        case basePartCost, laborValue, requiredSkill, repairGame
+        case id, name, area, complaint, complaintVariants, clues, inspectionFindings, partID
+        case laborValue, requiredSkill, repairGame
     }
 
     public init(from decoder: any Decoder) throws {
@@ -164,8 +161,7 @@ public struct FaultDefinition: Codable, Hashable, Identifiable, Sendable {
         inspectionFindings = Dictionary(uniqueKeysWithValues: rawFindings.compactMap { key, value in
             InspectionKind(rawValue: key).map { ($0, value) }
         })
-        partName = try values.decode(String.self, forKey: .partName)
-        basePartCost = try values.decode(Money.self, forKey: .basePartCost)
+        partID = try values.decode(String.self, forKey: .partID)
         laborValue = try values.decode(Money.self, forKey: .laborValue)
         requiredSkill = try values.decode(Int.self, forKey: .requiredSkill)
         repairGame = try values.decode(RepairGameKind.self, forKey: .repairGame)
@@ -183,8 +179,7 @@ public struct FaultDefinition: Codable, Hashable, Identifiable, Sendable {
             Dictionary(uniqueKeysWithValues: inspectionFindings.map { ($0.key.rawValue, $0.value) }),
             forKey: .inspectionFindings
         )
-        try values.encode(partName, forKey: .partName)
-        try values.encode(basePartCost, forKey: .basePartCost)
+        try values.encode(partID, forKey: .partID)
         try values.encode(laborValue, forKey: .laborValue)
         try values.encode(requiredSkill, forKey: .requiredSkill)
         try values.encode(repairGame, forKey: .repairGame)
@@ -395,6 +390,7 @@ public struct ContentCatalog: Codable, Hashable, Sendable {
     public func vehicle(id: String) -> VehicleDefinition? { vehicles.first { $0.id == id } }
     public func fault(id: String) -> FaultDefinition? { faults.first { $0.id == id } }
     public func part(id: String) -> PartDefinition? { parts.first { $0.id == id } }
+    public func part(for fault: FaultDefinition) -> PartDefinition? { part(id: fault.partID) }
     public func maintenanceService(for task: MaintenanceTask) -> MaintenanceServiceDefinition? {
         maintenanceServices.first { $0.task == task }
     }

@@ -74,7 +74,8 @@ struct ProjectRestorationCard: View {
 
     private func title(_ task: ProjectRepairTask) -> String {
         switch task {
-        case .mechanical(let faultID): return catalog.fault(id: faultID)?.partName ?? "Mekanik arıza"
+        case .mechanical(let faultID):
+            return catalog.fault(id: faultID).flatMap(catalog.part(for:))?.name ?? "Mekanik arıza"
         case .panel(let panel):
             let condition = project.panelDamages.first { $0.panel == panel }?.condition.title ?? "Onarım"
             return "\(panel.title) • \(condition)"

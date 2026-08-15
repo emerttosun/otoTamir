@@ -2,12 +2,15 @@
 
 Bütün tutarlar kuruş cinsinden `Int64` olarak saklanır. Başlangıç değerleri `catalog.json` içindeki balance bölümündedir.
 
+Fiyatlar tek bir gerçek marka veya modele ait canlı teklif değildir. 16 Ağustos 2026 tarihinde düşük/orta segment bir araç için göreli büyüklükler; [Ankara Ticaret Odası 2026 oto tamir ve kaporta azami işçilik tarifesi](https://www.atonet.org.tr/Uploads/Birimler/Internet/Hizmetlerimiz/Azami%20Fiyat%20Tarifleri/2026_azami_fiyat_tarifesi/2026_oto_tamir_iscilik_2026_05_18_v2.pdf), [Otopratik servis fiyat listesi](https://www.otopratik.com.tr/servis-fiyat-listesi) ve [ServiGO kaporta-boya listesi](https://servigo.com/kaporta-boya) referans alınarak dengelenmiştir. Amaç piyasa fiyatını birebir takip etmek değil; yağın filtreden, fren diskinin balatadan, trigerin aksesuar kayışından ve panel değişiminin küçük bağlantı setinden anlamlı ölçüde pahalı kalmasıdır.
+
 - Normal tamir parçası maliyeti: çıkma `%55`, yan sanayi `%100`, orijinal `%140`.
 - Bakım sarflarında çıkma ürün bulunmaz: ekonomik `%85`, standart `%100`, premium `%135` kullanılır. Kayıt uyumluluğu için bu seçenekler içeride aynı üç kalite kimliğini korur, oyuncuya hizmete uygun adla gösterilir.
 - Yıllık bakımda motor yağı, yağ filtresi, hava filtresi, polen filtresi, antifriz ve fren hidroliği ayrı katalog kayıtlarıdır. Her kaydın kendi taban fiyatı vardır.
 - Bakım görevi hangi parçaları değiştirdiğini ve kendi işçilik değerini katalogda belirtir. Akü ölçümü ile lastik/fren kontrolü yalnız kontrol bedeli üretir; otomatik parça bedeli eklemez.
 - Bakım parça alış tutarı, seçili görevlerin benzersiz parçalarının taban fiyat toplamına kalite katsayısı uygulanarak hesaplanır. Parça deposu varsa sonuç ayrıca `%10` azalır.
 - Normal müşteri bedeli gerçek parça alış tutarı ile seçili bakım görevlerinin işçilik toplamıdır; uygun/normal/yüksek/uçuk stratejisi bunun üzerine uygulanır.
+- Normal arızalar da aynı ortak `parts` kataloğuna `partID` ile bağlanır. Arıza kaydında ikinci bir parça adı veya fiyatı tutulmaz; müşteri işi, ihale hesabı ve restorasyon aynı fiyat kaynağını kullanır.
 - Fiyat stratejisi: uygun `%85`, normal `%100`, yüksek `%135`, uçuk `%180`.
 - İşçilik ve parça güvenilirliği tekrar arıza ihtimalini etkiler.
 - Hileli davranışlar anında kazanç sağlar; dükkân puanı/yorum, şikâyet ve denetim sonraki takvim günlerinde uygulanır.

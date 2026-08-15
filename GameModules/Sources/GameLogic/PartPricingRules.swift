@@ -1,6 +1,13 @@
 import GameDomain
 
 public enum PartPricingRules {
+    public static func replacementPart(
+        for fault: FaultDefinition,
+        catalog: ContentCatalog
+    ) -> PartDefinition? {
+        catalog.part(for: fault)
+    }
+
     public static func maintenanceParts(
         for tasks: [MaintenanceTask],
         catalog: ContentCatalog

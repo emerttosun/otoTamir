@@ -9,12 +9,26 @@ public enum PartCategory: String, Codable, CaseIterable, Sendable {
     case lubricant
     case filter
     case fluid
+    case engine
+    case electrical
+    case brake
+    case drivetrain
+    case suspension
+    case body
+    case paint
 
     public var title: String {
         switch self {
         case .lubricant: "Yağ"
         case .filter: "Filtre"
         case .fluid: "Sıvı"
+        case .engine: "Motor"
+        case .electrical: "Elektrik"
+        case .brake: "Fren"
+        case .drivetrain: "Aktarma"
+        case .suspension: "Yürüyen Aksam"
+        case .body: "Kaporta"
+        case .paint: "Boya"
         }
     }
 }

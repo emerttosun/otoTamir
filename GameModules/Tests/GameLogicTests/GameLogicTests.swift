@@ -699,7 +699,7 @@ struct GameLogicTests {
         let estimate = VehicleTradingRules.investmentEstimate(
             lot: lot,
             vehicle: vehicle,
-            faults: lot.mechanicalFaultIDs.compactMap { catalog.fault(id: $0) },
+            catalog: catalog,
             hasBodyPaintBooth: false
         )
 

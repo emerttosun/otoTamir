@@ -109,7 +109,8 @@ extension GameEngine {
 
     func projectRepairTitle(_ task: ProjectRepairTask) -> String {
         switch task {
-        case .mechanical(let faultID): catalog.fault(id: faultID)?.partName ?? "Mekanik onarım"
+        case .mechanical(let faultID):
+            catalog.fault(id: faultID).flatMap(catalog.part(for:))?.name ?? "Mekanik onarım"
         case .panel(let panel): "\(panel.title) kaporta onarımı"
         case .structural(let area): "\(area.title) yapısal onarım"
         case .airbag: "Hava yastığı sistemi"
