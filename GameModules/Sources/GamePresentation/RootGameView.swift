@@ -19,41 +19,40 @@ public struct RootGameView: View {
     }
 
     public var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                StatusBar(state: store.state) {
-                    showingFinance = true
-                }
-                sectionPicker
-                if let activeIntroduction {
-                    SectionIntroductionCard(section: activeIntroduction) {
-                        dismissIntroduction(activeIntroduction)
-                    }
-                    .transition(.move(edge: .top).combined(with: .opacity))
-                }
-                Group {
-                    switch selectedSection {
-                    case .workshop:
-                        WorkshopView(store: store)
-                    case .auction:
-                        AuctionView(store: store)
-                    case .listings:
-                        ListingsView(store: store)
-                    case .progress:
-                        ProgressViewScreen(store: store)
-                    case .apprentices:
-                        ApprenticesView(store: store)
-                    case .bank:
-                        BankView(store: store)
-                    case .store:
-                        ShopStoreView(store: store)
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        VStack(spacing: 0) {
+            StatusBar(state: store.state) {
+                showingFinance = true
             }
-            .background(GarageStyle.background.ignoresSafeArea())
-            .foregroundStyle(.white)
+            sectionPicker
+            if let activeIntroduction {
+                SectionIntroductionCard(section: activeIntroduction) {
+                    dismissIntroduction(activeIntroduction)
+                }
+                .transition(.move(edge: .top).combined(with: .opacity))
+            }
+            Group {
+                switch selectedSection {
+                case .workshop:
+                    WorkshopView(store: store)
+                case .auction:
+                    AuctionView(store: store)
+                case .listings:
+                    ListingsView(store: store)
+                case .progress:
+                    ProgressViewScreen(store: store)
+                case .apprentices:
+                    ApprenticesView(store: store)
+                case .bank:
+                    BankView(store: store)
+                case .store:
+                    ShopStoreView(store: store)
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        .padding(.top, 50)
+        .background(GarageStyle.background.ignoresSafeArea())
+        .foregroundStyle(.white)
         .preferredColorScheme(.dark)
         .onAppear { showIntroductionIfNeeded(for: selectedSection) }
         .sheet(isPresented: $showingFinance) {
@@ -172,9 +171,6 @@ private struct StatusBar: View {
         HStack(spacing: 12) {
             Button(action: showFinance) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("USTANIN YERİ")
-                        .font(.caption2.weight(.black))
-                        .foregroundStyle(GarageStyle.orange)
                     HStack(spacing: 5) {
                         Text(state.cash.liraText)
                             .font(.headline.monospacedDigit().weight(.bold))
