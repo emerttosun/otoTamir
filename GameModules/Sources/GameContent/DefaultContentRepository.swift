@@ -41,6 +41,8 @@ public enum ContentValidator {
     public static func validate(_ catalog: ContentCatalog) throws {
         try requireUnique(catalog.vehicles.map(\.id), kind: "Araç")
         try requireUnique(catalog.faults.map(\.id), kind: "Arıza")
+        try requireUnique(catalog.parts.map(\.id), kind: "Parça")
+        try requireUnique(catalog.maintenanceServices.map(\.id), kind: "Bakım işlemi")
         try requireUnique(catalog.customers.map(\.id), kind: "Müşteri")
         try requireUnique(catalog.reviews.map(\.id), kind: "Yorum")
         try requireUnique(catalog.shopLevels.map { String($0.id) }, kind: "Dükkân seviyesi")
@@ -57,6 +59,24 @@ public enum ContentValidator {
         }
         guard catalog.faults.allSatisfy({ $0.complaintVariants.count >= 2 }) else {
             throw ContentError.invalidValue("Her arıza en az üç farklı müşteri anlatımına sahip olmalı")
+        }
+        guard Set(catalog.maintenanceServices.map(\.task)) == Set(MaintenanceTask.allCases) else {
+            throw ContentError.invalidValue("Her bakım görevinin fiyat ve işçilik tanımı bulunmalı")
+        }
+        guard catalog.parts.allSatisfy({ $0.basePrice > .zero }) else {
+            throw ContentError.invalidValue("Bakım parçalarının fiyatı sıfırdan büyük olmalı")
+        }
+        let partIDs = Set(catalog.parts.map(\.id))
+        guard catalog.maintenanceServices.allSatisfy({ service in
+            service.laborValue > .zero && service.partIDs.allSatisfy(partIDs.contains)
+        }) else {
+            throw ContentError.invalidValue("Bakım işlemindeki parça referansı veya işçilik değeri geçersiz")
+        }
+        let replacementTasks: Set<MaintenanceTask> = [.oilAndFilter, .airFilter, .fluidCheck]
+        guard catalog.maintenanceServices
+            .filter({ replacementTasks.contains($0.task) })
+            .allSatisfy({ !$0.partIDs.isEmpty }) else {
+            throw ContentError.invalidValue("Parça değişen bakım işlemlerinde en az bir parça bulunmalı")
         }
         guard catalog.customers.allSatisfy({ $0.minimumExpertise >= 1 }) else {
             throw ContentError.invalidValue("Müşteri uzmanlık açılışı en az 1 olmalı")

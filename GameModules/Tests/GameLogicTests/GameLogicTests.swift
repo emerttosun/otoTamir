@@ -138,12 +138,45 @@ struct GameLogicTests {
         var engine = GameEngine(state: state, catalog: catalog)
 
         try engine.handle(.acceptOffer(id))
+        let cashBeforeParts = engine.state.cash
+        let expectedPartCost = PartPricingRules.purchasePrice(
+            baseCost: PartPricingRules.maintenanceBasePartCost(
+                for: [.oilAndFilter, .batteryTest, .tireCheck],
+                catalog: catalog
+            ),
+            quality: .aftermarket,
+            hasPartsStorage: false
+        )
         try engine.handle(.buyPart(jobID: id, quality: .aftermarket))
+        #expect(engine.state.cash == cashBeforeParts - expectedPartCost)
+        #expect(engine.state.inventory[0].purchasePrice == expectedPartCost)
+        #expect(engine.state.inventory[0].partName.contains("Motor Yağı"))
+        #expect(engine.state.inventory[0].partName.contains("Yağ Filtresi"))
+        #expect(!engine.state.inventory[0].partName.contains("Akü"))
         for task in [MaintenanceTask.oilAndFilter, .batteryTest, .tireCheck] {
             try engine.handle(.completeMaintenanceTask(jobID: id, task: task, performance: 90))
         }
         #expect(engine.state.activeJobs[0].stage == .awaitingPrice)
         #expect(engine.state.activeJobs[0].completedMaintenanceTasks.count == 3)
+    }
+
+    @Test("Bakım parçası ve işçiliği katalogdan tek merkezde hesaplanır")
+    func maintenancePricingUsesCatalog() throws {
+        let catalog = try DefaultContentRepository().load()
+        let tasks = MaintenanceTask.allCases
+
+        #expect(PartPricingRules.maintenanceBasePartCost(for: tasks, catalog: catalog) == Money(minorUnits: 575_000))
+        #expect(PartPricingRules.maintenanceLaborValue(for: tasks, catalog: catalog) == Money(minorUnits: 500_000))
+        #expect(PartPricingRules.purchasePrice(
+            baseCost: Money(minorUnits: 575_000),
+            quality: .original,
+            hasPartsStorage: false
+        ) == Money(minorUnits: 805_000))
+        #expect(PartPricingRules.purchasePrice(
+            baseCost: Money(minorUnits: 575_000),
+            quality: .original,
+            hasPartsStorage: true
+        ) == Money(minorUnits: 724_500))
     }
 
     @Test("Hasarlı araç pazarı sabit fiyat ve tam ekspertiz raporuyla satın alınır")

@@ -10,6 +10,8 @@ struct GameContentTests {
 
         #expect(catalog.vehicles.count == 12)
         #expect(catalog.faults.count == 30)
+        #expect(catalog.parts.count == 6)
+        #expect(catalog.maintenanceServices.count == MaintenanceTask.allCases.count)
         #expect(catalog.customers.count == 20)
         #expect(catalog.shopLevels.count == 7)
         #expect(catalog.washLevels.count == 3)
@@ -19,6 +21,9 @@ struct GameContentTests {
         #expect(catalog.faults.allSatisfy { $0.complaintVariants.count >= 2 })
         #expect(catalog.customers.allSatisfy { $0.minimumExpertise >= 1 })
         #expect(catalog.faults.allSatisfy { $0.inspectionFindings.count >= 2 })
+        #expect(catalog.maintenanceServices.allSatisfy { service in
+            service.partIDs.allSatisfy { catalog.part(id: $0) != nil }
+        })
         #expect(SkillArea.allCases.allSatisfy { area in
             Set(catalog.faults.filter { $0.area == area }.map(\.requiredSkill)).count >= 3
         })
@@ -39,6 +44,8 @@ struct GameContentTests {
         let invalid = ContentCatalog(
             vehicles: catalog.vehicles + [catalog.vehicles[0]],
             faults: catalog.faults,
+            parts: catalog.parts,
+            maintenanceServices: catalog.maintenanceServices,
             customers: catalog.customers,
             reviews: catalog.reviews,
             shopLevels: catalog.shopLevels,

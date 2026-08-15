@@ -367,7 +367,25 @@ private struct JobCard: View {
     private var partContent: some View {
         VStack(alignment: .leading, spacing: 9) {
             if job.serviceKind == .periodicMaintenance {
-                Text("Bakım setini parçacıdan seç. Filtreler, yağ ve sarf malzemeleri birlikte gelir.")
+                Text("Değişecek parçalar")
+                    .font(.caption.bold())
+                ForEach(maintenanceParts) { part in
+                    HStack(alignment: .firstTextBaseline) {
+                        Text(part.name)
+                        Spacer()
+                        Text(part.basePrice.liraText)
+                            .monospacedDigit()
+                    }
+                    .font(.caption)
+                }
+                let inspections = job.maintenanceTasks.filter {
+                    catalog.maintenanceService(for: $0)?.partIDs.isEmpty == true
+                }
+                if !inspections.isEmpty {
+                    Text("\(inspections.map(\.title).joined(separator: ", ")) yalnız kontrol işlemidir; parça bedeli eklenmez.")
+                        .font(.caption2).foregroundStyle(.secondary)
+                }
+                Text("Parça kalitesini seç. Aşağıdaki tutar değişecek parçaların toplam alış fiyatıdır.")
                     .font(.caption).foregroundStyle(.secondary)
             } else if let diagnosedFault {
                 Text("Teşhis: \(diagnosedFault.name) • Gereken: \(diagnosedFault.partName)")
@@ -559,12 +577,19 @@ private struct JobCard: View {
     }
 
     private func partCost(_ quality: PartQuality) -> Money {
-        if job.serviceKind == .periodicMaintenance {
-            let base = Int64(180_000 + job.maintenanceTasks.count * 55_000)
-            return Money(minorUnits: base * Int64(quality.costPercent) / 100)
-        }
-        guard let fault = diagnosedFault else { return .zero }
-        return Money(minorUnits: fault.basePartCost.minorUnits * Int64(quality.costPercent) / 100)
+        let baseCost = job.serviceKind == .periodicMaintenance
+            ? PartPricingRules.maintenanceBasePartCost(for: job.maintenanceTasks, catalog: catalog)
+            : diagnosedFault?.basePartCost ?? .zero
+        let hasPartsStorage = currentShop?.facilities.contains(.partsStorage) == true
+        return PartPricingRules.purchasePrice(
+            baseCost: baseCost,
+            quality: quality,
+            hasPartsStorage: hasPartsStorage
+        )
+    }
+
+    private var maintenanceParts: [PartDefinition] {
+        PartPricingRules.maintenanceParts(for: job.maintenanceTasks, catalog: catalog)
     }
 
     private var vehicle: VehicleDefinition? { catalog.vehicle(id: job.vehicleID) }

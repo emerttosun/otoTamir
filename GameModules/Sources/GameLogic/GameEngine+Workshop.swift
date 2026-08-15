@@ -88,9 +88,13 @@ extension GameEngine {
         let faultID: String
         let baseCost: Money
         if job.serviceKind == .periodicMaintenance {
-            partName = "yıllık bakım seti"
+            let parts = PartPricingRules.maintenanceParts(for: job.maintenanceTasks, catalog: catalog)
+            guard !parts.isEmpty else {
+                throw GameRuleError.invalidCommand("Bu bakımda satın alınacak parça bulunmuyor.")
+            }
+            partName = parts.map(\.name).joined(separator: ", ")
             faultID = "periodic_maintenance"
-            baseCost = Money(minorUnits: 420_000)
+            baseCost = PartPricingRules.maintenanceBasePartCost(for: job.maintenanceTasks, catalog: catalog)
         } else if let diagnosedID = job.diagnosedFaultID, let fault = catalog.fault(id: diagnosedID) {
             partName = fault.partName
             faultID = diagnosedID
@@ -99,8 +103,11 @@ extension GameEngine {
             throw GameRuleError.invalidCommand("Önce doğru teşhisi koymalısın.")
         }
 
-        var cost = percent(baseCost, quality.costPercent)
-        if supports(.partsStorage) { cost = percent(cost, 90) }
+        let cost = PartPricingRules.purchasePrice(
+            baseCost: baseCost,
+            quality: quality,
+            hasPartsStorage: supports(.partsStorage)
+        )
         let creditLimit = Money(minorUnits: -1_000_000)
         guard state.cash - cost >= creditLimit else { throw GameRuleError.notEnoughMoney }
         state.cash = state.cash - cost

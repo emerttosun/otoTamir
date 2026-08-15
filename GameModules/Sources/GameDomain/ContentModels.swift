@@ -362,6 +362,8 @@ public struct BalanceDefinition: Codable, Hashable, Sendable {
 public struct ContentCatalog: Codable, Hashable, Sendable {
     public let vehicles: [VehicleDefinition]
     public let faults: [FaultDefinition]
+    public let parts: [PartDefinition]
+    public let maintenanceServices: [MaintenanceServiceDefinition]
     public let customers: [CustomerDefinition]
     public let reviews: [ReviewTemplateDefinition]
     public let shopLevels: [ShopLevelDefinition]
@@ -371,6 +373,8 @@ public struct ContentCatalog: Codable, Hashable, Sendable {
     public init(
         vehicles: [VehicleDefinition],
         faults: [FaultDefinition],
+        parts: [PartDefinition] = [],
+        maintenanceServices: [MaintenanceServiceDefinition] = [],
         customers: [CustomerDefinition],
         reviews: [ReviewTemplateDefinition] = [],
         shopLevels: [ShopLevelDefinition],
@@ -379,6 +383,8 @@ public struct ContentCatalog: Codable, Hashable, Sendable {
     ) {
         self.vehicles = vehicles
         self.faults = faults
+        self.parts = parts
+        self.maintenanceServices = maintenanceServices
         self.customers = customers
         self.reviews = reviews
         self.shopLevels = shopLevels
@@ -388,6 +394,10 @@ public struct ContentCatalog: Codable, Hashable, Sendable {
 
     public func vehicle(id: String) -> VehicleDefinition? { vehicles.first { $0.id == id } }
     public func fault(id: String) -> FaultDefinition? { faults.first { $0.id == id } }
+    public func part(id: String) -> PartDefinition? { parts.first { $0.id == id } }
+    public func maintenanceService(for task: MaintenanceTask) -> MaintenanceServiceDefinition? {
+        maintenanceServices.first { $0.task == task }
+    }
     public func customer(id: String) -> CustomerDefinition? { customers.first { $0.id == id } }
     public func shopLevel(_ id: Int) -> ShopLevelDefinition? { shopLevels.first { $0.id == id } }
     public func washLevel(_ id: Int) -> WashLevelDefinition? { washLevels.first { $0.id == id } }

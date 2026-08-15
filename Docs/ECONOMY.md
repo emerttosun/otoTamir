@@ -3,6 +3,10 @@
 Bütün tutarlar kuruş cinsinden `Int64` olarak saklanır. Başlangıç değerleri `catalog.json` içindeki balance bölümündedir.
 
 - Parça maliyeti: çıkma `%55`, yan sanayi `%100`, orijinal `%140`.
+- Yıllık bakımda motor yağı, yağ filtresi, hava filtresi, polen filtresi, antifriz ve fren hidroliği ayrı katalog kayıtlarıdır. Her kaydın kendi taban fiyatı vardır.
+- Bakım görevi hangi parçaları değiştirdiğini ve kendi işçilik değerini katalogda belirtir. Akü ölçümü ile lastik/fren kontrolü yalnız kontrol bedeli üretir; otomatik parça bedeli eklemez.
+- Bakım parça alış tutarı, seçili görevlerin benzersiz parçalarının taban fiyat toplamına kalite katsayısı uygulanarak hesaplanır. Parça deposu varsa sonuç ayrıca `%10` azalır.
+- Normal müşteri bedeli gerçek parça alış tutarı ile seçili bakım görevlerinin işçilik toplamıdır; uygun/normal/yüksek/uçuk stratejisi bunun üzerine uygulanır.
 - Fiyat stratejisi: uygun `%85`, normal `%100`, yüksek `%135`, uçuk `%180`.
 - İşçilik ve parça güvenilirliği tekrar arıza ihtimalini etkiler.
 - Hileli davranışlar anında kazanç sağlar; dükkân puanı/yorum, şikâyet ve denetim sonraki takvim günlerinde uygulanır.
@@ -17,4 +21,4 @@ Bütün tutarlar kuruş cinsinden `Int64` olarak saklanır. Başlangıç değerl
 - Parçacı en fazla 10.000 ₺ veresiye parça verir; kasa -5.000 ₺ altına düşerse gün sonunda çalışmayı sürdürecek seviyede esnaf avansı açılır.
 - Gerçek para paketleri yalnız nakit sağlar; uzmanlık, itibar ve kalite sonucu satın alınamaz.
 
-Denge değerleri koddan bağımsız içerik dosyasında tutulur ve içerik doğrulama testinden geçer.
+Denge değerleri koddan bağımsız içerik dosyasında tutulur ve içerik doğrulama testinden geçer. Yeni bir bakım parçası eklenirken `parts` kaydı oluşturulur, ilgili `maintenanceServices.partIDs` listesine kimliği eklenir; hesaplama kodunun değiştirilmesi gerekmez.

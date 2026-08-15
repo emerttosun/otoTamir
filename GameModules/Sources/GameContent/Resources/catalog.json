@@ -52,6 +52,21 @@
     { "id": "body_panel", "name": "Arka Çamurluk Paneli", "area": "body", "complaint": "Arka çamurluk katlanmış, düzeltme payı kalmamış dediler.", "complaintVariants": ["Sac iki kere işlem görmüş, bu kez panel değişecek gibi.", "Teker üstünde ağır ezik var; kapı aralığı da bozuldu."], "clues": ["Panel kesim hattı gerekli", "İç yapı düzeltilebilir", "Nokta kaynak sırası kritik"], "inspectionFindings": { "visual": "Arka çamurluk panelinde keskin kat ve eski dolgu çatlağı var.", "lift": "İç davlumbaz onarılabilir; ana şasi kolunda sapma yok." }, "partName": "arka çamurluk paneli", "basePartCost": { "minorUnits": 1250000 }, "laborValue": { "minorUnits": 1800000 }, "requiredSkill": 6, "repairGame": "panelWeld" },
     { "id": "body_paint", "name": "Lokal Boya", "area": "body", "complaint": "Sürtme izi sacı açmış, paslanmadan toplansın.", "complaintVariants": ["Kapıdaki çizik tırnağa takılıyor; pasta kurtarmadı.", "Boya kalkmış ama göçük yok, rengi de yamalı durmasın."], "clues": ["Hasar astar altına geçmiş", "Sac düz", "Renk geçişi gerekiyor"], "inspectionFindings": { "visual": "Kapı yüzeyindeki çizik astarı geçmiş, sacda yüzeysel oksit başlamış.", "lift": "Panel ve kapı bağlantıları düz; yalnız yüzey işlemi gerekiyor." }, "partName": "astar, baz boya ve vernik seti", "basePartCost": { "minorUnits": 420000 }, "laborValue": { "minorUnits": 760000 }, "requiredSkill": 4, "repairGame": "paintLayers" }
   ],
+  "parts": [
+    { "id": "engine_oil_4l", "name": "Motor Yağı (4 L)", "category": "lubricant", "basePrice": { "minorUnits": 240000 } },
+    { "id": "oil_filter", "name": "Yağ Filtresi", "category": "filter", "basePrice": { "minorUnits": 45000 } },
+    { "id": "air_filter", "name": "Hava Filtresi", "category": "filter", "basePrice": { "minorUnits": 65000 } },
+    { "id": "cabin_filter", "name": "Polen Filtresi", "category": "filter", "basePrice": { "minorUnits": 75000 } },
+    { "id": "coolant_3l", "name": "Antifriz (3 L)", "category": "fluid", "basePrice": { "minorUnits": 90000 } },
+    { "id": "brake_fluid_1l", "name": "Fren Hidroliği (1 L)", "category": "fluid", "basePrice": { "minorUnits": 60000 } }
+  ],
+  "maintenanceServices": [
+    { "task": "oilAndFilter", "partIDs": ["engine_oil_4l", "oil_filter"], "laborValue": { "minorUnits": 150000 } },
+    { "task": "airFilter", "partIDs": ["air_filter", "cabin_filter"], "laborValue": { "minorUnits": 90000 } },
+    { "task": "batteryTest", "partIDs": [], "laborValue": { "minorUnits": 70000 } },
+    { "task": "tireCheck", "partIDs": [], "laborValue": { "minorUnits": 110000 } },
+    { "task": "fluidCheck", "partIDs": ["coolant_3l", "brake_fluid_1l"], "laborValue": { "minorUnits": 80000 } }
+  ],
   "customers": [
     { "id": "retired_hasan", "name": "Emekli Hasan Abi", "archetype": "Çay ve sohbet sever", "greeting": "Ustam acelem yok da akşama lazım.", "patience": 7, "priceSensitivity": 8, "appearance": "Ütülü gömlek, eski model saat", "profileHint": "Fiyatları yıllardır takip ediyor gibi" },
     { "id": "courier_mert", "name": "Kurye Mert", "archetype": "Zamanla yarışır", "greeting": "Abi on dakikada çıkar mı? Üç sipariş bekliyor.", "patience": 2, "priceSensitivity": 6, "appearance": "Kurye montu ve eldiven", "profileHint": "Aracın hemen çıkmasına paradan fazla önem verebilir" },

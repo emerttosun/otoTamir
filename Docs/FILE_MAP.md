@@ -21,6 +21,7 @@
 
 - `Money.swift`: Kuruş tabanlı güvenli para değerini ve Türk lirası gösterimini sağlar.
 - `ContentModels.swift`: JSON'dan gelen araç, kontrol bulgusu, arıza, müşteri, yorum, dükkân ve üç seviyeli yıkama gelişimi ile ayrıntılı gider dengelerini tanımlar.
+- `PartModels.swift`: Tekil bakım parçalarının kategori ve taban fiyatını, bakım görevlerinin parça ve işçilik eşlemesini tanımlar.
 - `GameModels.swift`: Sürüm 14 `GameState` kayıt kökünü, kişilikli çırakları, kaybedilen müşteri havuzunu, alan bazlı yetkinliği ve eylem tabanlı zamanı tanımlar.
 - `RepairModels.swift`: Müşteri teklifi, iş emri, parça kalitesi, bakım, ustalık ve itibar modellerini toplar.
 - `ApprenticeModels.swift`: Çırak geçmişini, beş gizli özelliği, mutluluğu, sadık müşterileri, ayrılık uyarısını, görev sayısını ve dört alandaki ilerlemeyi tanımlar.
@@ -37,6 +38,7 @@
 - `ApprenticeRules.swift`: Çırağın alan seviyesine göre yapabileceği işleri; kişilik, mutluluk ve çalışma hızına bağlı iş performansını belirler.
 - `VehicleTradingRules.swift`: Hasarlı araç yatırım aralığını, restorasyon maliyetini, adil ilan fiyatını ve satış ihtimalini deterministik hesaplar.
 - `ProgressionRules.swift`: Alan uzmanlığı ve dükkân seviyesinden açık arıza, müşteri ve araç havuzunu deterministik hesaplar.
+- `PartPricingRules.swift`: Bakım görevlerinden değişecek benzersiz parçaları bulur; kalite, depo indirimi ve görev bazlı işçilik tutarlarını tek merkezde hesaplar.
 - `GameEngine.swift`: Komutları doğrular ve ilgili kural uzantısına yönlendiren küçük oyun motoru girişidir.
 - `GameEngine+Workshop.swift`: Kontrol, teşhis, parça, tamir, fiyat, usta/çırak yıkaması ve seviye kontrollü çırak iş akışını yürütür.
 - `GameEngine+Apprentices.swift`: Çırak ilanı, deterministik aday üretimi, işe alım, prim, günlük bağlılık kontrolü, ayrılık uyarısı ve müşteri götürme akışını yürütür.
@@ -45,7 +47,7 @@
 - `GameEngine+Content.swift`: Deterministik müşteri/içerik seçimi, itibar, yorum ve gecikmeli sonuç üretir.
 - `GameEngine+Support.swift`: Para yüzdesi, tesis kontrolü ve kayıt defteri gibi ortak saf yardımcıları tutar.
 - `DefaultContentRepository.swift`: Paket JSON'unu yükler ve bütünlük kurallarını doğrular.
-- `Resources/catalog.json`: 12 araç, benzersiz tamir oyunlu 30 arıza, 20 müşteri, üçlü şikâyet anlatımları, 26 yorum ve yedi dükkân seviyesini koddan bağımsız tutar.
+- `Resources/catalog.json`: 12 araç, benzersiz tamir oyunlu 30 arıza, 6 ayrı bakım parçası ve görev eşlemesi, 20 müşteri, üçlü şikâyet anlatımları, 26 yorum ve yedi dükkân seviyesini koddan bağımsız tutar.
 
 ## Apple servis adaptörleri
 

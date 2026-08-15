@@ -31,7 +31,9 @@ enum QAScenarioFactory {
         case "apprentice-recruitment":
             return try apprenticeRecruitmentState(catalog: catalog)
         case "workshop-maintenance":
-            return try maintenanceState(catalog: catalog)
+            return try maintenanceState(catalog: catalog, hasPurchasedParts: true)
+        case "workshop-maintenance-parts":
+            return try maintenanceState(catalog: catalog, hasPurchasedParts: false)
         case "workshop-mixed":
             return try mixedWorkshopState(catalog: catalog)
         default:
@@ -114,7 +116,10 @@ enum QAScenarioFactory {
         return result
     }
 
-    private static func maintenanceState(catalog: ContentCatalog) throws -> GameState {
+    private static func maintenanceState(
+        catalog: ContentCatalog,
+        hasPurchasedParts: Bool
+    ) throws -> GameState {
         var state = baseState(catalog: catalog)
         let offer = CustomerOffer(
             id: UUID(uuidString: "00000000-0000-0000-0000-000000000401")!,
@@ -130,7 +135,9 @@ enum QAScenarioFactory {
         state.apprentices = [Apprentice(id: UUID(), name: "Çırak Memo", level: 3, experience: 84)]
         var engine = GameEngine(state: state, catalog: catalog)
         try engine.handle(.acceptOffer(offer.id))
-        try engine.handle(.buyPart(jobID: offer.id, quality: .aftermarket))
+        if hasPurchasedParts {
+            try engine.handle(.buyPart(jobID: offer.id, quality: .aftermarket))
+        }
         return engine.state
     }
 
