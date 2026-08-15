@@ -14,7 +14,7 @@ Ana fantezi küçük bir sanayi dükkânını ustalıkla ve esnaflık kararları
 - **Finansman:** dükkân puanı, güven ve gelişim seviyesine bağlı banka limiti; araç yatırımı için farklı faiz/vade seçenekleri ve eylem tabanlı taksitler.
 - **Olay Defteri:** denetim, şikâyet, tavsiye, kredi, ilan, araç satışı ve çırak sonuçlarını para/itibar etkileriyle Gelişim ekranında kalıcı tutar.
 
-İlk üç gün eski ustanın mesajları temel sistemi öğretir. Sonrasında oyun sonsuz ilerler. Mizah; abartılı teşhis, yanlış parça, çay sohbeti ve esnaf olayları üzerinden kurulur; kimlik veya dezavantaj üzerinden aşağılayıcı şaka kullanılmaz.
+Zorunlu ve uzun bir ilk üç gün eğitimi bulunmaz. Her üst sekme ilk kez açıldığında ne işe yaradığını anlatan tek, kapatılabilir oyun içi kart gösterir. Sonrasında oyun sonsuz ilerler. Mizah; abartılı teşhis, yanlış parça, çay sohbeti ve esnaf olayları üzerinden kurulur; kimlik veya dezavantaj üzerinden aşağılayıcı şaka kullanılmaz.
 
 ## Müşteri ve fiyat davranışı
 

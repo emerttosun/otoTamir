@@ -53,6 +53,8 @@
 
 - `GameStore.swift`: UI ile oyun motoru arasındaki MainActor köprüsü, otomatik yerel/bulut kayıt ve oyun içi bildirim durumlarını yönetir.
 - `RootGameView.swift`: Dikey uygulama kabuğu, tıklanabilir para göstergesi, kasa ekranı, oyun içi bildirim ve Dükkân/İhale/İlanlar/Gelişim/Çıraklar/Banka/Mağaza geçişlerini sunar.
+- `GameSection.swift`: Üst gezinti sekmelerinin başlık, simge ve tek seferlik kısa tanıtım metinlerini tanımlar.
+- `SectionIntroductionCard.swift`: Bir sekme ilk kez açıldığında akışı kilitlemeden kısa kullanım açıklamasını gösterir.
 - `WorkshopView.swift`: Yeniden yüklenmeden çalışan araç seçimini, müşteri kuyruğunu, proje restorasyonunu ve kontrol, teşhis, parça, tamir/bakım, fiyat sıralı iş akışını gösterir.
 - `AuctionView.swift`: Sabit ihale bedelli ağır hasarlı araçları, ayrıntılı ekspertiz ve yatırım hesabını ve satın alma akışını sunar.
 - `VehicleInspectionDiagram.swift`: Ekspertiz panel durumlarını sade üstten 2B kaporta şemasında, taşıyıcı yapıyı ayrı rapor satırında ve VoiceOver özetiyle gösterir.

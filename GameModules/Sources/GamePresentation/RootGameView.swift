@@ -6,6 +6,8 @@ public struct RootGameView: View {
     @ObservedObject private var store: GameStore
     @State private var selectedSection = GameSection.workshop
     @State private var showingFinance = false
+    @State private var activeIntroduction: GameSection?
+    @AppStorage("introducedGameSections.v1") private var introducedSectionIDs = ""
 
     public init(store: GameStore) {
         self.store = store
@@ -23,6 +25,12 @@ public struct RootGameView: View {
                     showingFinance = true
                 }
                 sectionPicker
+                if let activeIntroduction {
+                    SectionIntroductionCard(section: activeIntroduction) {
+                        dismissIntroduction(activeIntroduction)
+                    }
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                }
                 Group {
                     switch selectedSection {
                     case .workshop:
@@ -47,6 +55,7 @@ public struct RootGameView: View {
             .foregroundStyle(.white)
         }
         .preferredColorScheme(.dark)
+        .onAppear { showIntroductionIfNeeded(for: selectedSection) }
         .sheet(isPresented: $showingFinance) {
             FinanceLedgerView(state: store.state)
                 .presentationDetents([.medium, .large])
@@ -108,6 +117,7 @@ public struct RootGameView: View {
                 ForEach(GameSection.allCases) { section in
                     Button {
                         selectedSection = section
+                        showIntroductionIfNeeded(for: section)
                     } label: {
                         VStack(spacing: 3) {
                             Image(systemName: section.icon)
@@ -133,39 +143,24 @@ public struct RootGameView: View {
     private var conflictBinding: Binding<Bool> {
         Binding(get: { store.cloudConflict != nil }, set: { if !$0 { store.cloudConflict = nil } })
     }
-}
 
-private enum GameSection: String, CaseIterable, Identifiable {
-    case workshop
-    case auction
-    case listings
-    case progress
-    case apprentices
-    case bank
-    case store
-
-    var id: String { rawValue }
-    var title: String {
-        switch self {
-        case .workshop: "Dükkân"
-        case .auction: "İhale"
-        case .listings: "İlanlar"
-        case .progress: "Gelişim"
-        case .apprentices: "Çıraklar"
-        case .bank: "Banka"
-        case .store: "Mağaza"
+    private func showIntroductionIfNeeded(for section: GameSection) {
+        guard !introducedIDs.contains(section.rawValue) else {
+            activeIntroduction = nil
+            return
         }
+        withAnimation { activeIntroduction = section }
     }
-    var icon: String {
-        switch self {
-        case .workshop: "wrench.and.screwdriver.fill"
-        case .auction: "car.side.rear.open.fill"
-        case .listings: "rectangle.and.pencil.and.ellipsis"
-        case .progress: "chart.line.uptrend.xyaxis"
-        case .apprentices: "person.2.fill"
-        case .bank: "building.columns.fill"
-        case .store: "bag.fill"
-        }
+
+    private func dismissIntroduction(_ section: GameSection) {
+        var ids = introducedIDs
+        ids.insert(section.rawValue)
+        introducedSectionIDs = ids.sorted().joined(separator: ",")
+        withAnimation { activeIntroduction = nil }
+    }
+
+    private var introducedIDs: Set<String> {
+        Set(introducedSectionIDs.split(separator: ",").map(String.init))
     }
 }
 
