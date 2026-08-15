@@ -21,9 +21,9 @@
 
 - `Money.swift`: Kuruş tabanlı güvenli para değerini ve Türk lirası gösterimini sağlar.
 - `ContentModels.swift`: JSON'dan gelen araç, kontrol bulgusu, arıza, müşteri, yorum, dükkân ve üç seviyeli yıkama gelişimi ile ayrıntılı gider dengelerini tanımlar.
-- `GameModels.swift`: Sürüm 11 `GameState` kayıt kökünü, çırak ilanını, yıkama seviyesini ve eylem tabanlı zaman gösterimini tanımlar.
+- `GameModels.swift`: Sürüm 12 `GameState` kayıt kökünü, çırak ilanını, alan bazlı çırak yetkinliğini, yıkama seviyesini ve eylem tabanlı zaman gösterimini tanımlar.
 - `RepairModels.swift`: Müşteri teklifi, iş emri, parça kalitesi, bakım, ustalık ve itibar modellerini toplar.
-- `ApprenticeModels.swift`: Çırak geçmişini, ilan başvurusunu, işe alım durumunu, seviye ve deneyim ilerlemesini tanımlar.
+- `ApprenticeModels.swift`: Çırak geçmişini, ilan başvurusunu, başlangıç uzmanlığını ve dört alandaki ayrı seviye/deneyim ilerlemesini tanımlar.
 - `FinanceModels.swift`: Kredi, kasa hareketi, yorum, envanter ve gecikmeli sonuç modellerini tanımlar.
 - `VehicleTradingModels.swift`: Onarılabilir ağır hasarlı araç, dış panel, ayrıntılı şasi/podye/direk ölçümü, restorasyon görevi ve ilan durumunu tanımlar.
 - `IncidentModels.swift`: Denetim, şikâyet, kredi, ilan ve benzeri dükkân olaylarını para ve itibar etkileriyle sürümlü kayda uygun tanımlar.
@@ -34,10 +34,11 @@
 - `SeededRandomSource.swift`: Kayıt seed'inden tekrar üretilebilir rastgele sayı ve kimlik üretir.
 - `BankingRules.swift`: Dükkân durumundan kredi limitini, vade faizini ve taksit tutarını deterministik hesaplar.
 - `WashBayRules.swift`: Yıkama bölümünün mevcut ve sıradaki veri tanımını, dükkân ve para yükseltme şartlarını değerlendirir.
+- `ApprenticeRules.swift`: Çırağın alan seviyesine göre yapabileceği arıza/bakım işlerini ve iş performansını belirler.
 - `VehicleTradingRules.swift`: Hasarlı araç yatırım aralığını, restorasyon maliyetini, adil ilan fiyatını ve satış ihtimalini deterministik hesaplar.
 - `ProgressionRules.swift`: Alan uzmanlığı ve dükkân seviyesinden açık arıza, müşteri ve araç havuzunu deterministik hesaplar.
 - `GameEngine.swift`: Komutları doğrular ve ilgili kural uzantısına yönlendiren küçük oyun motoru girişidir.
-- `GameEngine+Workshop.swift`: Kontrol, teşhis, parça, tamir, fiyat, yıkama ve çırak iş akışını yürütür.
+- `GameEngine+Workshop.swift`: Kontrol, teşhis, parça, tamir, fiyat, usta/çırak yıkaması ve seviye kontrollü çırak iş akışını yürütür.
 - `GameEngine+Apprentices.swift`: Çırak ilanı, deterministik aday üretimi, başvuru kabulü ve reddi akışını yürütür.
 - `GameEngine+World.swift`: Eylem tabanlı saat, gider, kredi ve dükkân gelişimini yürütür.
 - `GameEngine+Trading.swift`: Hasarlı araç alımı, restorasyon, ilan ve satış akışını yürütür.

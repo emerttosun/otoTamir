@@ -249,7 +249,7 @@ struct GameLogicTests {
     @Test("Çırak işe alınır, tamire atanır ve tecrübe kazanır")
     func apprenticeAssignment() throws {
         let catalog = try DefaultContentRepository().load()
-        let fault = catalog.faults[0]
+        let fault = try #require(catalog.faults.first { $0.requiredSkill == 1 })
         var engine = try makeReadyForRepairEngine(catalog: catalog, fault: fault, shopLevel: 2)
         try engine.handle(.grantPurchase(transactionID: "apprentice-funds", cash: Money(minorUnits: 5_000_000), themeID: nil))
         try engine.handle(.postApprenticeAd)
@@ -263,6 +263,44 @@ struct GameLogicTests {
 
         #expect(engine.state.activeJobs[0].stage == .awaitingPrice)
         #expect(engine.state.apprentices[0].experience > 0)
+        #expect(engine.state.apprentices[0].expertise[fault.area]?.experience ?? 0 > 0)
+    }
+
+    @Test("Çırak alan seviyesi yetmeyen tamire atanamaz")
+    func apprenticeSkillGate() throws {
+        let catalog = try DefaultContentRepository().load()
+        let fault = try #require(catalog.faults.first { $0.requiredSkill >= 4 })
+        var engine = try makeReadyForRepairEngine(catalog: catalog, fault: fault, shopLevel: 2)
+        var state = engine.state
+        let apprentice = Apprentice(id: UUID(), name: "Mert")
+        state.apprentices = [apprentice]
+        engine = GameEngine(state: state, catalog: catalog)
+        let jobID = try #require(engine.state.activeJobs.first?.id)
+
+        #expect(throws: GameRuleError.self) {
+            try engine.handle(.assignApprentice(apprenticeID: apprentice.id, jobID: jobID, task: nil))
+        }
+        #expect(engine.state.activeJobs[0].stage == .readyForRepair)
+    }
+
+    @Test("Her çırak aracı yıkayıp genel tecrübe kazanabilir")
+    func apprenticeCanWashVehicle() throws {
+        let catalog = try DefaultContentRepository().load()
+        let fault = catalog.faults[0]
+        var engine = try makeReadyForRepairEngine(catalog: catalog, fault: fault, shopLevel: 3)
+        try engine.handle(.upgradeWashBay)
+        let jobID = try #require(engine.state.activeJobs.first?.id)
+        try engine.handle(.completeRepair(jobID: jobID, performance: 90))
+        var state = engine.state
+        let apprentice = Apprentice(id: UUID(), name: "Efe")
+        state.apprentices = [apprentice]
+        engine = GameEngine(state: state, catalog: catalog)
+
+        let events = try engine.handle(.assignApprenticeToWash(apprenticeID: apprentice.id, jobID: jobID))
+
+        #expect(engine.state.activeJobs[0].isWashed)
+        #expect(engine.state.apprentices[0].experience == 8)
+        #expect(events.contains(.apprenticeWashed(name: "Efe")))
     }
 
     @Test("Aynı seed aynı çırak başvurusunu üretir ve ret başvuruyu kaldırır")

@@ -22,6 +22,7 @@ public struct ApprenticeApplication: Codable, Hashable, Identifiable, Sendable {
     public let background: ApprenticeBackground
     public let introduction: String
     public let startingExperience: Int
+    public let startingArea: SkillArea?
     public let appliedAtMinute: Int
 
     public init(
@@ -30,6 +31,7 @@ public struct ApprenticeApplication: Codable, Hashable, Identifiable, Sendable {
         background: ApprenticeBackground,
         introduction: String,
         startingExperience: Int,
+        startingArea: SkillArea? = nil,
         appliedAtMinute: Int
     ) {
         self.id = id
@@ -37,6 +39,7 @@ public struct ApprenticeApplication: Codable, Hashable, Identifiable, Sendable {
         self.background = background
         self.introduction = introduction
         self.startingExperience = startingExperience
+        self.startingArea = startingArea
         self.appliedAtMinute = appliedAtMinute
     }
 }
@@ -66,19 +69,24 @@ public struct Apprentice: Codable, Hashable, Identifiable, Sendable {
     public var level: Int
     public var experience: Int
     public let background: ApprenticeBackground
+    public var expertise: [SkillArea: SkillProgress]
 
     public init(
         id: UUID,
         name: String,
         level: Int = 1,
         experience: Int = 0,
-        background: ApprenticeBackground = .selfApplication
+        background: ApprenticeBackground = .selfApplication,
+        expertise: [SkillArea: SkillProgress]? = nil
     ) {
         self.id = id
         self.name = name
         self.level = level
         self.experience = experience
         self.background = background
+        self.expertise = expertise ?? Dictionary(
+            uniqueKeysWithValues: SkillArea.allCases.map { ($0, SkillProgress()) }
+        )
     }
 
     public mutating func addExperience(_ amount: Int) {
@@ -89,16 +97,28 @@ public struct Apprentice: Codable, Hashable, Identifiable, Sendable {
         }
     }
 
+    public mutating func addExperience(area: SkillArea, amount: Int) {
+        addExperience(amount)
+        expertise[area, default: SkillProgress()].addExperience(amount)
+    }
+
+    public func skillLevel(for area: SkillArea) -> Int {
+        expertise[area, default: SkillProgress()].level
+    }
+
     private enum CodingKeys: String, CodingKey {
-        case id, name, level, experience, background
+        case id, name, level, experience, background, expertise
     }
 
     public init(from decoder: any Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         id = try values.decode(UUID.self, forKey: .id)
         name = try values.decode(String.self, forKey: .name)
-        level = try values.decodeIfPresent(Int.self, forKey: .level) ?? 1
+        let decodedLevel = try values.decodeIfPresent(Int.self, forKey: .level) ?? 1
+        level = decodedLevel
         experience = try values.decodeIfPresent(Int.self, forKey: .experience) ?? 0
         background = try values.decodeIfPresent(ApprenticeBackground.self, forKey: .background) ?? .selfApplication
+        expertise = try values.decodeIfPresent([SkillArea: SkillProgress].self, forKey: .expertise)
+            ?? Dictionary(uniqueKeysWithValues: SkillArea.allCases.map { ($0, SkillProgress(level: decodedLevel)) })
     }
 }

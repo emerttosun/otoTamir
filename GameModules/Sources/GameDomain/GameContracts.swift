@@ -17,6 +17,7 @@ public enum GameCommand: Sendable {
     case acceptApprenticeApplication(UUID)
     case rejectApprenticeApplication(UUID)
     case assignApprentice(apprenticeID: UUID, jobID: UUID, task: MaintenanceTask?)
+    case assignApprenticeToWash(apprenticeID: UUID, jobID: UUID)
     case upgradeShop
     case upgradeWashBay
     case purchaseAuctionLot(UUID)
@@ -47,6 +48,7 @@ public enum GameEvent: Equatable, Sendable {
     case apprenticeApplicationReceived(ApprenticeApplication)
     case apprenticeApplicationRejected(String)
     case apprenticeCompleted(name: String, quality: WorkmanshipQuality)
+    case apprenticeWashed(name: String)
     case experienceGained(area: SkillArea, amount: Int, level: Int)
     case reviewReceived(ShopReview)
     case reputationChanged(Reputation)

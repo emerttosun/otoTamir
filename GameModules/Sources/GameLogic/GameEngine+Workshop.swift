@@ -135,7 +135,13 @@ extension GameEngine {
         }
 
         var random = SeededRandomSource(seed: state.randomSeed)
-        let skill = state.expertise[actualFault.area, default: SkillProgress()].level
+        let skill: Int
+        if let apprenticeID = state.activeJobs[index].repairedByApprenticeID,
+           let apprentice = state.apprentices.first(where: { $0.id == apprenticeID }) {
+            skill = apprentice.skillLevel(for: actualFault.area)
+        } else {
+            skill = state.expertise[actualFault.area, default: SkillProgress()].level
+        }
         let equipment = catalog.shopLevel(state.shopLevel)?.equipmentBonus ?? 0
         let jitter = random.next(upperBound: 11) - 5
         let score = max(0, min(100, performance + skill * 3 + equipment + (partQuality.reliabilityScore - 70) / 3 + jitter))
@@ -150,7 +156,7 @@ extension GameEngine {
         let apprenticeEvent: GameEvent?
         if let apprenticeID = state.activeJobs[index].repairedByApprenticeID,
            let apprenticeIndex = state.apprentices.firstIndex(where: { $0.id == apprenticeID }) {
-            state.apprentices[apprenticeIndex].addExperience(xp)
+            state.apprentices[apprenticeIndex].addExperience(area: actualFault.area, amount: xp)
             experienceEvent = nil
             apprenticeEvent = .apprenticeCompleted(
                 name: state.apprentices[apprenticeIndex].name,
@@ -188,7 +194,7 @@ extension GameEngine {
         events.append(.maintenanceTaskCompleted(task))
         if let apprenticeID = state.activeJobs[index].repairedByApprenticeID,
            let apprenticeIndex = state.apprentices.firstIndex(where: { $0.id == apprenticeID }) {
-            state.apprentices[apprenticeIndex].addExperience(xp)
+            state.apprentices[apprenticeIndex].addExperience(area: task.skillArea, amount: xp)
             events.append(.apprenticeCompleted(
                 name: state.apprentices[apprenticeIndex].name,
                 quality: workmanship(for: performance)
@@ -332,15 +338,42 @@ extension GameEngine {
               state.activeJobs[jobIndex].stage == .readyForRepair else {
             throw GameRuleError.invalidCommand("Çırak bu işe atanamıyor.")
         }
-        var random = SeededRandomSource(seed: state.randomSeed)
-        let performance = min(92, 46 + apprentice.level * 9 + random.next(upperBound: 19))
-        state.randomSeed = random.state
-        state.activeJobs[jobIndex].repairedByApprenticeID = apprenticeID
-        let events: [GameEvent]
+        let area: SkillArea
         if state.activeJobs[jobIndex].serviceKind == .periodicMaintenance {
             guard let task else {
                 throw GameRuleError.invalidCommand("Çırağa verilecek bakım adımını seçmelisin.")
             }
+            guard ApprenticeRules.canPerform(task, apprentice: apprentice) else {
+                throw GameRuleError.invalidCommand(
+                    "\(apprentice.name), \(task.title.lowercased()) için henüz yeterli \(task.skillArea.title.lowercased()) seviyesinde değil."
+                )
+            }
+            area = task.skillArea
+        } else {
+            guard task == nil,
+                  let faultID = state.activeJobs[jobIndex].diagnosedFaultID,
+                  let fault = catalog.fault(id: faultID) else {
+                throw GameRuleError.invalidCommand("Bu tamir çırağa verilemiyor.")
+            }
+            guard ApprenticeRules.canPerform(fault, apprentice: apprentice) else {
+                throw GameRuleError.invalidCommand(
+                    "\(apprentice.name), bu iş için gereken \(fault.area.title) Seviye \(fault.requiredSkill) düzeyine henüz ulaşmadı."
+                )
+            }
+            area = fault.area
+        }
+
+        var random = SeededRandomSource(seed: state.randomSeed)
+        let performance = ApprenticeRules.performance(
+            apprentice: apprentice,
+            area: area,
+            randomBonus: random.next(upperBound: 19)
+        )
+        state.randomSeed = random.state
+        state.activeJobs[jobIndex].repairedByApprenticeID = apprenticeID
+        let events: [GameEvent]
+        if state.activeJobs[jobIndex].serviceKind == .periodicMaintenance {
+            guard let task else { throw GameRuleError.invalidCommand("Bakım adımı bulunamadı.") }
             events = try completeMaintenanceTask(jobID: jobID, task: task, performance: performance)
         } else {
             guard task == nil else { throw GameRuleError.invalidCommand("Bu tamirde bakım adımı bulunmuyor.") }
@@ -360,6 +393,21 @@ extension GameEngine {
             kind: .apprentice,
             message: "\(apprentice.name) verilen \(task?.title ?? "tamir") işini \(quality?.title.lowercased() ?? "tamamlanmış") olarak teslim etti.",
             craftsmanshipImpact: quality == .poor ? -2 : (quality == .good ? 1 : 0)
+        )
+        return events
+    }
+
+    mutating func assignApprenticeToWash(apprenticeID: UUID, jobID: UUID) throws -> [GameEvent] {
+        guard let apprenticeIndex = state.apprentices.firstIndex(where: { $0.id == apprenticeID }) else {
+            throw GameRuleError.invalidCommand("Bu çırak artık dükkânda çalışmıyor.")
+        }
+        let apprenticeName = state.apprentices[apprenticeIndex].name
+        var events = try washVehicle(jobID: jobID)
+        state.apprentices[apprenticeIndex].addExperience(8)
+        events.append(.apprenticeWashed(name: apprenticeName))
+        recordIncident(
+            kind: .apprentice,
+            message: "\(apprenticeName) aracı yıkayıp teslime hazırladı ve +8 XP kazandı."
         )
         return events
     }

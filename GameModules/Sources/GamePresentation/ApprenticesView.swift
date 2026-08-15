@@ -1,4 +1,5 @@
 import GameDomain
+import GameLogic
 import SwiftUI
 
 struct ApprenticesView: View {
@@ -56,6 +57,29 @@ struct ApprenticesView: View {
                             total: Double(apprentice.level * 100)
                         )
                         .tint(GarageStyle.orange)
+                        Divider().opacity(0.35)
+                        LazyVGrid(columns: [.init(.flexible()), .init(.flexible())], spacing: 6) {
+                            ForEach(SkillArea.allCases, id: \.self) { area in
+                                let progress = apprentice.expertise[area, default: SkillProgress()]
+                                VStack(alignment: .leading, spacing: 2) {
+                                    HStack {
+                                        Text(area.title).lineLimit(1)
+                                        Spacer(minLength: 4)
+                                        Text("Sv.\(progress.level)").bold()
+                                    }
+                                    .font(.caption2)
+                                    SwiftUI.ProgressView(
+                                        value: Double(progress.experience),
+                                        total: Double(progress.experienceForNextLevel)
+                                    )
+                                    .tint(GarageStyle.mint)
+                                }
+                                .padding(7)
+                                .background(.black.opacity(0.18), in: RoundedRectangle(cornerRadius: 8))
+                            }
+                        }
+                        Text("Yalnızca alan seviyesinin yettiği işleri yapabilir. Her çırak araç yıkayabilir.")
+                            .font(.caption2).foregroundStyle(.secondary)
                     }
                     .padding(10)
                     .background(GarageStyle.raised.opacity(0.7), in: RoundedRectangle(cornerRadius: 12))
@@ -126,7 +150,7 @@ struct ApprenticesView: View {
                         .font(.caption2).foregroundStyle(GarageStyle.orange)
                 }
                 Spacer()
-                Text(experienceTitle(application.startingExperience))
+                Text(applicationExperienceTitle(application))
                     .font(.caption2.bold())
                     .foregroundStyle(GarageStyle.mint)
             }
@@ -161,5 +185,11 @@ struct ApprenticesView: View {
         case 21...60: "Temel bilgili"
         default: "Staj tecrübeli"
         }
+    }
+
+    private func applicationExperienceTitle(_ application: ApprenticeApplication) -> String {
+        let base = experienceTitle(application.startingExperience)
+        guard let area = application.startingArea else { return base }
+        return "\(base) • \(area.title)"
     }
 }

@@ -1,5 +1,6 @@
 import GameDomain
 import Foundation
+import GameLogic
 import SwiftUI
 
 struct WorkshopView: View {
@@ -451,15 +452,33 @@ private struct JobCard: View {
                     Label("\(wash.name) tamamlandı, teslime hazır", systemImage: "sparkles")
                         .font(.caption.bold()).foregroundStyle(.blue)
                 } else {
-                    Button {
-                        send(.washVehicle(jobID: job.id))
-                    } label: {
-                        Label(
-                            "\(wash.name) • \(wash.washCost.liraText) • \(wash.durationMinutes) dk",
-                            systemImage: "drop.fill"
-                        )
+                    VStack(spacing: 7) {
+                        Button {
+                            send(.washVehicle(jobID: job.id))
+                        } label: {
+                            Label(
+                                "Usta Yıkasın • \(wash.washCost.liraText) • \(wash.durationMinutes) dk",
+                                systemImage: "drop.fill"
+                            )
+                        }
+                        .buttonStyle(ActionButtonStyle(tint: .blue))
+
+                        if !apprentices.isEmpty {
+                            Menu {
+                                ForEach(apprentices) { apprentice in
+                                    Button("\(apprentice.name) • +8 XP") {
+                                        send(.assignApprenticeToWash(apprenticeID: apprentice.id, jobID: job.id))
+                                    }
+                                }
+                            } label: {
+                                Label("Çırağa Yıkat", systemImage: "person.fill.checkmark")
+                                    .font(.caption.bold())
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 9)
+                                    .background(.blue.opacity(0.18), in: RoundedRectangle(cornerRadius: 10))
+                            }
+                        }
                     }
-                    .buttonStyle(ActionButtonStyle(tint: .blue))
                 }
             } else {
                 Label("Teslim yıkaması Gelişim bölümünden açılır", systemImage: "lock.fill")
@@ -483,9 +502,11 @@ private struct JobCard: View {
         if !apprentices.isEmpty {
             Menu {
                 ForEach(apprentices) { apprentice in
-                    Button("\(apprentice.name) • Seviye \(apprentice.level)") {
+                    let assessment = apprenticeAssessment(apprentice, task: task)
+                    Button("\(apprentice.name) • \(assessment.area.title) Sv.\(assessment.level) / \(assessment.required)") {
                         send(.assignApprentice(apprenticeID: apprentice.id, jobID: job.id, task: task))
                     }
+                    .disabled(!assessment.canPerform)
                 }
             } label: {
                 Label("Çırağa İş Ver", systemImage: "person.badge.clock")
@@ -495,6 +516,29 @@ private struct JobCard: View {
                     .background(GarageStyle.raised, in: RoundedRectangle(cornerRadius: 10))
             }
         }
+    }
+
+    private func apprenticeAssessment(
+        _ apprentice: Apprentice,
+        task: MaintenanceTask?
+    ) -> (area: SkillArea, level: Int, required: Int, canPerform: Bool) {
+        if let task {
+            return (
+                task.skillArea,
+                apprentice.skillLevel(for: task.skillArea),
+                ApprenticeRules.requiredLevel(for: task),
+                ApprenticeRules.canPerform(task, apprentice: apprentice)
+            )
+        }
+        if let fault = diagnosedFault {
+            return (
+                fault.area,
+                apprentice.skillLevel(for: fault.area),
+                ApprenticeRules.requiredLevel(for: fault),
+                ApprenticeRules.canPerform(fault, apprentice: apprentice)
+            )
+        }
+        return (.engine, apprentice.skillLevel(for: .engine), 1, false)
     }
 
     private var stageTitle: String {

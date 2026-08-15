@@ -42,7 +42,11 @@ extension GameEngine {
             name: application.name,
             background: application.background
         )
-        apprentice.addExperience(application.startingExperience)
+        if let startingArea = application.startingArea {
+            apprentice.addExperience(area: startingArea, amount: application.startingExperience)
+        } else {
+            apprentice.addExperience(application.startingExperience)
+        }
         state.cash = state.cash - cost
         state.apprentices.append(apprentice)
         recordFinance(
@@ -104,19 +108,24 @@ extension GameEngine {
         let backgrounds = ApprenticeBackground.allCases
         let background = backgrounds[random.next(upperBound: backgrounds.count)]
         let experience: Int
+        let startingArea: SkillArea?
         let introduction: String
         switch background {
         case .familyReferral:
             experience = random.next(upperBound: 21)
+            startingArea = nil
             introduction = "Babasıyla geldi: ‘Okulla arası iyi gitmedi usta; eli işe yatkın, bir meslek öğrensin.’"
         case .vocationalHighSchool:
             experience = 55 + random.next(upperBound: 41)
+            startingArea = SkillArea.allCases[random.next(upperBound: SkillArea.allCases.count)]
             introduction = "Motor bölümünden yeni mezun. Atölye stajı görmüş ama gerçek müşteri aracında tecrübesi az."
         case .vocationalTrainingCenter:
             experience = 35 + random.next(upperBound: 41)
+            startingArea = SkillArea.allCases[random.next(upperBound: SkillArea.allCases.count)]
             introduction = "Mesleki eğitim merkezinde temel takım ve iş güvenliği eğitimi almış."
         case .selfApplication:
             experience = 10 + random.next(upperBound: 41)
+            startingArea = nil
             introduction = "İlanı kendi görüp geldi: ‘Usta, işi yerinde öğrenmek istiyorum; süpürgeden kaçmam.’"
         }
         return ApprenticeApplication(
@@ -125,6 +134,7 @@ extension GameEngine {
             background: background,
             introduction: introduction,
             startingExperience: experience,
+            startingArea: startingArea,
             appliedAtMinute: state.totalMinutes
         )
     }

@@ -153,7 +153,7 @@ public final class GameStore: ObservableObject {
             switch event {
             case .tutorial, .consequence, .inspectionCompleted, .diagnosisCompleted, .repairCompleted,
                  .priceSettled, .vehicleWashed, .apprenticeHired, .apprenticeApplicationReceived,
-                 .apprenticeApplicationRejected, .apprenticeCompleted,
+                 .apprenticeApplicationRejected, .apprenticeCompleted, .apprenticeWashed,
                  .experienceGained, .reviewReceived, .auctionWon, .projectCarSold, .shopUpgraded:
                 true
             case .projectRepairCompleted, .projectCarListed, .projectListingExpired,
@@ -187,6 +187,8 @@ public final class GameStore: ObservableObject {
             bannerMessage = "\(name) adlı adayın çırak başvurusu reddedildi."
         case .apprenticeCompleted(let name, let quality):
             bannerMessage = "\(name) verilen işi tamamladı: \(quality.title)."
+        case .apprenticeWashed(let name):
+            bannerMessage = "\(name) aracı yıkayıp teslime hazırladı ve tecrübe kazandı."
         case .experienceGained(let area, let amount, let level):
             bannerMessage = "\(area.title) +\(amount) XP • Seviye \(level)"
         case .reviewReceived(let review):
