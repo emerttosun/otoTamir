@@ -45,6 +45,7 @@ struct ProjectCarCard: View {
         return VStack(alignment: .leading, spacing: 9) {
             Text("Restorasyon kalitesi: %\(project.restorationQuality)")
                 .font(.caption.weight(.semibold))
+            RestoredBodyHistoryView(project: project)
             Text("İLAN HAZIRLA")
                 .font(.caption2.bold()).foregroundStyle(GarageStyle.orange)
             HStack {
@@ -104,6 +105,7 @@ struct ProjectCarCard: View {
                  : "Ağır hasar geçmişi saklandı; satış sonrası şikâyet riski var.")
                 .font(.caption2)
                 .foregroundStyle(project.disclosedDamage ? GarageStyle.mint : GarageStyle.danger)
+            RestoredBodyHistoryView(project: project)
             Button("İlanı Geri Çek") {
                 send(.cancelProjectListing(projectID: project.id))
             }
