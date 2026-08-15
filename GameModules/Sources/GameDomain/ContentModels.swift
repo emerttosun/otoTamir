@@ -182,6 +182,7 @@ public struct CustomerDefinition: Codable, Hashable, Identifiable, Sendable {
     public let priceSensitivity: Int
     public let appearance: String
     public let profileHint: String
+    public let minimumExpertise: Int
 
     public init(
         id: String,
@@ -191,7 +192,8 @@ public struct CustomerDefinition: Codable, Hashable, Identifiable, Sendable {
         patience: Int,
         priceSensitivity: Int,
         appearance: String = "Sade giyimli",
-        profileHint: String = "Tavrından ödeme gücünü kestirmek zor"
+        profileHint: String = "Tavrından ödeme gücünü kestirmek zor",
+        minimumExpertise: Int = 1
     ) {
         self.id = id
         self.name = name
@@ -201,6 +203,24 @@ public struct CustomerDefinition: Codable, Hashable, Identifiable, Sendable {
         self.priceSensitivity = priceSensitivity
         self.appearance = appearance
         self.profileHint = profileHint
+        self.minimumExpertise = minimumExpertise
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, name, archetype, greeting, patience, priceSensitivity, appearance, profileHint, minimumExpertise
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = try values.decode(String.self, forKey: .id)
+        name = try values.decode(String.self, forKey: .name)
+        archetype = try values.decode(String.self, forKey: .archetype)
+        greeting = try values.decode(String.self, forKey: .greeting)
+        patience = try values.decode(Int.self, forKey: .patience)
+        priceSensitivity = try values.decode(Int.self, forKey: .priceSensitivity)
+        appearance = try values.decodeIfPresent(String.self, forKey: .appearance) ?? "Sade giyimli"
+        profileHint = try values.decodeIfPresent(String.self, forKey: .profileHint) ?? "Tavrından ödeme gücünü kestirmek zor"
+        minimumExpertise = try values.decodeIfPresent(Int.self, forKey: .minimumExpertise) ?? 1
     }
 }
 

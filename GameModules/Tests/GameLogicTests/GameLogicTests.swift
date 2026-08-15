@@ -97,6 +97,29 @@ struct GameLogicTests {
         #expect(engine.state.totalMinutes == 720)
     }
 
+    @Test("Uzmanlık ilerledikçe zor işler, yeni müşteriler ve araçlar açılır")
+    func expertiseUnlocksContent() throws {
+        let catalog = try DefaultContentRepository().load()
+        var state = GameState(startingCash: catalog.balance.startingCash, daySlots: 8)
+
+        let startingFaults = ProgressionRules.availableFaults(in: catalog, state: state)
+        let startingCustomers = ProgressionRules.availableCustomers(in: catalog, state: state)
+        let startingVehicleCount = ProgressionRules.unlockedVehicleCount(in: catalog, state: state)
+        #expect(startingFaults.allSatisfy { $0.requiredSkill <= 1 })
+        #expect(startingCustomers.allSatisfy { $0.minimumExpertise <= 1 })
+
+        state.expertise[.engine] = SkillProgress(level: 5)
+        state.skills[.engine] = 5
+        state.shopLevel = 3
+
+        let progressedFaults = ProgressionRules.availableFaults(in: catalog, state: state)
+        let progressedCustomers = ProgressionRules.availableCustomers(in: catalog, state: state)
+        #expect(progressedFaults.contains { $0.area == .engine && $0.requiredSkill == 5 })
+        #expect(progressedFaults.filter { $0.area != .engine }.allSatisfy { $0.requiredSkill <= 1 })
+        #expect(progressedCustomers.contains { $0.minimumExpertise == 4 })
+        #expect(ProgressionRules.unlockedVehicleCount(in: catalog, state: state) > startingVehicleCount)
+    }
+
     @Test("Yıllık bakım birden fazla mini oyun göreviyle tamamlanır")
     func periodicMaintenanceFlow() throws {
         let catalog = try DefaultContentRepository().load()

@@ -34,6 +34,7 @@
 - `SeededRandomSource.swift`: Kayıt seed'inden tekrar üretilebilir rastgele sayı ve kimlik üretir.
 - `BankingRules.swift`: Dükkân durumundan kredi limitini, vade faizini ve taksit tutarını deterministik hesaplar.
 - `VehicleTradingRules.swift`: Hasarlı araç yatırım aralığını, restorasyon maliyetini, adil ilan fiyatını ve satış ihtimalini deterministik hesaplar.
+- `ProgressionRules.swift`: Alan uzmanlığı ve dükkân seviyesinden açık arıza, müşteri ve araç havuzunu deterministik hesaplar.
 - `GameEngine.swift`: Komutları doğrular ve ilgili kural uzantısına yönlendiren küçük oyun motoru girişidir.
 - `GameEngine+Workshop.swift`: Kontrol, teşhis, parça, tamir, fiyat, yıkama ve çırak iş akışını yürütür.
 - `GameEngine+World.swift`: Eylem tabanlı saat, gider, kredi ve dükkân gelişimini yürütür.

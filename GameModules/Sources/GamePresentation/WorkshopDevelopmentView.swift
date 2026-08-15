@@ -1,4 +1,5 @@
 import GameDomain
+import GameLogic
 import SwiftUI
 
 struct WorkshopDevelopmentView: View {
@@ -84,6 +85,15 @@ struct WorkshopDevelopmentView: View {
                     }
                     SwiftUI.ProgressView(value: Double(progress.experience), total: Double(progress.experienceForNextLevel))
                         .tint(GarageStyle.orange)
+                    if let next = ProgressionRules.nextFault(for: skill, in: store.catalog, state: store.state) {
+                        Label("Sv. \(next.requiredSkill): \(next.name) açılır", systemImage: "lock.open.fill")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Label("Bu alandaki mevcut işlerin tamamı açık", systemImage: "checkmark.seal.fill")
+                            .font(.caption2)
+                            .foregroundStyle(GarageStyle.mint)
+                    }
                 }
             }
         }

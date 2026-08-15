@@ -13,12 +13,14 @@ extension GameEngine {
     }
 
     mutating func makeCustomerOffer() -> CustomerOffer? {
-        let unlockedVehicleCount = min(catalog.vehicles.count, state.shopLevel == 1 ? 3 : (state.shopLevel == 2 ? 5 : catalog.vehicles.count))
+        let unlockedVehicleCount = ProgressionRules.unlockedVehicleCount(in: catalog, state: state)
         let vehicles = Array(catalog.vehicles.prefix(unlockedVehicleCount))
-        guard !catalog.customers.isEmpty, !vehicles.isEmpty, !catalog.faults.isEmpty else { return nil }
+        let customers = ProgressionRules.availableCustomers(in: catalog, state: state)
+        let faults = ProgressionRules.availableFaults(in: catalog, state: state)
+        guard !customers.isEmpty, !vehicles.isEmpty, !faults.isEmpty else { return nil }
 
         var random = SeededRandomSource(seed: state.randomSeed)
-        let customer = catalog.customers[random.next(upperBound: catalog.customers.count)]
+        let customer = customers[random.next(upperBound: customers.count)]
         let vehicle = vehicles[random.next(upperBound: vehicles.count)]
         let isMaintenance = supports(.periodicMaintenance) && random.next(upperBound: 100) < 24
         let waitingAreaBonus = supports(.waitingArea) ? 60 : 0
@@ -39,8 +41,8 @@ extension GameEngine {
                 expiresAtMinute: state.totalMinutes + 75 + customer.patience * 15 + waitingAreaBonus
             )
         } else {
-            let actual = catalog.faults[random.next(upperBound: catalog.faults.count)]
-            let alternatives = catalog.faults
+            let actual = faults[random.next(upperBound: faults.count)]
+            let alternatives = faults
                 .filter { $0.id != actual.id && ($0.area == actual.area || sharesInspection($0, actual)) }
                 .shuffledDeterministically(using: &random)
             let candidateIDs = ([actual.id] + alternatives.prefix(3).map(\.id)).shuffledDeterministically(using: &random)

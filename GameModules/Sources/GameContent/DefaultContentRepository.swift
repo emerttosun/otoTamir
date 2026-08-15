@@ -58,6 +58,9 @@ public enum ContentValidator {
         guard catalog.faults.allSatisfy({ $0.complaintVariants.count >= 2 }) else {
             throw ContentError.invalidValue("Her arıza en az üç farklı müşteri anlatımına sahip olmalı")
         }
+        guard catalog.customers.allSatisfy({ $0.minimumExpertise >= 1 }) else {
+            throw ContentError.invalidValue("Müşteri uzmanlık açılışı en az 1 olmalı")
+        }
         guard Set(catalog.faults.map(\.area)) == Set(SkillArea.allCases) else {
             throw ContentError.invalidValue("Dört uzmanlık alanının tümü içerikte bulunmalı")
         }

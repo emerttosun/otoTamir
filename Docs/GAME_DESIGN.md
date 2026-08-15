@@ -16,6 +16,8 @@ Ana fantezi küçük bir sanayi dükkânını ustalıkla ve esnaflık kararları
 
 Zorunlu ve uzun bir ilk üç gün eğitimi bulunmaz. Her üst sekme ilk kez açıldığında ne işe yaradığını anlatan tek, kapatılabilir oyun içi kart gösterir. Sonrasında oyun sonsuz ilerler. Mizah; abartılı teşhis, yanlış parça, çay sohbeti ve esnaf olayları üzerinden kurulur; kimlik veya dezavantaj üzerinden aşağılayıcı şaka kullanılmaz.
 
+Motor, elektrik, yürüyen ve kaporta seviyeleri yalnız işçilik puanı vermez; ilgili seviyedeki yeni arıza havuzunu açar. En yüksek uzmanlık daha seçici müşterileri, dükkân seviyesiyle birlikte ortalama uzmanlık da daha geniş araç havuzunu getirir. Gelişim ekranı her alan için sırada açılacak işi gösterir.
+
 ## Müşteri ve fiyat davranışı
 
 Müşteriler sabit bir günlük listede bulunmaz. Yapılan işlemler zamanı ilerlettikçe itibar ve dükkân puanına bağlı aralıklarla gelir, sabır süresi dolunca ayrılır ve kuyruk en fazla üç kişidir. İş yoksa oyuncu açıkça müşteri beklemeyi seçebilir. Küçük dükkân aynı anda bir araç alır.
