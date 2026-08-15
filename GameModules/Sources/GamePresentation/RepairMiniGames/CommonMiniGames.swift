@@ -17,6 +17,7 @@ struct MiniGameShell<Content: View>: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
             content
             Spacer(minLength: 0)
         }

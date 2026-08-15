@@ -9,7 +9,7 @@ struct GameContentTests {
         let catalog = try DefaultContentRepository().load()
 
         #expect(catalog.vehicles.count == 12)
-        #expect(catalog.faults.count == 12)
+        #expect(catalog.faults.count == 30)
         #expect(catalog.customers.count == 20)
         #expect(catalog.shopLevels.count == 7)
         #expect(catalog.reviews.count >= 24)
@@ -18,6 +18,9 @@ struct GameContentTests {
         #expect(catalog.faults.allSatisfy { $0.complaintVariants.count >= 2 })
         #expect(catalog.customers.allSatisfy { $0.minimumExpertise >= 1 })
         #expect(catalog.faults.allSatisfy { $0.inspectionFindings.count >= 2 })
+        #expect(SkillArea.allCases.allSatisfy { area in
+            Set(catalog.faults.filter { $0.area == area }.map(\.requiredSkill)).count >= 3
+        })
         #expect(catalog.shopLevels[1].facilities.contains(.periodicMaintenance))
         #expect(catalog.shopLevels[1].maxApprentices == 1)
         #expect(catalog.shopLevels[2].facilities.contains(.washBay))

@@ -35,6 +35,24 @@ public enum RepairGameKind: String, Codable, CaseIterable, Sendable {
     case bumperClips
     case doorGap
     case dentPull
+    case sparkPlugGap
+    case ignitionCoilOrder
+    case injectorBalance
+    case waterPumpSeal
+    case timingBeltMarks
+    case turboPressure
+    case oilLeakTrace
+    case fuseTrace
+    case wireContinuity
+    case windowRegulator
+    case headlightAim
+    case brakeDiscRunout
+    case shockCompression
+    case bearingPreload
+    case cvBootGrease
+    case hoodAlignment
+    case panelWeld
+    case paintLayers
 }
 
 public enum InspectionKind: String, Codable, CaseIterable, Sendable {

@@ -42,7 +42,7 @@
 - `GameEngine+Content.swift`: Deterministik müşteri/içerik seçimi, itibar, yorum ve gecikmeli sonuç üretir.
 - `GameEngine+Support.swift`: Para yüzdesi, tesis kontrolü ve kayıt defteri gibi ortak saf yardımcıları tutar.
 - `DefaultContentRepository.swift`: Paket JSON'unu yükler ve bütünlük kurallarını doğrular.
-- `Resources/catalog.json`: 12 araç, benzersiz mini oyunlu 12 arıza, 20 müşteri, üçlü şikâyet anlatımları, 26 yorum ve yedi dükkân seviyesini koddan bağımsız tutar.
+- `Resources/catalog.json`: 12 araç, benzersiz tamir oyunlu 30 arıza, 20 müşteri, üçlü şikâyet anlatımları, 26 yorum ve yedi dükkân seviyesini koddan bağımsız tutar.
 
 ## Apple servis adaptörleri
 
@@ -74,6 +74,10 @@
 - `RepairMiniGames/EngineMiniGames.swift`: Motor ve elektrik arızalarına özel tamir oyunlarını tutar.
 - `RepairMiniGames/ChassisMiniGames.swift`: Fren, rot ve debriyaj oyunlarını tutar.
 - `RepairMiniGames/BodyMiniGames.swift`: Tampon, kapı ve göçük kaporta oyunlarını tutar.
+- `RepairMiniGames/AdvancedEngineMiniGames.swift`: Buji, enjektör, devirdaim, turbo ve yağ kaçağı işlemlerini canlandırır.
+- `RepairMiniGames/AdvancedElectricalMiniGames.swift`: Bobin, sigorta, kablo sürekliliği, cam krikosu ve far ayarı işlemlerini canlandırır.
+- `RepairMiniGames/AdvancedChassisMiniGames.swift`: Disk salgısı, amortisör, rulman ve aks körüğü işlemlerini canlandırır.
+- `RepairMiniGames/AdvancedBodyMiniGames.swift`: Kaput hizalama, nokta kaynak ve boya katmanı işlemlerini canlandırır.
 - `WorkshopScene.swift`: Kalıcı SpriteKit sahnesinde araçları kabul sırasıyla tek tek büyük gösterir; iPhone'da yatay sayfalama ve dokunarak iş seçimi sağlar.
 - `Style.swift`: Paylaşılan renk, kart, düğme stilleri ve iPhone dokunsal geri bildirimini tanımlar.
 

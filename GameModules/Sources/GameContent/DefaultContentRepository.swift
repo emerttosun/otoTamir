@@ -46,7 +46,7 @@ public enum ContentValidator {
         try requireUnique(catalog.shopLevels.map { String($0.id) }, kind: "Dükkân seviyesi")
 
         guard catalog.vehicles.count >= 12 else { throw ContentError.invalidValue("En az 12 araç gerekli") }
-        guard catalog.faults.count >= 12 else { throw ContentError.invalidValue("En az 12 arıza gerekli") }
+        guard catalog.faults.count >= 30 else { throw ContentError.invalidValue("En az 30 arıza gerekli") }
         guard catalog.customers.count >= 20 else { throw ContentError.invalidValue("En az 20 müşteri gerekli") }
         guard catalog.reviews.count >= 24 else { throw ContentError.invalidValue("En az 24 yorum metni gerekli") }
         guard catalog.faults.allSatisfy({ $0.inspectionFindings.count >= 2 }) else {

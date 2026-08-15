@@ -50,6 +50,42 @@ struct RepairMiniGameHost: View {
                 DoorGapMiniGame(variant: variant, onComplete: onComplete)
             case .dentPull:
                 DentPullMiniGame(variant: variant, onComplete: onComplete)
+            case .sparkPlugGap:
+                SparkPlugGapMiniGame(variant: variant, onComplete: onComplete)
+            case .ignitionCoilOrder:
+                IgnitionCoilOrderMiniGame(variant: variant, onComplete: onComplete)
+            case .injectorBalance:
+                InjectorBalanceMiniGame(variant: variant, onComplete: onComplete)
+            case .waterPumpSeal:
+                WaterPumpSealMiniGame(variant: variant, onComplete: onComplete)
+            case .timingBeltMarks:
+                TimingMiniGame(partName: partName, variant: variant, onComplete: onComplete)
+            case .turboPressure:
+                TurboPressureMiniGame(variant: variant, onComplete: onComplete)
+            case .oilLeakTrace:
+                OilLeakTraceMiniGame(variant: variant, onComplete: onComplete)
+            case .fuseTrace:
+                FuseTraceMiniGame(variant: variant, onComplete: onComplete)
+            case .wireContinuity:
+                WireContinuityMiniGame(variant: variant, onComplete: onComplete)
+            case .windowRegulator:
+                WindowRegulatorMiniGame(variant: variant, onComplete: onComplete)
+            case .headlightAim:
+                HeadlightAimMiniGame(variant: variant, onComplete: onComplete)
+            case .brakeDiscRunout:
+                BrakeDiscRunoutMiniGame(variant: variant, onComplete: onComplete)
+            case .shockCompression:
+                ShockCompressionMiniGame(variant: variant, onComplete: onComplete)
+            case .bearingPreload:
+                BearingPreloadMiniGame(variant: variant, onComplete: onComplete)
+            case .cvBootGrease:
+                CVBootGreaseMiniGame(variant: variant, onComplete: onComplete)
+            case .hoodAlignment:
+                HoodAlignmentMiniGame(variant: variant, onComplete: onComplete)
+            case .panelWeld:
+                PanelWeldMiniGame(variant: variant, onComplete: onComplete)
+            case .paintLayers:
+                PaintLayersMiniGame(variant: variant, onComplete: onComplete)
             }
         }
         .presentationDetents([.medium, .large])

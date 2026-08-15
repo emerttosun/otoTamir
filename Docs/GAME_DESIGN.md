@@ -33,7 +33,7 @@ Fiyat parça satın alınıp işçilik tamamlandıktan sonra `Uygun`, `Normal`, 
 - Sıvı dolumu: hedef seviyeye taşırmadan kontrollü dolum yapma.
 - Zamanlama: üç kasnak üzerindeki derece işaretlerini doğru konuma çevirme.
 
-Genel altı mekanik yıllık bakım ve proje araçlarında tekrar kullanılabilir. On iki müşteri arızasının her biri ayrıca benzersiz bir oyun kullanır: kayış gerginliği, soğutma suyu doldurma/hava alma, iki kademeli silindir kapağı torku, akü kutup sırası, farklı yükte şarj voltajı, krank sensörü boşluğu, kaliper-balata-pedal sırası, iki teker rot ayarı, debriyaj diski merkezleme, tampon klipslerini ortadan dışa oturtma, kapı aralığı ve göçüğü çevreden merkeze toplama.
+Genel altı mekanik yıllık bakım ve proje araçlarında tekrar kullanılabilir. Otuz müşteri arızasının her biri ayrıca benzersiz bir oyun kimliği kullanır. Mevcut mekanikler; kayış gerginliği, hava alma, tork sırası, akü kutupları, şarj voltajı, sensör boşluğu, fren-balata, rot, debriyaj, kaporta hizalama ve göçük işlerine ek olarak buji aralığı, bobin sırası, enjektör dönüş dengesi, pompa contası, triger işaretleri, turbo basıncı, UV yağ izi, sigorta ve kablo sürekliliği, cam krikosu, far ayarı, disk salgısı, amortisör geri dönüşü, rulman ön yükü, aks körüğü gres dağılımı, kaput aralığı, nokta kaynak ve boya katmanlarını kapsar.
 
 Sistem uyarısı veya ayrı iPhone penceresi açılmaz; oyunlar dükkân ekranının üzerinde oyun içi çalışma alanı olarak görünür. İş kimliğinden üretilen hedefler değişir; başarı hızdan çok doğru sıra, ölçü, denge ve son kontrolden hesaplanır.
 
