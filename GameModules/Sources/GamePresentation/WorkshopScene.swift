@@ -155,28 +155,34 @@ public final class WorkshopScene: SKScene {
             root.addChild(warning)
         }
 
-        let labelBackground = SKShapeNode(rectOf: CGSize(width: width + 8, height: 36), cornerRadius: 9)
+        let labelWidth = min(max(190, width + 8), size.width - 28)
+        let labelBackground = SKShapeNode(rectOf: CGSize(width: labelWidth, height: 42), cornerRadius: 10)
         labelBackground.fillColor = SKColor.black.withAlphaComponent(0.76)
         labelBackground.strokeColor = selectedVehicle == vehicle.selection
             ? SKColor(red: 1, green: 0.48, blue: 0.12, alpha: 1)
             : SKColor.white.withAlphaComponent(0.22)
-        labelBackground.position = CGPoint(x: 0, y: -width * aspect * 0.43)
+        labelBackground.position = CGPoint(
+            x: 14 + labelWidth / 2 - x,
+            y: size.height - root.position.y - 14 - 21
+        )
         root.addChild(labelBackground)
 
         let name = SKLabelNode(text: vehicle.name)
         name.fontName = "AvenirNext-DemiBold"
-        name.fontSize = vehiclesFontSize(width: width)
+        name.fontSize = 12
         name.fontColor = .white
+        name.horizontalAlignmentMode = .left
         name.verticalAlignmentMode = .center
-        name.position = CGPoint(x: 0, y: 6)
+        name.position = CGPoint(x: -labelWidth / 2 + 11, y: 7)
         labelBackground.addChild(name)
 
         let status = SKLabelNode(text: vehicle.status)
         status.fontName = "AvenirNext-Bold"
-        status.fontSize = max(8, vehiclesFontSize(width: width) - 3)
+        status.fontSize = 9
         status.fontColor = vehicle.isProject ? .systemOrange : SKColor(red: 0.35, green: 0.82, blue: 0.68, alpha: 1)
+        status.horizontalAlignmentMode = .left
         status.verticalAlignmentMode = .center
-        status.position = CGPoint(x: 0, y: -8)
+        status.position = CGPoint(x: -labelWidth / 2 + 11, y: -8)
         labelBackground.addChild(status)
 
         layer.addChild(root)
@@ -203,7 +209,9 @@ public final class WorkshopScene: SKScene {
             return SceneVehicle(
                 selection: .job(job.id),
                 name: vehicle.name,
-                status: job.stage.sceneTitle,
+                status: job.serviceKind == .periodicMaintenance
+                    ? "Yıllık bakım • \(job.stage.sceneTitle)"
+                    : "Tamir • \(job.stage.sceneTitle)",
                 color: SKColor(hex: vehicle.accentHex),
                 isProject: false,
                 isDamaged: false
@@ -214,7 +222,7 @@ public final class WorkshopScene: SKScene {
             return SceneVehicle(
                 selection: .project(project.id),
                 name: vehicle.name,
-                status: project.stage.sceneTitle,
+                status: "İhale aracı • \(project.stage.sceneTitle)",
                 color: SKColor(hex: vehicle.accentHex),
                 isProject: true,
                 isDamaged: project.stage == .awaitingRepair
@@ -231,10 +239,6 @@ public final class WorkshopScene: SKScene {
         case 4: [0.12, 0.37, 0.63, 0.88]
         default: [0.09, 0.295, 0.5, 0.705, 0.91]
         }
-    }
-
-    private func vehiclesFontSize(width: CGFloat) -> CGFloat {
-        width >= 200 ? 13 : (width >= 160 ? 11 : 9)
     }
 
     private func decodeSelection(_ name: String) -> WorkshopVehicleSelection? {
