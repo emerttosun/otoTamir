@@ -7,7 +7,8 @@ public struct RootGameView: View {
     @State private var selectedSection = GameSection.workshop
     @State private var showingFinance = false
     @State private var activeIntroduction: GameSection?
-    @AppStorage("introducedGameSections.v1") private var introducedSectionIDs = ""
+    @AppStorage("hasShownInitialGuide.v1") private var hasShownInitialGuide = false
+    @AppStorage("introducedGameSections.v1") private var legacyIntroducedSectionIDs = ""
 
     public init(store: GameStore) {
         self.store = store
@@ -22,6 +23,8 @@ public struct RootGameView: View {
         VStack(spacing: 0) {
             StatusBar(state: store.state) {
                 showingFinance = true
+            } showInformation: {
+                withAnimation { activeIntroduction = selectedSection }
             }
             sectionPicker
             if let activeIntroduction {
@@ -54,7 +57,7 @@ public struct RootGameView: View {
         .background(GarageStyle.background.ignoresSafeArea())
         .foregroundStyle(.white)
         .preferredColorScheme(.dark)
-        .onAppear { showIntroductionIfNeeded(for: selectedSection) }
+        .onAppear { showInitialGuideIfNeeded() }
         .sheet(isPresented: $showingFinance) {
             FinanceLedgerView(state: store.state)
                 .presentationDetents([.medium, .large])
@@ -116,7 +119,7 @@ public struct RootGameView: View {
                 ForEach(GameSection.allCases) { section in
                     Button {
                         selectedSection = section
-                        showIntroductionIfNeeded(for: section)
+                        withAnimation { activeIntroduction = nil }
                     } label: {
                         VStack(spacing: 3) {
                             Image(systemName: section.icon)
@@ -143,29 +146,28 @@ public struct RootGameView: View {
         Binding(get: { store.cloudConflict != nil }, set: { if !$0 { store.cloudConflict = nil } })
     }
 
-    private func showIntroductionIfNeeded(for section: GameSection) {
-        guard !introducedIDs.contains(section.rawValue) else {
-            activeIntroduction = nil
+    private func showInitialGuideIfNeeded() {
+        guard !hasShownInitialGuide else { return }
+        if !legacyIntroducedSectionIDs.isEmpty {
+            hasShownInitialGuide = true
             return
         }
-        withAnimation { activeIntroduction = section }
+        hasShownInitialGuide = true
+        withAnimation { activeIntroduction = .workshop }
     }
 
     private func dismissIntroduction(_ section: GameSection) {
-        var ids = introducedIDs
-        ids.insert(section.rawValue)
-        introducedSectionIDs = ids.sorted().joined(separator: ",")
+        if section == .workshop {
+            hasShownInitialGuide = true
+        }
         withAnimation { activeIntroduction = nil }
-    }
-
-    private var introducedIDs: Set<String> {
-        Set(introducedSectionIDs.split(separator: ",").map(String.init))
     }
 }
 
 private struct StatusBar: View {
     let state: GameState
     let showFinance: () -> Void
+    let showInformation: () -> Void
 
     var body: some View {
         HStack(spacing: 12) {
@@ -183,6 +185,14 @@ private struct StatusBar: View {
             .buttonStyle(.plain)
             .accessibilityHint("Kasa hareketlerini açar")
             Spacer()
+            Button(action: showInformation) {
+                Image(systemName: "info.circle.fill")
+                    .font(.title3)
+                    .padding(9)
+                    .background(GarageStyle.raised, in: Circle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Bu bölüm ne işe yarar?")
             statusPill(icon: "star.fill", text: state.shopRatingText)
         }
         .padding(.horizontal, 15)
