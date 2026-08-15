@@ -53,7 +53,6 @@ public struct RootGameView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .padding(.top, 50)
         .background(GarageStyle.background.ignoresSafeArea())
         .foregroundStyle(.white)
         .preferredColorScheme(.dark)

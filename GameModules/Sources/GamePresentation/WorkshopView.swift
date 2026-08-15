@@ -378,16 +378,23 @@ private struct JobCard: View {
                     send(.buyPart(jobID: job.id, quality: quality))
                 } label: {
                     VStack(alignment: .leading, spacing: 4) {
-                        HStack {
-                            Text(quality.title).font(.subheadline.bold())
+                        HStack(alignment: .firstTextBaseline, spacing: 10) {
+                            Text(quality.title)
+                                .font(.subheadline.bold())
+                                .lineLimit(1)
                             Spacer()
-                            Text(partCost(quality).liraText).monospacedDigit()
+                            Text(partCost(quality).liraText)
+                                .monospacedDigit()
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
+                                .fixedSize(horizontal: true, vertical: false)
                         }
                         Text(quality.detail)
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.leading)
                     }
+                    .padding(.horizontal, 14)
                 }
                 .buttonStyle(ActionButtonStyle(tint: quality == .used ? .gray : GarageStyle.orange))
             }
