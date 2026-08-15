@@ -13,12 +13,33 @@ final class AppContainer: ObservableObject {
     init() {
         do {
             let catalog = try DefaultContentRepository().load()
-            let engine = GameEngine(catalog: catalog)
+            let engine: GameEngine
+            let saveRepository: any SaveRepository
+#if DEBUG
+            if let scenarioName = ProcessInfo.processInfo.environment["OTOTAMIR_QA_SCENARIO"],
+               let qaState = try QAScenarioFactory.make(named: scenarioName, catalog: catalog) {
+                engine = GameEngine(state: qaState, catalog: catalog)
+                saveRepository = InMemorySaveRepository(state: qaState)
+            } else {
+                engine = GameEngine(catalog: catalog)
+                let applicationSupport = try Self.applicationSupportDirectory()
+                saveRepository = JSONFileSaveRepository(directory: applicationSupport)
+            }
+#else
+            engine = GameEngine(catalog: catalog)
             let applicationSupport = try Self.applicationSupportDirectory()
+            saveRepository = JSONFileSaveRepository(directory: applicationSupport)
+#endif
+            let cloudSync: any CloudSyncService
+#if targetEnvironment(simulator)
+            cloudSync = DisabledCloudSyncService()
+#else
+            cloudSync = CloudKitGameSyncService(containerIdentifier: "iCloud.com.abim.OtoTamirGame")
+#endif
             gameStore = GameStore(
                 engine: engine,
-                saveRepository: JSONFileSaveRepository(directory: applicationSupport),
-                cloudSync: CloudKitGameSyncService(),
+                saveRepository: saveRepository,
+                cloudSync: cloudSync,
                 purchaseService: StoreKitPurchaseService()
             )
         } catch {
@@ -36,4 +57,3 @@ final class AppContainer: ObservableObject {
         return base.appendingPathComponent("OtoTamir", isDirectory: true)
     }
 }
-

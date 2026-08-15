@@ -1,196 +1,197 @@
+import Foundation
 import GameDomain
+import GameLogic
 import SwiftUI
 
 struct AuctionView: View {
     @ObservedObject var store: GameStore
 
     var body: some View {
-        ScrollView {
-            LazyVStack(spacing: 12) {
-                if let auction = store.state.auction {
-                    auctionHeader(auction)
-                    ForEach(auction.lots) { lot in
-                        AuctionLotCard(lot: lot, catalog: store.catalog) { command in
-                            store.send(command)
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(spacing: 12) {
+                    if let market = store.state.auction, !market.lots.isEmpty {
+                        marketHeader
+                        ForEach(market.lots) { lot in
+                            SalvageLotCard(
+                                lot: lot,
+                                catalog: store.catalog,
+                                hasBodyPaintBooth: currentFacilities.contains(.bodyPaintBooth)
+                            ) {
+                                store.send(.purchaseAuctionLot(lot.id))
+                            }
                         }
-                    }
-                    Button(auction.round == 3 ? "İhaleyi Sonuçlandır" : "\(auction.round + 1). Tura Geç") {
-                        store.send(.advanceAuctionRound)
-                    }
-                    .buttonStyle(ActionButtonStyle(tint: GarageStyle.mint))
-                    .padding(.horizontal, 12)
-                } else {
-                    VStack(spacing: 14) {
-                        Image(systemName: "gavel.fill")
-                            .font(.system(size: 46))
-                            .foregroundStyle(GarageStyle.orange)
-                        Text(store.state.day < 4 ? "İhale 4. gün açılır" : "Bugün ihale yok")
-                            .font(.title3.bold())
-                        Text("Sanayi ihalesi üç günde bir kurulur. Ekspertiz gizli kusurların bir kısmını gösterir; dükkânda yer bırakmayı unutma.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .garageCard()
-                    .padding(.horizontal, 12)
-                    .padding(.top, 18)
-                }
-
-                if !store.state.projectCars.isEmpty {
-                    Label("Proje Araçlar", systemImage: "car.rear.road.lane")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 16)
-                        .padding(.top, 8)
-                    ForEach(store.state.projectCars) { project in
-                        ProjectCarCard(project: project, catalog: store.catalog) { command in
-                            store.send(command)
-                        }
+                    } else {
+                        emptyMarket
                     }
                 }
+                .padding(.vertical, 8)
             }
-            .padding(.vertical, 8)
+            .task {
+                guard let focus = ProcessInfo.processInfo.environment["OTOTAMIR_QA_FOCUS"] else { return }
+                await Task.yield()
+                proxy.scrollTo(focus, anchor: .top)
+            }
         }
     }
 
-    private func auctionHeader(_ auction: AuctionState) -> some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("SANAYİ İHALESİ").font(.caption.weight(.black)).foregroundStyle(GarageStyle.orange)
-                Text("Tur \(auction.round) / 3").font(.title3.bold())
-            }
-            Spacer()
-            Text("Tek araca odaklan")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
+    private var emptyMarket: some View {
+        VStack(spacing: 14) {
+            Image(systemName: "car.side.rear.open.fill")
+                .font(.system(size: 46))
+                .foregroundStyle(GarageStyle.orange)
+            Text("Hasarlı araç stoğu yenileniyor").font(.title3.bold())
+            Text("Yeni sigorta çıkması araçlar sonraki ihale yenilemesinde gelir.")
+                .font(.subheadline).foregroundStyle(.secondary)
         }
+        .frame(maxWidth: .infinity)
+        .garageCard()
+        .padding(.horizontal, 12)
+        .padding(.top, 18)
+    }
+
+    private var currentFacilities: [ShopFacility] {
+        store.catalog.shopLevel(store.state.shopLevel)?.facilities ?? []
+    }
+
+    private var marketHeader: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("HASARLI ARAÇ İHALESİ")
+                .font(.caption.weight(.black)).foregroundStyle(GarageStyle.orange)
+            Text("Sabit ihale bedeli • ağır hasarlı araçlar").font(.title3.bold())
+            Text("Teklif turu yoktur. Ekspertiz raporunu inceleyip aracı ihale bedelinden doğrudan satın alabilirsin.")
+                .font(.caption).foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .garageCard()
         .padding(.horizontal, 12)
     }
 }
 
-private struct AuctionLotCard: View {
+private struct SalvageLotCard: View {
     let lot: AuctionLot
     let catalog: ContentCatalog
-    let send: (GameCommand) -> Void
+    let hasBodyPaintBooth: Bool
+    let purchase: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 11) {
-            HStack {
-                VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 13) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 3) {
                     Text(vehicle?.name ?? "Kazalı Araç").font(.headline)
                     Text(vehicle?.category ?? "").font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer()
-                if lot.playerIsHighest {
-                    Label("Lider", systemImage: "flag.fill")
-                        .font(.caption.bold())
-                        .foregroundStyle(GarageStyle.mint)
+                Text(lot.severity.title)
+                    .font(.caption2.bold()).foregroundStyle(.white)
+                    .padding(.horizontal, 8).padding(.vertical, 5)
+                    .background(GarageStyle.danger, in: Capsule())
+            }
+
+            HStack(spacing: 7) {
+                statusChip(lot.startsAndDrives ? "Çalışır / yürür" : "Çalışmaz / çekici", good: lot.startsAndDrives)
+                statusChip(lot.airbagsDeployed ? "Airbag açmış" : "Airbag sağlam", good: !lot.airbagsDeployed)
+            }
+
+            VehicleInspectionDiagram(damages: lot.panelDamages)
+
+            VStack(alignment: .leading, spacing: 7) {
+                Text("KAPORTA VE TAŞIYICI RAPORU").font(.caption2.bold()).foregroundStyle(GarageStyle.orange)
+                ForEach(lot.panelDamages.filter { $0.condition != .original }) { damage in
+                    HStack {
+                        Text(damage.panel.title).font(.caption)
+                        Spacer()
+                        Text(damage.condition.title)
+                            .font(.caption.bold()).foregroundStyle(conditionColor(damage.condition))
+                    }
                 }
             }
 
-            faultRow(title: "Görünen", ids: [lot.visibleFaultID])
-            if !lot.revealedFaultIDs.isEmpty {
-                faultRow(title: "Ekspertiz", ids: lot.revealedFaultIDs)
-            } else {
-                Text("Gizli kusur ihtimali var")
-                    .font(.caption)
-                    .foregroundStyle(GarageStyle.danger)
+            if let vehicle {
+                investmentReport(vehicle: vehicle)
+            }
+
+            VStack(alignment: .leading, spacing: 7) {
+                Text("MEKANİK VE ELEKTRİK KUSURLARI").font(.caption2.bold()).foregroundStyle(GarageStyle.orange)
+                ForEach(lot.mechanicalFaultIDs, id: \.self) { id in
+                    if let fault = catalog.fault(id: id) {
+                        Label("\(fault.name) • \(fault.partName)", systemImage: "exclamationmark.triangle.fill")
+                            .font(.caption).foregroundStyle(.white.opacity(0.84))
+                    }
+                }
             }
 
             HStack {
-                VStack(alignment: .leading) {
-                    Text("Güncel teklif").font(.caption).foregroundStyle(.secondary)
-                    Text(lot.currentBid.liraText).font(.title3.bold().monospacedDigit())
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Kayıtlı hasar").font(.caption2).foregroundStyle(.secondary)
+                    Text(lot.recordedDamage.liraText).font(.caption.bold().monospacedDigit())
                 }
                 Spacer()
-                Text(competitorMood)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(GarageStyle.orange)
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text("İhale satış bedeli").font(.caption2).foregroundStyle(.secondary)
+                    Text(lot.fixedPrice.liraText)
+                        .font(.title3.bold().monospacedDigit()).foregroundStyle(GarageStyle.mint)
+                }
             }
 
-            HStack(spacing: 8) {
-                Button("Ekspertiz") { send(.inspectAuctionLot(lot.id)) }
-                    .buttonStyle(ActionButtonStyle(tint: GarageStyle.raised))
-                    .foregroundStyle(.white)
-                Button("+500 ₺") { send(.placeAuctionBid(lotID: lot.id, amount: lot.currentBid + Money(minorUnits: 50_000))) }
-                    .buttonStyle(ActionButtonStyle())
-                Button("+1.500 ₺") { send(.placeAuctionBid(lotID: lot.id, amount: lot.currentBid + Money(minorUnits: 150_000))) }
-                    .buttonStyle(ActionButtonStyle(tint: GarageStyle.mint))
+            Button(action: purchase) {
+                Label("İhaleden Satın Al", systemImage: "cart.fill")
             }
+            .buttonStyle(ActionButtonStyle(tint: GarageStyle.mint))
+            .id("purchase")
         }
         .garageCard()
         .padding(.horizontal, 12)
     }
 
-    private func faultRow(title: String, ids: [String]) -> some View {
-        HStack(alignment: .top) {
-            Text("\(title):").font(.caption.bold()).frame(width: 62, alignment: .leading)
-            Text(ids.compactMap { catalog.fault(id: $0)?.name }.joined(separator: ", "))
-                .font(.caption)
-                .foregroundStyle(.white.opacity(0.8))
+    private func investmentReport(vehicle: VehicleDefinition) -> some View {
+        let estimate = VehicleTradingRules.investmentEstimate(
+            lot: lot,
+            vehicle: vehicle,
+            faults: lot.mechanicalFaultIDs.compactMap { catalog.fault(id: $0) },
+            hasBodyPaintBooth: hasBodyPaintBooth
+        )
+        return VStack(alignment: .leading, spacing: 7) {
+            Text("USTA HESABI • TAHMİNİ").font(.caption2.bold()).foregroundStyle(GarageStyle.orange)
+            estimateRow("Onarım gideri", low: estimate.repairLow, high: estimate.repairHigh)
+            estimateRow("Toplam yatırım", low: estimate.totalInvestmentLow, high: estimate.totalInvestmentHigh)
+            estimateRow("Adil satış bandı", low: estimate.fairSaleLow, high: estimate.fairSaleHigh)
+            estimateRow("Olası kâr / zarar", low: estimate.profitLow, high: estimate.profitHigh)
+            Text("Bu hesap parçaların fiyatına, kaporta işine ve piyasa ilgisine göre değişir; kâr garantisi değildir.")
+                .font(.caption2).foregroundStyle(.secondary)
         }
+        .padding(10)
+        .background(GarageStyle.raised.opacity(0.58), in: RoundedRectangle(cornerRadius: 11))
+        .id("investment")
     }
 
-    private var competitorMood: String {
-        let ratio = Double(lot.currentBid.minorUnits) / Double(max(1, lot.competitorMaximum.minorUnits))
-        if ratio < 0.65 { return "Rakip rahat" }
-        if ratio < 0.9 { return "Rakip düşünüyor" }
-        return "Rakip çekilebilir"
+    private func statusChip(_ text: String, good: Bool) -> some View {
+        Text(text)
+            .font(.caption2.bold())
+            .foregroundStyle(good ? GarageStyle.mint : GarageStyle.danger)
+            .padding(.horizontal, 8).padding(.vertical, 6)
+            .background(GarageStyle.raised, in: Capsule())
+    }
+
+    private func conditionColor(_ condition: PanelCondition) -> Color {
+        switch condition {
+        case .original: Color(red: 0.57, green: 0.59, blue: 0.61)
+        case .painted: .blue
+        case .replaced: Color(red: 1.0, green: 0.30, blue: 0.20)
+        case .damaged: .purple
+        case .heavyDamage: GarageStyle.danger
+        }
     }
 
     private var vehicle: VehicleDefinition? { catalog.vehicle(id: lot.vehicleID) }
-}
 
-private struct ProjectCarCard: View {
-    let project: ProjectCar
-    let catalog: ContentCatalog
-    let send: (GameCommand) -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 11) {
-            HStack {
-                VStack(alignment: .leading) {
-                    Text(vehicle?.name ?? "Proje Araç").font(.headline)
-                    Text("Alış: \(project.purchasePrice.liraText)").font(.caption).foregroundStyle(.secondary)
-                }
-                Spacer()
-                Text(project.stage == .awaitingRepair ? "RESTORASYON" : "SATIŞA HAZIR")
-                    .font(.caption2.bold())
-                    .foregroundStyle(project.stage == .awaitingRepair ? GarageStyle.orange : GarageStyle.mint)
-            }
-
-            Text("Kusurlar: \(faultNames)")
-                .font(.caption)
-                .foregroundStyle(.white.opacity(0.8))
-
-            if project.stage == .awaitingRepair {
-                Text("Restorasyon 3 zaman dilimi harcar ve tüm parçaları birlikte yeniler.")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                Button("Restorasyonu Yap") {
-                    send(.repairProjectCar(projectID: project.id, performance: 74))
-                }
-                .buttonStyle(ActionButtonStyle(tint: GarageStyle.mint))
-            } else {
-                Text("Restorasyon kalitesi: %\(project.restorationQuality)")
-                    .font(.caption.weight(.semibold))
-                HStack(spacing: 8) {
-                    Button("Kusurları Anlat") { send(.sellProjectCar(projectID: project.id, honest: true)) }
-                        .buttonStyle(ActionButtonStyle(tint: GarageStyle.mint))
-                    Button("Parlat, Gönder") { send(.sellProjectCar(projectID: project.id, honest: false)) }
-                        .buttonStyle(ActionButtonStyle(tint: GarageStyle.danger))
-                }
-            }
+    private func estimateRow(_ title: String, low: Money, high: Money) -> some View {
+        HStack {
+            Text(title).font(.caption)
+            Spacer()
+            Text("\(low.liraText) – \(high.liraText)")
+                .font(.caption.bold().monospacedDigit())
+                .foregroundStyle(low < .zero || high < .zero ? GarageStyle.danger : .white)
         }
-        .garageCard()
-        .padding(.horizontal, 12)
-    }
-
-    private var vehicle: VehicleDefinition? { catalog.vehicle(id: project.vehicleID) }
-    private var faultNames: String {
-        project.faultIDs.compactMap { catalog.fault(id: $0)?.name }.joined(separator: ", ")
     }
 }
-

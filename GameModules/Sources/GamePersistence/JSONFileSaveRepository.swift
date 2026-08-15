@@ -74,6 +74,28 @@ enum SaveMigrator {
             state.inventory = []
             state.schemaVersion = 2
         }
+        if state.schemaVersion < 3 {
+            state.totalMinutes = (max(1, state.day) - 1) * 1_440 + 8 * 60
+            state.nextCustomerArrivalMinute = state.totalMinutes + 30
+            state.expertise = Dictionary(uniqueKeysWithValues: SkillArea.allCases.map { area in
+                (area, SkillProgress(level: state.skills[area, default: 1]))
+            })
+            state.reviews = []
+            state.ratingTenths = 40
+            state.schemaVersion = 3
+        }
+        if state.schemaVersion < 4 {
+            state.apprentices = []
+            state.financeEntries = []
+            state.schemaVersion = 4
+        }
+        if state.schemaVersion < 5 {
+            state.loans = []
+            state.schemaVersion = 5
+        }
+        if state.schemaVersion < 6 {
+            state.schemaVersion = 6
+        }
         return state
     }
 }

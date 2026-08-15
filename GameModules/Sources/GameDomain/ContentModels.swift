@@ -21,6 +21,54 @@ public enum RepairGameKind: String, Codable, CaseIterable, Sendable {
     case bolts
     case wiring
     case alignment
+    case fluidFill
+    case timing
+    case beltTension
+    case coolantBleed
+    case headGasketTorque
+    case batteryTerminals
+    case chargingVoltage
+    case sensorGap
+    case brakePads
+    case toeAdjustment
+    case clutchCentering
+    case bumperClips
+    case doorGap
+    case dentPull
+}
+
+public enum InspectionKind: String, Codable, CaseIterable, Sendable {
+    case visual
+    case startEngine
+    case listen
+    case diagnosticScanner
+    case fluids
+    case lift
+    case wheelPlay
+    case testDrive
+
+    public var title: String {
+        switch self {
+        case .visual: "Gözle Kontrol"
+        case .startEngine: "Motoru Çalıştır"
+        case .listen: "Sesi Dinle"
+        case .diagnosticScanner: "Arıza Cihazı"
+        case .fluids: "Sıvıları Kontrol Et"
+        case .lift: "Lifte Kaldır"
+        case .wheelPlay: "Tekerlek Boşluğu"
+        case .testDrive: "Test Sürüşü"
+        }
+    }
+
+    public var durationMinutes: Int {
+        switch self {
+        case .visual: 10
+        case .startEngine, .listen, .fluids: 15
+        case .diagnosticScanner, .wheelPlay: 25
+        case .lift: 30
+        case .testDrive: 40
+        }
+    }
 }
 
 public struct VehicleDefinition: Codable, Hashable, Identifiable, Sendable {
@@ -44,7 +92,9 @@ public struct FaultDefinition: Codable, Hashable, Identifiable, Sendable {
     public let name: String
     public let area: SkillArea
     public let complaint: String
+    public let complaintVariants: [String]
     public let clues: [String]
+    public let inspectionFindings: [InspectionKind: String]
     public let partName: String
     public let basePartCost: Money
     public let laborValue: Money
@@ -56,7 +106,9 @@ public struct FaultDefinition: Codable, Hashable, Identifiable, Sendable {
         name: String,
         area: SkillArea,
         complaint: String,
+        complaintVariants: [String] = [],
         clues: [String],
+        inspectionFindings: [InspectionKind: String] = [:],
         partName: String,
         basePartCost: Money,
         laborValue: Money,
@@ -67,12 +119,57 @@ public struct FaultDefinition: Codable, Hashable, Identifiable, Sendable {
         self.name = name
         self.area = area
         self.complaint = complaint
+        self.complaintVariants = complaintVariants
         self.clues = clues
+        self.inspectionFindings = inspectionFindings
         self.partName = partName
         self.basePartCost = basePartCost
         self.laborValue = laborValue
         self.requiredSkill = requiredSkill
         self.repairGame = repairGame
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, name, area, complaint, complaintVariants, clues, inspectionFindings, partName
+        case basePartCost, laborValue, requiredSkill, repairGame
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = try values.decode(String.self, forKey: .id)
+        name = try values.decode(String.self, forKey: .name)
+        area = try values.decode(SkillArea.self, forKey: .area)
+        complaint = try values.decode(String.self, forKey: .complaint)
+        complaintVariants = try values.decodeIfPresent([String].self, forKey: .complaintVariants) ?? []
+        clues = try values.decode([String].self, forKey: .clues)
+        let rawFindings = try values.decodeIfPresent([String: String].self, forKey: .inspectionFindings) ?? [:]
+        inspectionFindings = Dictionary(uniqueKeysWithValues: rawFindings.compactMap { key, value in
+            InspectionKind(rawValue: key).map { ($0, value) }
+        })
+        partName = try values.decode(String.self, forKey: .partName)
+        basePartCost = try values.decode(Money.self, forKey: .basePartCost)
+        laborValue = try values.decode(Money.self, forKey: .laborValue)
+        requiredSkill = try values.decode(Int.self, forKey: .requiredSkill)
+        repairGame = try values.decode(RepairGameKind.self, forKey: .repairGame)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var values = encoder.container(keyedBy: CodingKeys.self)
+        try values.encode(id, forKey: .id)
+        try values.encode(name, forKey: .name)
+        try values.encode(area, forKey: .area)
+        try values.encode(complaint, forKey: .complaint)
+        try values.encode(complaintVariants, forKey: .complaintVariants)
+        try values.encode(clues, forKey: .clues)
+        try values.encode(
+            Dictionary(uniqueKeysWithValues: inspectionFindings.map { ($0.key.rawValue, $0.value) }),
+            forKey: .inspectionFindings
+        )
+        try values.encode(partName, forKey: .partName)
+        try values.encode(basePartCost, forKey: .basePartCost)
+        try values.encode(laborValue, forKey: .laborValue)
+        try values.encode(requiredSkill, forKey: .requiredSkill)
+        try values.encode(repairGame, forKey: .repairGame)
     }
 }
 
@@ -83,14 +180,45 @@ public struct CustomerDefinition: Codable, Hashable, Identifiable, Sendable {
     public let greeting: String
     public let patience: Int
     public let priceSensitivity: Int
+    public let appearance: String
+    public let profileHint: String
 
-    public init(id: String, name: String, archetype: String, greeting: String, patience: Int, priceSensitivity: Int) {
+    public init(
+        id: String,
+        name: String,
+        archetype: String,
+        greeting: String,
+        patience: Int,
+        priceSensitivity: Int,
+        appearance: String = "Sade giyimli",
+        profileHint: String = "Tavrından ödeme gücünü kestirmek zor"
+    ) {
         self.id = id
         self.name = name
         self.archetype = archetype
         self.greeting = greeting
         self.patience = patience
         self.priceSensitivity = priceSensitivity
+        self.appearance = appearance
+        self.profileHint = profileHint
+    }
+}
+
+public enum ReviewTone: String, Codable, Sendable {
+    case positive
+    case neutral
+    case negative
+}
+
+public struct ReviewTemplateDefinition: Codable, Hashable, Identifiable, Sendable {
+    public let id: String
+    public let tone: ReviewTone
+    public let text: String
+
+    public init(id: String, tone: ReviewTone, text: String) {
+        self.id = id
+        self.tone = tone
+        self.text = text
     }
 }
 
@@ -100,13 +228,25 @@ public struct ShopLevelDefinition: Codable, Hashable, Identifiable, Sendable {
     public let capacity: Int
     public let upgradeCost: Money
     public let equipmentBonus: Int
+    public let facilities: [ShopFacility]
+    public let maxApprentices: Int
 
-    public init(id: Int, name: String, capacity: Int, upgradeCost: Money, equipmentBonus: Int) {
+    public init(
+        id: Int,
+        name: String,
+        capacity: Int,
+        upgradeCost: Money,
+        equipmentBonus: Int,
+        facilities: [ShopFacility] = [.basicRepair],
+        maxApprentices: Int = 0
+    ) {
         self.id = id
         self.name = name
         self.capacity = capacity
         self.upgradeCost = upgradeCost
         self.equipmentBonus = equipmentBonus
+        self.facilities = facilities
+        self.maxApprentices = maxApprentices
     }
 }
 
@@ -115,12 +255,35 @@ public struct BalanceDefinition: Codable, Hashable, Sendable {
     public let daySlots: Int
     public let dailyExpense: Money
     public let inspectionCost: Money
+    public let dailyRent: Money
+    public let dailyUtilities: Money
+    public let dailySupplies: Money
+    public let washCost: Money
+    public let apprenticeHireCost: Money
+    public let apprenticeDailyWage: Money
 
-    public init(startingCash: Money, daySlots: Int, dailyExpense: Money, inspectionCost: Money) {
+    public init(
+        startingCash: Money,
+        daySlots: Int,
+        dailyExpense: Money,
+        inspectionCost: Money,
+        dailyRent: Money = Money(minorUnits: 75_000),
+        dailyUtilities: Money = Money(minorUnits: 30_000),
+        dailySupplies: Money = Money(minorUnits: 20_000),
+        washCost: Money = Money(minorUnits: 35_000),
+        apprenticeHireCost: Money = Money(minorUnits: 750_000),
+        apprenticeDailyWage: Money = Money(minorUnits: 90_000)
+    ) {
         self.startingCash = startingCash
         self.daySlots = daySlots
         self.dailyExpense = dailyExpense
         self.inspectionCost = inspectionCost
+        self.dailyRent = dailyRent
+        self.dailyUtilities = dailyUtilities
+        self.dailySupplies = dailySupplies
+        self.washCost = washCost
+        self.apprenticeHireCost = apprenticeHireCost
+        self.apprenticeDailyWage = apprenticeDailyWage
     }
 }
 
@@ -128,6 +291,7 @@ public struct ContentCatalog: Codable, Hashable, Sendable {
     public let vehicles: [VehicleDefinition]
     public let faults: [FaultDefinition]
     public let customers: [CustomerDefinition]
+    public let reviews: [ReviewTemplateDefinition]
     public let shopLevels: [ShopLevelDefinition]
     public let balance: BalanceDefinition
 
@@ -135,12 +299,14 @@ public struct ContentCatalog: Codable, Hashable, Sendable {
         vehicles: [VehicleDefinition],
         faults: [FaultDefinition],
         customers: [CustomerDefinition],
+        reviews: [ReviewTemplateDefinition] = [],
         shopLevels: [ShopLevelDefinition],
         balance: BalanceDefinition
     ) {
         self.vehicles = vehicles
         self.faults = faults
         self.customers = customers
+        self.reviews = reviews
         self.shopLevels = shopLevels
         self.balance = balance
     }
@@ -150,4 +316,3 @@ public struct ContentCatalog: Codable, Hashable, Sendable {
     public func customer(id: String) -> CustomerDefinition? { customers.first { $0.id == id } }
     public func shopLevel(_ id: Int) -> ShopLevelDefinition? { shopLevels.first { $0.id == id } }
 }
-

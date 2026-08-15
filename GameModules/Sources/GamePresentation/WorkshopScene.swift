@@ -2,163 +2,278 @@ import GameDomain
 import SpriteKit
 import SwiftUI
 
+enum WorkshopVehicleSelection: Hashable {
+    case job(UUID)
+    case project(UUID)
+
+    var id: UUID {
+        switch self {
+        case .job(let id), .project(let id): id
+        }
+    }
+}
+
 @MainActor
 public final class WorkshopScene: SKScene {
-    public init(size: CGSize, state: GameState, catalog: ContentCatalog) {
+    private let catalog: ContentCatalog
+    private var selectedVehicle: WorkshopVehicleSelection?
+    private var selectionHandler: (WorkshopVehicleSelection) -> Void
+
+    init(
+        size: CGSize,
+        state: GameState,
+        catalog: ContentCatalog,
+        selection: WorkshopVehicleSelection?,
+        onSelect: @escaping (WorkshopVehicleSelection) -> Void
+    ) {
+        self.catalog = catalog
+        selectedVehicle = selection
+        selectionHandler = onSelect
         super.init(size: size)
         scaleMode = .resizeFill
-        backgroundColor = SKColor(red: 0.08, green: 0.09, blue: 0.10, alpha: 1)
-        build(state: state, catalog: catalog)
+        backgroundColor = SKColor(red: 0.06, green: 0.065, blue: 0.07, alpha: 1)
+        buildEnvironment()
+        update(state: state, selection: selection)
     }
 
     @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) { nil }
 
-    private func build(state: GameState, catalog: ContentCatalog) {
-        removeAllChildren()
-        addFloor()
-        addBackWall(shopLevel: state.shopLevel, themeID: state.selectedThemeID)
-        addLift()
-        if let job = state.activeJobs.first,
-           let vehicle = catalog.vehicle(id: job.vehicleID) {
-            addCar(name: vehicle.name, color: SKColor(hex: vehicle.accentHex))
-        } else if let project = state.projectCars.first,
-                  let vehicle = catalog.vehicle(id: project.vehicleID) {
-            addCar(name: vehicle.name, color: SKColor(hex: vehicle.accentHex), damaged: project.stage == .awaitingRepair)
-        } else {
-            addEmptyLabel()
-        }
-        addAmbientAnimation()
+    override public func didChangeSize(_ oldSize: CGSize) {
+        super.didChangeSize(oldSize)
+        resizeBackground()
     }
 
-    private func addFloor() {
-        let floor = SKShapeNode(rect: CGRect(x: 0, y: 0, width: size.width, height: size.height * 0.58))
-        floor.fillColor = SKColor(red: 0.23, green: 0.24, blue: 0.22, alpha: 1)
-        floor.strokeColor = .clear
-        floor.position = CGPoint(x: 0, y: 0)
-        addChild(floor)
+    func update(state: GameState, selection: WorkshopVehicleSelection?) {
+        selectedVehicle = selection
+        childNode(withName: "vehicle-layer")?.removeFromParent()
+        childNode(withName: "empty-state")?.removeFromParent()
 
-        for index in 0..<7 {
-            let line = SKShapeNode(rectOf: CGSize(width: size.width * 1.3, height: 1))
-            line.strokeColor = .clear
-            line.fillColor = SKColor(white: 0.32, alpha: 0.45)
-            line.zRotation = -.pi / 10
-            line.position = CGPoint(x: size.width / 2, y: CGFloat(index) * 22)
-            addChild(line)
+        let vehicles = workshopVehicles(state: state)
+        guard !vehicles.isEmpty else {
+            addEmptyState()
+            return
         }
-    }
 
-    private func addBackWall(shopLevel: Int, themeID: String) {
-        let wall = SKShapeNode(rect: CGRect(x: 0, y: size.height * 0.58, width: size.width, height: size.height * 0.42))
-        wall.fillColor = themeID == "copper"
-            ? SKColor(red: 0.24, green: 0.14, blue: 0.10, alpha: 1)
-            : SKColor(red: 0.16, green: 0.18, blue: 0.18, alpha: 1)
-        wall.strokeColor = .clear
-        addChild(wall)
-
-        let sign = SKShapeNode(rectOf: CGSize(width: 178, height: 38), cornerRadius: 7)
-        sign.fillColor = themeID == "copper"
-            ? SKColor(red: 0.72, green: 0.37, blue: 0.20, alpha: 1)
-            : SKColor(red: 0.89, green: 0.55, blue: 0.20, alpha: 1)
-        sign.strokeColor = SKColor(white: 0.95, alpha: 0.35)
-        sign.position = CGPoint(x: size.width / 2, y: size.height - 38)
-        addChild(sign)
-
-        let title = SKLabelNode(text: shopLevel == 1 ? "USTANIN YERİ" : "USTANIN YERİ • \(shopLevel)")
-        title.fontName = "AvenirNext-Heavy"
-        title.fontSize = 16
-        title.fontColor = SKColor(red: 0.12, green: 0.10, blue: 0.08, alpha: 1)
-        title.verticalAlignmentMode = .center
-        sign.addChild(title)
-
-        let shelf = SKShapeNode(rectOf: CGSize(width: 92, height: 10), cornerRadius: 2)
-        shelf.fillColor = SKColor(red: 0.29, green: 0.18, blue: 0.10, alpha: 1)
-        shelf.strokeColor = .clear
-        shelf.position = CGPoint(x: 62, y: size.height * 0.66)
-        addChild(shelf)
-        for offset in [-30, -10, 12, 31] {
-            let can = SKShapeNode(rectOf: CGSize(width: 12, height: 22), cornerRadius: 2)
-            can.fillColor = offset.isMultiple(of: 2) ? .systemRed : .systemBlue
-            can.strokeColor = .clear
-            can.position = CGPoint(x: CGFloat(offset), y: 15)
-            shelf.addChild(can)
+        let positions = horizontalPositions(count: vehicles.count)
+        let vehicleWidth: CGFloat
+        switch vehicles.count {
+        case 1: vehicleWidth = 225
+        case 2: vehicleWidth = 155
+        case 3: vehicleWidth = 108
+        case 4: vehicleWidth = 86
+        default: vehicleWidth = 70
+        }
+        let layer = SKNode()
+        layer.name = "vehicle-layer"
+        addChild(layer)
+        for (index, vehicle) in vehicles.enumerated() {
+            addVehicle(vehicle, x: size.width * positions[index], width: vehicleWidth, to: layer)
         }
     }
 
-    private func addLift() {
-        for x in [size.width * 0.22, size.width * 0.78] {
-            let post = SKShapeNode(rectOf: CGSize(width: 14, height: 106), cornerRadius: 3)
-            post.fillColor = SKColor(red: 0.76, green: 0.33, blue: 0.18, alpha: 1)
-            post.strokeColor = .clear
-            post.position = CGPoint(x: x, y: size.height * 0.37)
-            addChild(post)
+    #if os(iOS)
+    override public func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let point = touches.first?.location(in: self) else { return }
+        var node: SKNode? = atPoint(point)
+        while let current = node {
+            if let name = current.name, name.hasPrefix("vehicle-select:"),
+               let selection = decodeSelection(name) {
+                selectionHandler(selection)
+                return
+            }
+            node = current.parent
+        }
+    }
+    #endif
+
+    private func buildEnvironment() {
+        let background = SKSpriteNode(imageNamed: "workshop-background-v1")
+        background.name = "workshop-background"
+        background.zPosition = -20
+        addChild(background)
+        resizeBackground()
+
+        let shade = SKShapeNode(rect: CGRect(origin: .zero, size: size))
+        shade.name = "workshop-shade"
+        shade.fillColor = SKColor.black.withAlphaComponent(0.08)
+        shade.strokeColor = .clear
+        shade.zPosition = -10
+        addChild(shade)
+    }
+
+    private func resizeBackground() {
+        guard let background = childNode(withName: "workshop-background") as? SKSpriteNode else { return }
+        let textureSize = background.texture?.size() ?? CGSize(width: 16, height: 9)
+        let scale = max(size.width / textureSize.width, size.height / textureSize.height)
+        background.size = CGSize(width: textureSize.width * scale, height: textureSize.height * scale)
+        background.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        if let shade = childNode(withName: "workshop-shade") as? SKShapeNode {
+            shade.path = CGPath(rect: CGRect(origin: .zero, size: size), transform: nil)
         }
     }
 
-    private func addCar(name: String, color: SKColor, damaged: Bool = false) {
-        let car = SKNode()
-        car.position = CGPoint(x: size.width / 2, y: size.height * 0.34)
-        car.name = "car"
+    private func addVehicle(_ vehicle: SceneVehicle, x: CGFloat, width: CGFloat, to layer: SKNode) {
+        let root = SKNode()
+        root.name = "vehicle-select:\(vehicle.selectionKey)"
+        root.position = CGPoint(x: x, y: size.height * 0.24)
+        root.zPosition = 5
 
-        let bodyPath = CGMutablePath()
-        bodyPath.move(to: CGPoint(x: -105, y: -18))
-        bodyPath.addLine(to: CGPoint(x: -88, y: 24))
-        bodyPath.addLine(to: CGPoint(x: -45, y: 38))
-        bodyPath.addLine(to: CGPoint(x: 42, y: 38))
-        bodyPath.addLine(to: CGPoint(x: 91, y: 20))
-        bodyPath.addLine(to: CGPoint(x: 108, y: -18))
-        bodyPath.closeSubpath()
-        let body = SKShapeNode(path: bodyPath)
-        body.fillColor = color
-        body.strokeColor = SKColor(white: 0.9, alpha: 0.35)
-        body.lineWidth = 2
-        car.addChild(body)
-
-        let window = SKShapeNode(rectOf: CGSize(width: 76, height: 27), cornerRadius: 7)
-        window.fillColor = SKColor(red: 0.19, green: 0.28, blue: 0.32, alpha: 1)
-        window.strokeColor = .clear
-        window.position = CGPoint(x: 0, y: 22)
-        car.addChild(window)
-
-        for x in [-68.0, 68.0] {
-            let wheel = SKShapeNode(circleOfRadius: 20)
-            wheel.fillColor = SKColor(white: 0.08, alpha: 1)
-            wheel.strokeColor = SKColor(white: 0.5, alpha: 1)
-            wheel.lineWidth = 5
-            wheel.position = CGPoint(x: x, y: -22)
-            car.addChild(wheel)
+        if selectedVehicle == vehicle.selection {
+            let selection = SKShapeNode(rectOf: CGSize(width: width + 24, height: width * 0.58), cornerRadius: 16)
+            selection.fillColor = SKColor(red: 1, green: 0.48, blue: 0.12, alpha: 0.16)
+            selection.strokeColor = SKColor(red: 1, green: 0.48, blue: 0.12, alpha: 1)
+            selection.lineWidth = 4
+            selection.position = CGPoint(x: 0, y: 7)
+            root.addChild(selection)
         }
 
-        if damaged {
-            let damage = SKLabelNode(text: "⚠︎")
-            damage.fontSize = 30
-            damage.position = CGPoint(x: 75, y: 2)
-            car.addChild(damage)
+        let car = SKSpriteNode(imageNamed: "workshop-car-sprite-v1")
+        let aspect = max(0.35, car.texture.map { $0.size().height / $0.size().width } ?? 0.45)
+        car.size = CGSize(width: width, height: width * aspect)
+        car.color = vehicle.color
+        car.colorBlendFactor = 0.32
+        car.position = CGPoint(x: 0, y: 14)
+        root.addChild(car)
+
+        if vehicle.isDamaged {
+            let warning = SKLabelNode(text: "⚠︎")
+            warning.fontName = "AvenirNext-Heavy"
+            warning.fontSize = width * 0.18
+            warning.fontColor = .systemOrange
+            warning.position = CGPoint(x: width * 0.34, y: width * 0.15)
+            warning.zPosition = 3
+            root.addChild(warning)
         }
 
-        let label = SKLabelNode(text: name)
+        let labelBackground = SKShapeNode(rectOf: CGSize(width: width + 8, height: 36), cornerRadius: 9)
+        labelBackground.fillColor = SKColor.black.withAlphaComponent(0.76)
+        labelBackground.strokeColor = selectedVehicle == vehicle.selection
+            ? SKColor(red: 1, green: 0.48, blue: 0.12, alpha: 1)
+            : SKColor.white.withAlphaComponent(0.22)
+        labelBackground.position = CGPoint(x: 0, y: -width * aspect * 0.43)
+        root.addChild(labelBackground)
+
+        let name = SKLabelNode(text: vehicle.name)
+        name.fontName = "AvenirNext-DemiBold"
+        name.fontSize = vehiclesFontSize(width: width)
+        name.fontColor = .white
+        name.verticalAlignmentMode = .center
+        name.position = CGPoint(x: 0, y: 6)
+        labelBackground.addChild(name)
+
+        let status = SKLabelNode(text: vehicle.status)
+        status.fontName = "AvenirNext-Bold"
+        status.fontSize = max(8, vehiclesFontSize(width: width) - 3)
+        status.fontColor = vehicle.isProject ? .systemOrange : SKColor(red: 0.35, green: 0.82, blue: 0.68, alpha: 1)
+        status.verticalAlignmentMode = .center
+        status.position = CGPoint(x: 0, y: -8)
+        labelBackground.addChild(status)
+
+        layer.addChild(root)
+    }
+
+    private func addEmptyState() {
+        let background = SKShapeNode(rectOf: CGSize(width: min(250, size.width * 0.7), height: 54), cornerRadius: 13)
+        background.name = "empty-state"
+        background.fillColor = SKColor.black.withAlphaComponent(0.68)
+        background.strokeColor = SKColor.white.withAlphaComponent(0.22)
+        background.position = CGPoint(x: size.width / 2, y: size.height * 0.24)
+
+        let label = SKLabelNode(text: "Liftler boş • müşteri kabul et")
         label.fontName = "AvenirNext-DemiBold"
-        label.fontSize = 13
-        label.fontColor = .white
-        label.position = CGPoint(x: 0, y: -58)
-        car.addChild(label)
-        addChild(car)
+        label.fontSize = 14
+        label.verticalAlignmentMode = .center
+        background.addChild(label)
+        addChild(background)
     }
 
-    private func addEmptyLabel() {
-        let label = SKLabelNode(text: "Lift boş • müşteri seç")
-        label.fontName = "AvenirNext-Medium"
-        label.fontSize = 15
-        label.fontColor = SKColor(white: 0.76, alpha: 1)
-        label.position = CGPoint(x: size.width / 2, y: size.height * 0.31)
-        addChild(label)
+    private func workshopVehicles(state: GameState) -> [SceneVehicle] {
+        let jobs = state.activeJobs.compactMap { job -> SceneVehicle? in
+            guard let vehicle = catalog.vehicle(id: job.vehicleID) else { return nil }
+            return SceneVehicle(
+                selection: .job(job.id),
+                name: vehicle.name,
+                status: job.stage.sceneTitle,
+                color: SKColor(hex: vehicle.accentHex),
+                isProject: false,
+                isDamaged: false
+            )
+        }
+        let projects = state.projectCars.compactMap { project -> SceneVehicle? in
+            guard let vehicle = catalog.vehicle(id: project.vehicleID) else { return nil }
+            return SceneVehicle(
+                selection: .project(project.id),
+                name: vehicle.name,
+                status: project.stage.sceneTitle,
+                color: SKColor(hex: vehicle.accentHex),
+                isProject: true,
+                isDamaged: project.stage == .awaitingRepair
+            )
+        }
+        return Array((jobs + projects).prefix(5))
     }
 
-    private func addAmbientAnimation() {
-        guard let car = childNode(withName: "car") else { return }
-        let up = SKAction.moveBy(x: 0, y: 2, duration: 1.2)
-        up.timingMode = .easeInEaseOut
-        car.run(.repeatForever(.sequence([up, up.reversed()])))
+    private func horizontalPositions(count: Int) -> [CGFloat] {
+        switch count {
+        case 1: [0.5]
+        case 2: [0.25, 0.75]
+        case 3: [0.18, 0.5, 0.82]
+        case 4: [0.12, 0.37, 0.63, 0.88]
+        default: [0.09, 0.295, 0.5, 0.705, 0.91]
+        }
+    }
+
+    private func vehiclesFontSize(width: CGFloat) -> CGFloat {
+        width >= 200 ? 13 : (width >= 160 ? 11 : 9)
+    }
+
+    private func decodeSelection(_ name: String) -> WorkshopVehicleSelection? {
+        let parts = name.split(separator: ":")
+        guard parts.count == 3, let id = UUID(uuidString: String(parts[2])) else { return nil }
+        switch parts[1] {
+        case "job": return .job(id)
+        case "project": return .project(id)
+        default: return nil
+        }
+    }
+}
+
+private struct SceneVehicle {
+    let selection: WorkshopVehicleSelection
+    let name: String
+    let status: String
+    let color: SKColor
+    let isProject: Bool
+    let isDamaged: Bool
+
+    var selectionKey: String {
+        switch selection {
+        case .job(let id): "job:\(id.uuidString)"
+        case .project(let id): "project:\(id.uuidString)"
+        }
+    }
+}
+
+private extension RepairStage {
+    var sceneTitle: String {
+        switch self {
+        case .awaitingInspection: "Kontrol bekliyor"
+        case .awaitingDiagnosis: "Teşhis bekliyor"
+        case .awaitingPart: "Parça bekliyor"
+        case .readyForRepair: "Tamir bekliyor"
+        case .awaitingPrice: "Teslime hazır"
+        }
+    }
+}
+
+private extension ProjectCarStage {
+    var sceneTitle: String {
+        switch self {
+        case .awaitingRepair: "Proje • restorasyon"
+        case .readyForSale: "Proje • satışa hazır"
+        case .listed: "Proje • ilanda"
+        }
     }
 }
 
@@ -177,23 +292,137 @@ private extension SKColor {
 struct GarageSceneView: View {
     let state: GameState
     let catalog: ContentCatalog
+    @Binding var selection: WorkshopVehicleSelection?
+    @State private var visiblePage = 0
+
+    init(state: GameState, catalog: ContentCatalog, selection: Binding<WorkshopVehicleSelection?>) {
+        self.state = state
+        self.catalog = catalog
+        _selection = selection
+    }
 
     var body: some View {
-        GeometryReader { proxy in
-            SpriteView(scene: WorkshopScene(size: proxy.size, state: state, catalog: catalog))
-                .ignoresSafeArea(edges: .horizontal)
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel(sceneDescription)
+        Group {
+            if vehicles.isEmpty {
+                GarageVehiclePage(state: state, catalog: catalog, vehicle: nil, selection: $selection)
+            } else {
+                vehiclePager
+                    .overlay(alignment: .topTrailing) {
+                        if vehicles.count > 1 {
+                            Label("\(visiblePage + 1)/\(vehicles.count) • Kaydır", systemImage: "arrow.left.and.right")
+                                .font(.caption2.bold().monospacedDigit())
+                                .padding(.horizontal, 9).padding(.vertical, 6)
+                                .background(.black.opacity(0.72), in: Capsule())
+                                .padding(10)
+                                .accessibilityLabel("Araç \(visiblePage + 1) / \(vehicles.count), yana kaydır")
+                        }
+                    }
+            }
         }
+        .onChange(of: state.revision) { _, _ in
+            visiblePage = min(visiblePage, max(0, vehicles.count - 1))
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(sceneDescription)
+    }
+
+    private var vehicles: [WorkshopVehicleSelection] {
+        var entries: [(vehicle: WorkshopVehicleSelection, minute: Int, order: Int)] = []
+        for (index, job) in state.activeJobs.enumerated() {
+            entries.append((.job(job.id), job.acceptedAtMinute, index))
+        }
+        let offset = state.activeJobs.count
+        for (index, project) in state.projectCars.enumerated() {
+            entries.append((.project(project.id), project.purchasedAtMinute, offset + index))
+        }
+        return entries.sorted {
+            $0.minute == $1.minute ? $0.order < $1.order : $0.minute < $1.minute
+        }.map(\.vehicle)
+    }
+
+    @ViewBuilder
+    private var vehiclePager: some View {
+        #if os(iOS)
+        pager.tabViewStyle(.page(indexDisplayMode: vehicles.count > 1 ? .always : .never))
+        #else
+        pager
+        #endif
+    }
+
+    private var pager: some View {
+        TabView(selection: $visiblePage) {
+            ForEach(Array(vehicles.enumerated()), id: \.element.id) { index, vehicle in
+                GarageVehiclePage(
+                    state: state,
+                    catalog: catalog,
+                    vehicle: vehicle,
+                    selection: $selection
+                )
+                .tag(index)
+            }
+        }
+        .onChange(of: visiblePage) { _, _ in selection = nil }
     }
 
     private var sceneDescription: String {
-        if let job = state.activeJobs.first, let vehicle = catalog.vehicle(id: job.vehicleID) {
-            return "Tamirhanede \(vehicle.name) araç bulunuyor."
+        let jobCount = state.activeJobs.count
+        let projectCount = state.projectCars.count
+        if jobCount + projectCount == 0 { return "Tamirhanedeki liftler boş." }
+        return "Tamirhanede \(jobCount) müşteri aracı ve \(projectCount) proje aracı bulunuyor. İşlem yapmak için araç seç."
+    }
+}
+
+private struct GarageVehiclePage: View {
+    let state: GameState
+    let catalog: ContentCatalog
+    let vehicle: WorkshopVehicleSelection?
+    @Binding var selection: WorkshopVehicleSelection?
+    @State private var scene: WorkshopScene
+
+    init(
+        state: GameState,
+        catalog: ContentCatalog,
+        vehicle: WorkshopVehicleSelection?,
+        selection: Binding<WorkshopVehicleSelection?>
+    ) {
+        self.state = state
+        self.catalog = catalog
+        self.vehicle = vehicle
+        _selection = selection
+        let filtered = Self.filteredState(state, vehicle: vehicle)
+        let binding = selection
+        _scene = State(initialValue: WorkshopScene(
+            size: CGSize(width: 900, height: 460),
+            state: filtered,
+            catalog: catalog,
+            selection: selection.wrappedValue
+        ) { binding.wrappedValue = $0 })
+    }
+
+    var body: some View {
+        SpriteView(scene: scene)
+            .onAppear { refresh() }
+            .onChange(of: state.revision) { _, _ in refresh() }
+            .onChange(of: selection) { _, _ in refresh() }
+    }
+
+    private func refresh() {
+        scene.update(state: Self.filteredState(state, vehicle: vehicle), selection: selection)
+    }
+
+    private static func filteredState(_ state: GameState, vehicle: WorkshopVehicleSelection?) -> GameState {
+        var result = state
+        switch vehicle {
+        case .job(let id):
+            result.activeJobs = state.activeJobs.filter { $0.id == id }
+            result.projectCars = []
+        case .project(let id):
+            result.activeJobs = []
+            result.projectCars = state.projectCars.filter { $0.id == id }
+        case nil:
+            result.activeJobs = []
+            result.projectCars = []
         }
-        if let project = state.projectCars.first, let vehicle = catalog.vehicle(id: project.vehicleID) {
-            return "Tamirhanede ihale aracı \(vehicle.name) bulunuyor."
-        }
-        return "Tamirhane şu anda boş."
+        return result
     }
 }

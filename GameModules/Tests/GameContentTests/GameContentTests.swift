@@ -8,13 +8,22 @@ struct GameContentTests {
     func plannedContentCoverage() throws {
         let catalog = try DefaultContentRepository().load()
 
-        #expect(catalog.vehicles.count == 6)
+        #expect(catalog.vehicles.count == 12)
         #expect(catalog.faults.count == 12)
-        #expect(catalog.customers.count == 10)
-        #expect(catalog.shopLevels.count == 3)
+        #expect(catalog.customers.count == 20)
+        #expect(catalog.shopLevels.count == 7)
+        #expect(catalog.reviews.count >= 24)
         #expect(Set(catalog.faults.map(\.area)) == Set(SkillArea.allCases))
-        #expect(Set(catalog.faults.map(\.repairGame)) == Set(RepairGameKind.allCases))
-        #expect(catalog.balance.daySlots == 8)
+        #expect(Set(catalog.faults.map(\.repairGame)).count == catalog.faults.count)
+        #expect(catalog.faults.allSatisfy { $0.complaintVariants.count >= 2 })
+        #expect(catalog.faults.allSatisfy { $0.inspectionFindings.count >= 2 })
+        #expect(catalog.shopLevels[1].facilities.contains(.periodicMaintenance))
+        #expect(catalog.shopLevels[1].maxApprentices == 1)
+        #expect(catalog.shopLevels[2].facilities.contains(.washBay))
+        #expect(catalog.shopLevels[4].facilities.contains(.bodyPaintBooth))
+        #expect(catalog.shopLevels[6].facilities.contains(.vehicleShowroom))
+        #expect(catalog.shopLevels[6].capacity == 5)
+        #expect(catalog.balance.dailyRent + catalog.balance.dailyUtilities + catalog.balance.dailySupplies == catalog.balance.dailyExpense)
     }
 
     @Test("Tekrarlanan içerik kimliği reddedilir")
@@ -24,6 +33,7 @@ struct GameContentTests {
             vehicles: catalog.vehicles + [catalog.vehicles[0]],
             faults: catalog.faults,
             customers: catalog.customers,
+            reviews: catalog.reviews,
             shopLevels: catalog.shopLevels,
             balance: catalog.balance
         )
@@ -33,4 +43,3 @@ struct GameContentTests {
         }
     }
 }
-

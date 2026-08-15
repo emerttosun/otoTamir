@@ -11,6 +11,7 @@ public final class GameStore: ObservableObject {
     @Published public var errorMessage: String?
     @Published public var cloudConflict: (local: GameState, remote: GameState)?
     @Published public private(set) var isBusy = false
+    @Published public private(set) var cloudStatus = "Yerel kayıt etkin"
 
     public let catalog: ContentCatalog
     private var engine: GameEngine
@@ -42,11 +43,12 @@ public final class GameStore: ObservableObject {
             if let saved = try await saveRepository.load() {
                 engine = GameEngine(state: saved, catalog: catalog)
             }
-            let events = try engine.handle(.prepareDay)
+            let events = try engine.handle(.prepareWorld)
             state = engine.state
             show(events)
             try await saveRepository.save(state)
             products = (try? await purchaseService.products()) ?? []
+            Task { await synchronizeCloud(silent: true) }
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -60,23 +62,30 @@ public final class GameStore: ObservableObject {
             Task { [saveRepository, state] in
                 try? await saveRepository.save(state)
             }
+            if state.revision.isMultiple(of: 12) {
+                Task { await synchronizeCloud(silent: true) }
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
     }
 
-    public func synchronizeCloud() async {
+    public func synchronizeCloud(silent: Bool = false) async {
         isBusy = true
         defer { isBusy = false }
         switch await cloudSync.synchronize(local: state) {
         case .unavailable:
-            bannerMessage = "iCloud şu anda kullanılamıyor; oyun yerel kayda devam ediyor."
+            cloudStatus = "Yerel kayıt • iCloud kullanılamıyor"
+            if !silent { bannerMessage = "iCloud kullanılamıyor; oyun yerel kayda devam ediyor." }
         case .uploaded:
-            bannerMessage = "Dükkân kaydı iCloud ile eşitlendi."
+            cloudStatus = "iCloud ile güncel"
+            if !silent { bannerMessage = "Dükkân kaydı iCloud ile eşitlendi." }
         case .downloaded(let remote):
             await adopt(remote)
-            bannerMessage = "iCloud'daki güncel kayıt indirildi."
+            cloudStatus = "iCloud kaydı indirildi"
+            if !silent { bannerMessage = "iCloud'daki güncel kayıt indirildi." }
         case .conflict(let local, let remote):
+            cloudStatus = "Kayıt seçimi gerekiyor"
             cloudConflict = (local, remote)
         }
     }
@@ -142,7 +151,12 @@ public final class GameStore: ObservableObject {
     private func show(_ events: [GameEvent]) {
         guard let event = events.last(where: { event in
             switch event {
-            case .tutorial, .consequence, .diagnosisCompleted, .repairCompleted, .auctionWon, .projectCarSold, .shopUpgraded:
+            case .tutorial, .consequence, .inspectionCompleted, .diagnosisCompleted, .repairCompleted,
+                 .priceSettled, .vehicleWashed, .apprenticeHired, .apprenticeCompleted,
+                 .experienceGained, .reviewReceived, .auctionWon, .projectCarSold, .shopUpgraded:
+                true
+            case .projectRepairCompleted, .projectCarListed, .projectListingExpired,
+                 .loanTaken, .loanInstallmentPaid, .loanClosed:
                 true
             default:
                 false
@@ -152,18 +166,51 @@ public final class GameStore: ObservableObject {
         switch event {
         case .tutorial(let message), .consequence(let message):
             bannerMessage = message
+        case .inspectionCompleted(_, let finding):
+            bannerMessage = "Kontrol sonucu: \(finding)"
         case .diagnosisCompleted(let correct):
             bannerMessage = correct
-                ? "Teşhis doğru görünüyor. Şimdi müşteriye fiyat ver."
-                : "Test sonuçları bu teşhisi doğrulamadı. Bir zaman dilimi gitti; tekrar düşün."
+                ? "Teşhis doğru. Şimdi parçacıdan parçayı seç."
+                : "Test sonuçları bu teşhisi doğrulamadı. 20 dakika geçti; bulguları tekrar düşün."
         case .repairCompleted(let quality):
-            bannerMessage = "İş tamamlandı: \(quality.title)."
+            bannerMessage = "İş tamamlandı: \(quality.title). Şimdi müşteriye fiyat söyle."
+        case .priceSettled(let price, let reaction):
+            bannerMessage = "\(price.liraText) alındı. \(reaction)"
+        case .vehicleWashed:
+            bannerMessage = "Araç yıkandı. Temiz teslim müşteri memnuniyetine katkı sağlayacak."
+        case .apprenticeHired(let apprentice):
+            bannerMessage = "\(apprentice.name) çırak olarak dükkâna katıldı. İş verdikçe tecrübe kazanacak."
+        case .apprenticeCompleted(let name, let quality):
+            bannerMessage = "\(name) verilen işi tamamladı: \(quality.title)."
+        case .experienceGained(let area, let amount, let level):
+            bannerMessage = "\(area.title) +\(amount) XP • Seviye \(level)"
+        case .reviewReceived(let review):
+            bannerMessage = "Yeni dükkân yorumu: \(String(repeating: "★", count: review.stars)) \(review.text)"
         case .auctionWon(let vehicle, let price):
             bannerMessage = "\(vehicle) \(price.liraText) bedelle dükkâna geliyor."
+        case .projectRepairCompleted(_, let task):
+            switch task {
+            case .mechanical(let faultID):
+                bannerMessage = "\(catalog.fault(id: faultID)?.partName ?? "Mekanik iş") tamamlandı. Sıradaki eksiği seç."
+            case .panel(let panel):
+                bannerMessage = "\(panel.title) işi tamamlandı. Sıradaki eksiği seç."
+            case .airbag:
+                bannerMessage = "Hava yastığı sistemi tamamlandı. Sıradaki eksiği seç."
+            }
         case .projectCarSold(let price, let honest):
             bannerMessage = honest
                 ? "Araç kusurları anlatılarak \(price.liraText) bedelle satıldı."
                 : "Araç \(price.liraText) bedelle gitti. Telefon çalarsa şaşırma."
+        case .projectCarListed(let price, let chance):
+            bannerMessage = "İlan \(price.liraText) fiyatla yayında. İlk alıcı kontrolündeki tahmini satış ihtimali %\(chance)."
+        case .projectListingExpired:
+            bannerMessage = "İlanı görenler oldu ama bu kontrolde ciddi bir alıcı çıkmadı. Fiyatı değiştirebilir veya bekleyebilirsin."
+        case .loanTaken(let amount, let total):
+            bannerMessage = "Bankadan \(amount.liraText) geldi. Vade sonunda toplam geri ödeme \(total.liraText)."
+        case .loanInstallmentPaid(let amount, let remaining):
+            bannerMessage = "\(amount.liraText) kredi taksiti ödendi. Kalan borç \(remaining.liraText)."
+        case .loanClosed:
+            bannerMessage = "Araç yatırım kredisi tamamen kapandı."
         case .shopUpgraded(let level):
             bannerMessage = "Dükkân \(level). seviyeye yükseldi."
         default:

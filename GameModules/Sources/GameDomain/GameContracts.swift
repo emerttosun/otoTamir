@@ -1,39 +1,59 @@
 import Foundation
 
 public enum GameCommand: Sendable {
-    case prepareDay
+    case prepareWorld
+    case advanceTime(minutes: Int)
     case acceptOffer(UUID)
+    case declineOffer(UUID)
+    case performInspection(jobID: UUID, kind: InspectionKind)
     case diagnose(jobID: UUID, faultID: String)
-    case setQuote(jobID: UUID, strategy: PriceStrategy, hidePartQuality: Bool)
     case buyPart(jobID: UUID, quality: PartQuality)
     case completeRepair(jobID: UUID, performance: Int)
-    case endDay
+    case completeMaintenanceTask(jobID: UUID, task: MaintenanceTask, performance: Int)
+    case setPrice(jobID: UUID, strategy: PriceStrategy, hidePartQuality: Bool)
+    case washVehicle(jobID: UUID)
+    case hireApprentice
+    case assignApprentice(apprenticeID: UUID, jobID: UUID, task: MaintenanceTask?)
     case upgradeShop
-    case inspectAuctionLot(UUID)
-    case placeAuctionBid(lotID: UUID, amount: Money)
-    case advanceAuctionRound
-    case repairProjectCar(projectID: UUID, performance: Int)
-    case sellProjectCar(projectID: UUID, honest: Bool)
+    case purchaseAuctionLot(UUID)
+    case completeProjectRepair(projectID: UUID, task: ProjectRepairTask, performance: Int)
+    case listProjectCar(projectID: UUID, askingPrice: Money, discloseDamage: Bool)
+    case cancelProjectListing(projectID: UUID)
+    case checkVehicleListings
+    case takeLoan(amount: Money, plan: LoanPlan)
     case grantPurchase(transactionID: String, cash: Money?, themeID: String?)
 }
 
 public enum GameEvent: Equatable, Sendable {
-    case dayPrepared(Int)
+    case timeAdvanced(Int)
+    case customerArrived(UUID)
+    case customerLeft(UUID)
     case offerAccepted(UUID)
+    case inspectionCompleted(kind: InspectionKind, finding: String)
     case diagnosisCompleted(correct: Bool)
-    case quotePrepared(Money)
     case moneyChanged(Money, reason: String)
     case repairCompleted(WorkmanshipQuality)
+    case maintenanceTaskCompleted(MaintenanceTask)
+    case priceSettled(Money, reaction: String)
+    case vehicleWashed(UUID)
+    case apprenticeHired(Apprentice)
+    case apprenticeCompleted(name: String, quality: WorkmanshipQuality)
+    case experienceGained(area: SkillArea, amount: Int, level: Int)
+    case reviewReceived(ShopReview)
     case reputationChanged(Reputation)
     case consequence(String)
-    case dayEnded(Int)
     case tutorial(String)
     case shopUpgraded(Int)
     case auctionOpened
-    case auctionRoundAdvanced(Int)
     case auctionWon(vehicleName: String, price: Money)
     case projectCarReady(UUID)
+    case projectRepairCompleted(projectID: UUID, task: ProjectRepairTask)
+    case projectCarListed(price: Money, saleChance: Int)
+    case projectListingExpired(UUID)
     case projectCarSold(price: Money, honest: Bool)
+    case loanTaken(amount: Money, totalRepayment: Money)
+    case loanInstallmentPaid(amount: Money, remainingBalance: Money)
+    case loanClosed(UUID)
     case purchaseGranted(String)
 }
 
@@ -47,7 +67,7 @@ public enum GameRuleError: LocalizedError, Equatable, Sendable {
     public var errorDescription: String? {
         switch self {
         case .invalidCommand(let reason): reason
-        case .notEnoughTime: "Bugün bu iş için yeterli zaman kalmadı."
+        case .notEnoughTime: "Bu işlem için oyun zamanı ilerletilemedi."
         case .notEnoughMoney: "Kasada bu işlem için yeterli para yok."
         case .shopIsFull: "Dükkânda boş araç yeri yok."
         case .contentMissing(let id): "İçerik bulunamadı: \(id)"

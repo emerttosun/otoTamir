@@ -50,6 +50,9 @@
             ReferencedContainer = "container:OtoTamir.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <StoreKitConfigurationFileReference
+         identifier = "../../OtoTamir/Resources/OtoTamir.storekit">
+      </StoreKitConfigurationFileReference>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

@@ -260,7 +260,7 @@
 				CODE_SIGN_ENTITLEMENTS = OtoTamir/OtoTamir.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "OtoTamir/Resources";
+				DEVELOPMENT_ASSET_PATHS = OtoTamir/Resources;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Oto Tamir";
@@ -286,7 +286,7 @@
 				CODE_SIGN_ENTITLEMENTS = OtoTamir/OtoTamir.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "OtoTamir/Resources";
+				DEVELOPMENT_ASSET_PATHS = OtoTamir/Resources;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Oto Tamir";
@@ -337,14 +337,31 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		A20000000000000000000001 /* GameDomain */ = {isa = XCSwiftPackageProductDependency; productName = GameDomain; };
-		A20000000000000000000002 /* GameLogic */ = {isa = XCSwiftPackageProductDependency; productName = GameLogic; };
-		A20000000000000000000003 /* GameContent */ = {isa = XCSwiftPackageProductDependency; productName = GameContent; };
-		A20000000000000000000004 /* GamePersistence */ = {isa = XCSwiftPackageProductDependency; productName = GamePersistence; };
-		A20000000000000000000005 /* GameCommerce */ = {isa = XCSwiftPackageProductDependency; productName = GameCommerce; };
-		A20000000000000000000006 /* GamePresentation */ = {isa = XCSwiftPackageProductDependency; productName = GamePresentation; };
+		A20000000000000000000001 /* GameDomain */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GameDomain;
+		};
+		A20000000000000000000002 /* GameLogic */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GameLogic;
+		};
+		A20000000000000000000003 /* GameContent */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GameContent;
+		};
+		A20000000000000000000004 /* GamePersistence */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GamePersistence;
+		};
+		A20000000000000000000005 /* GameCommerce */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GameCommerce;
+		};
+		A20000000000000000000006 /* GamePresentation */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GamePresentation;
+		};
 /* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = B80000000000000000000001 /* Project object */;
 }
-

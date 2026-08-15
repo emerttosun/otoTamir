@@ -36,9 +36,11 @@ extension View {
 
 struct ActionButtonStyle: ButtonStyle {
     let tint: Color
+    let foreground: Color
 
-    init(tint: Color = GarageStyle.orange) {
+    init(tint: Color = GarageStyle.orange, foreground: Color = Color.black.opacity(0.82)) {
         self.tint = tint
+        self.foreground = foreground
     }
 
     func makeBody(configuration: Configuration) -> some View {
@@ -46,7 +48,7 @@ struct ActionButtonStyle: ButtonStyle {
             .font(.subheadline.weight(.bold))
             .frame(maxWidth: .infinity)
             .padding(.vertical, 11)
-            .foregroundStyle(Color.black.opacity(0.82))
+            .foregroundStyle(foreground)
             .background(tint.opacity(configuration.isPressed ? 0.65 : 1), in: RoundedRectangle(cornerRadius: 11))
             .scaleEffect(configuration.isPressed ? 0.98 : 1)
     }
