@@ -41,7 +41,7 @@ struct AuctionView: View {
                 .font(.system(size: 46))
                 .foregroundStyle(GarageStyle.orange)
             Text("Hasarlı araç stoğu yenileniyor").font(.title3.bold())
-            Text("Yeni sigorta çıkması araçlar sonraki ihale yenilemesinde gelir.")
+            Text("Yeni sigorta çıkması araçlar pazar yenilendiğinde gelir.")
                 .font(.subheadline).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
@@ -56,9 +56,9 @@ struct AuctionView: View {
 
     private var marketHeader: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("HASARLI ARAÇ İHALESİ")
+            Text("HASARLI ARAÇ PAZARI")
                 .font(.caption.weight(.black)).foregroundStyle(GarageStyle.orange)
-            Text("Sabit ihale bedeli • sigorta çıkması ağır kazalı araçlar").font(.title3.bold())
+            Text("Sabit satış bedeli • sigorta çıkması ağır kazalı araçlar").font(.title3.bold())
             Text("Bu pazarda yalnız eksper tarafından onarılabilir kabul edilen ağır hasarlı araçlar bulunur. Tam hasarlı ve hurda tescilli araçlar satın alınamaz.")
                 .font(.caption).foregroundStyle(.secondary)
         }
@@ -134,14 +134,14 @@ private struct SalvageLotCard: View {
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 2) {
-                    Text("İhale satış bedeli").font(.caption2).foregroundStyle(.secondary)
+                    Text("Sabit satış bedeli").font(.caption2).foregroundStyle(.secondary)
                     Text(lot.fixedPrice.liraText)
                         .font(.title3.bold().monospacedDigit()).foregroundStyle(GarageStyle.mint)
                 }
             }
 
             Button(action: purchase) {
-                Label(lot.severity == .heavy ? "İhaleden Satın Al" : "Hurda Araç Satın Alınamaz", systemImage: "cart.fill")
+                Label(lot.severity == .heavy ? "Hasarlı Aracı Satın Al" : "Hurda Araç Satın Alınamaz", systemImage: "cart.fill")
             }
             .buttonStyle(ActionButtonStyle(tint: GarageStyle.mint))
             .disabled(lot.severity != .heavy)

@@ -45,7 +45,7 @@ struct WorkshopView: View {
                         selectedProjectContent(selectedProject)
                     } else {
                         emptyCard(store.state.activeJobs.isEmpty && store.state.projectCars.isEmpty
-                                  ? "Dükkânda araç yok. Bekleyen müşteriden araç kabul edebilir veya ihaleden proje aracı alabilirsin."
+                                  ? "Dükkânda araç yok. Bekleyen müşteriden araç kabul edebilir veya Hasarlı'dan proje aracı alabilirsin."
                                   : "İşlem yapmak için tamirhane görselindeki bir araca dokun.")
                     }
 

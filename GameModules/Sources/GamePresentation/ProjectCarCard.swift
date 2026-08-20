@@ -17,7 +17,7 @@ struct ProjectCarCard: View {
             HStack {
                 VStack(alignment: .leading) {
                     Text(vehicle?.name ?? "Proje Araç").font(.headline)
-                    Text("İhaleden alış: \(project.purchasePrice.liraText)")
+                    Text("Hasarlı'dan alış: \(project.purchasePrice.liraText)")
                         .font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer()

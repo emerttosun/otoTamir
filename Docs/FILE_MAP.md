@@ -63,16 +63,16 @@
 ## GamePresentation
 
 - `GameStore.swift`: UI ile oyun motoru arasındaki MainActor köprüsü, otomatik yerel/bulut kayıt ve oyun içi bildirim durumlarını yönetir.
-- `RootGameView.swift`: Dikey uygulama kabuğu, tıklanabilir para göstergesi, kasa ekranı, oyun içi bildirim ve Dükkân/İhale/İlanlar/Gelişim/Çıraklar/Banka/Mağaza geçişlerini sunar.
+- `RootGameView.swift`: Dikey uygulama kabuğu, tıklanabilir para göstergesi, kasa ekranı, oyun içi bildirim ve Dükkân/Hasarlı/İlanlar/Gelişim/Çıraklar/Banka/Mağaza geçişlerini sunar.
 - `GameSection.swift`: Üst gezinti sekmelerinin başlık, simge ve tek seferlik kısa tanıtım metinlerini tanımlar.
 - `SectionIntroductionCard.swift`: Bir sekme ilk kez açıldığında akışı kilitlemeden kısa kullanım açıklamasını gösterir.
 - `WorkshopView.swift`: Yeniden yüklenmeden çalışan araç seçimini, müşteri kuyruğunu, proje restorasyonunu ve kontrol, teşhis, parça, tamir/bakım, fiyat sıralı iş akışını gösterir.
-- `AuctionView.swift`: Sabit ihale bedelli ağır hasarlı araçları, ayrıntılı ekspertiz ve yatırım hesabını ve satın alma akışını sunar.
+- `AuctionView.swift`: Sabit satış bedelli ağır hasarlı araçları, ayrıntılı ekspertiz ve yatırım hesabını ve satın alma akışını sunar.
 - `VehicleInspectionDiagram.swift`: Hasarlı veya eksik dış parçaları sade üstten 2B kaporta şemasında; şasi, podye, kule, direk, panel ve bagaj havuzunu ayrı metin satırlarında ve VoiceOver özetiyle gösterir.
 - `RestoredBodyHistoryView.swift`: İlan hazırlığında ve yayındaki ilanda restorasyon sonrası boyalı/değişen parçaları, yapısal onarımları ve airbag geçmişini açılır bölümde gösterir.
 - `VehicleBuyerOfferCard.swift`: Gelen araç teklifini kabul etme, reddetme ve alıcının bütçesine karşı fiyatla pazarlık yapma arayüzünü sunar.
 - `ProjectCarCard.swift`: Restorasyonu tamamlanan proje aracının ilan hazırlama ve yayındaki ilan durumlarını gösterir.
-- `ProjectRestorationCard.swift`: İhale aracının mekanik, kaporta, taşıyıcı yapı ve güvenlik eksiklerini ayrı maliyet ve mini oyun görevleri halinde gösterir.
+- `ProjectRestorationCard.swift`: Hasarlı'dan alınan aracın mekanik, kaporta, taşıyıcı yapı ve güvenlik eksiklerini ayrı maliyet ve mini oyun görevleri halinde gösterir.
 - `ListingsView.swift`: Restorasyonu tamamlanan araçların fiyatlandırıldığı ve yayındaki alıcıların kontrol edildiği bağımsız ilan alanıdır.
 - `WorkshopDevelopmentView.swift`: Dükkân seviyesini, tesisleri, kapasite yükseltmelerini, uzmanlığı ve itibarı Gelişim sayfasında gösterir.
 - `ProgressViewScreen.swift`: Dükkân/ustalık gelişimini, yıldız puanını ve gelen müşteri yorumlarını tek bölümde gösterir.

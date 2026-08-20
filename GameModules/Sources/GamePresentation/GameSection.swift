@@ -14,7 +14,7 @@ enum GameSection: String, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .workshop: "Dükkân"
-        case .auction: "İhale"
+        case .auction: "Hasarlı"
         case .listings: "İlanlar"
         case .progress: "Gelişim"
         case .apprentices: "Çıraklar"

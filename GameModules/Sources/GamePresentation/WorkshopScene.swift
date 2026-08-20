@@ -222,7 +222,7 @@ public final class WorkshopScene: SKScene {
             return SceneVehicle(
                 selection: .project(project.id),
                 name: vehicle.name,
-                status: "İhale aracı • \(project.stage.sceneTitle)",
+                status: "Proje aracı • \(project.stage.sceneTitle)",
                 color: SKColor(hex: vehicle.accentHex),
                 isProject: true,
                 isDamaged: project.stage == .awaitingRepair

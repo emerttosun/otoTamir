@@ -24,7 +24,7 @@ struct BankView: View {
             Text("SANAYİ ESNAF BANKASI")
                 .font(.caption.weight(.black)).foregroundStyle(GarageStyle.orange)
             Text("Araç yatırım kredisi").font(.title3.bold())
-            Text("İhaleden araç almak veya dükkânı büyütmek için kredi kullan. Taksitler yalnız oyun içi işlemler zamanı ilerlettiğinde tahsil edilir.")
+            Text("Hasarlı araç almak veya dükkânı büyütmek için kredi kullan. Taksitler yalnız oyun içi işlemler zamanı ilerlettiğinde tahsil edilir.")
                 .font(.caption).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)

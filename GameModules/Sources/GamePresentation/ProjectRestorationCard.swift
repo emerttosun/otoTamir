@@ -13,7 +13,7 @@ struct ProjectRestorationCard: View {
             HStack {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(vehicle?.name ?? "Proje Araç").font(.headline)
-                    Text("İhaleden alınan araç • \(project.purchasePrice.liraText)")
+                    Text("Hasarlı'dan alınan araç • \(project.purchasePrice.liraText)")
                         .font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer()

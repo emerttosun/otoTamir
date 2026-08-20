@@ -7,9 +7,9 @@ Ana fantezi küçük bir sanayi dükkânını ustalıkla ve esnaflık kararları
 - **Müşteri:** bekleyen müşteri, şikâyeti dinleme, araç kontrolleri, bulguyla bağlantılı teşhis, parçacı kataloğundan parça alma, fiyat söyleme ve gerekirse pazarlık, tamir mini oyunu, teslim, ödeme ve gecikmeli sonuç.
 - **Yıllık bakım:** bakım seti alma, yağ/filtre, akü, lastik-fren ve sıvı kontrollerini uygun mini oyunlarla tamamlama.
 - **Gelişim:** yapılan işlerden alan bazlı XP ve seviye, işçilik şöhreti, şaibe, dükkân puanı ve yorumlar, dükkân kabiliyetleri ve çıraklar.
-- **Hasarlı araç ihalesi:** sabit ihale bedelli, sigorta çıkması ve eksper tarafından onarılabilir kabul edilmiş ağır hasarlı araç; üstten kaporta şeması, ayrıntılı taşıyıcı yapı ölçümü, yatırım/kâr aralığı ve satın alma.
+- **Hasarlı araç pazarı:** sabit satış bedelli, sigorta çıkması ve eksper tarafından onarılabilir kabul edilmiş ağır hasarlı araç; üstten kaporta şeması, ayrıntılı taşıyıcı yapı ölçümü, yatırım/kâr aralığı ve satın alma.
 - **Dükkân sahnesi:** kabul edilen müşteri araçlarını ve satın alınan proje araçlarını geliş sırasına göre (FIFO) tek araçlık yatay sayfalarda gösterir; işlem paneli yalnız oyuncu araca dokunduğunda açılır.
-- **Proje restorasyonu:** ihale aracı tek düğmeyle bitmez. Her mekanik arıza, hasarlı veya eksik dış parça, şasi/podye/direk onarımı ve hava yastığı sistemi ayrı maliyetli bir iş ve uygun mini oyunla oyuncu tarafından tamamlanır.
+- **Proje restorasyonu:** Hasarlı'dan alınan araç tek düğmeyle bitmez. Her mekanik arıza, hasarlı veya eksik dış parça, şasi/podye/direk onarımı ve hava yastığı sistemi ayrı maliyetli bir iş ve uygun mini oyunla oyuncu tarafından tamamlanır.
 - **İlan yeri:** restorasyonu biten araç için fiyat belirleme, satış ihtimali, ayrı ilan takibi ve dürüst veya riskli satış.
 - **Finansman:** dükkân puanı ve gelişim seviyesine bağlı banka limiti; araç yatırımı için farklı faiz/vade seçenekleri ve eylem tabanlı taksitler.
 - **Olay Defteri:** denetim, şikâyet, tavsiye, kredi, ilan, araç satışı ve çırak sonuçlarını para/itibar etkileriyle Gelişim ekranında kalıcı tutar.

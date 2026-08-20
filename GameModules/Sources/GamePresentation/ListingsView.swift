@@ -58,7 +58,7 @@ struct ListingsView: View {
                 .font(.system(size: 42))
                 .foregroundStyle(GarageStyle.orange)
             Text("İlana konacak araç yok").font(.headline)
-            Text("İhaleden aldığın aracı restore edince burada satışa çıkarabilirsin.")
+            Text("Hasarlı'dan aldığın aracı restore edince burada satışa çıkarabilirsin.")
                 .font(.subheadline).foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
         }
