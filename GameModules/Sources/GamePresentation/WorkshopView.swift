@@ -160,7 +160,7 @@ struct WorkshopView: View {
 
     @ViewBuilder
     private func selectedProjectContent(_ project: ProjectCar) -> some View {
-        if project.stage == .awaitingRepair {
+        if project.stage != .listed {
             ProjectRestorationCard(
                 project: project,
                 catalog: store.catalog,
@@ -174,11 +174,18 @@ struct WorkshopView: View {
                     projectTask: task
                 )
             }
+            if project.stage == .readyForSale {
+                Text("Zorunlu işler tamamlandı. İstersen yıpranmış parçaları yenile; hazır olduğunda İlanlar bölümünden satışa çıkar.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .garageCard()
+                    .padding(.horizontal, 12)
+            }
         } else {
             VStack(alignment: .leading, spacing: 8) {
                 Text(store.catalog.vehicle(id: project.vehicleID)?.name ?? "Proje Araç")
                     .font(.headline)
-                Label(project.stage == .listed ? "Araç ilanda" : "Restorasyon tamamlandı", systemImage: "checkmark.seal.fill")
+                Label("Araç ilanda", systemImage: "checkmark.seal.fill")
                     .font(.subheadline.bold()).foregroundStyle(GarageStyle.mint)
                 Text("Fiyat ve alıcı işlemlerini İlanlar bölümünden yönetebilirsin.")
                     .font(.caption).foregroundStyle(.secondary)

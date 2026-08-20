@@ -75,6 +75,7 @@ extension GameEngine {
             id: lot.id,
             vehicleID: lot.vehicleID,
             faultIDs: lot.mechanicalFaultIDs,
+            optionalFaultIDs: lot.wornFaultIDs,
             purchasePrice: lot.fixedPrice,
             purchasedAtMinute: state.totalMinutes,
             panelDamages: lot.panelDamages,
@@ -110,7 +111,7 @@ extension GameEngine {
         performance: Int
     ) throws -> [GameEvent] {
         guard let index = state.projectCars.firstIndex(where: { $0.id == projectID }),
-              state.projectCars[index].stage == .awaitingRepair else {
+              state.projectCars[index].stage == .awaitingRepair || state.projectCars[index].stage == .readyForSale else {
             throw GameRuleError.invalidCommand("Bu proje araç tamir beklemiyor.")
         }
         let project = state.projectCars[index]
@@ -118,7 +119,13 @@ extension GameEngine {
             throw GameRuleError.contentMissing(project.vehicleID)
         }
         let requiredTasks = projectRepairTasks(for: project)
-        guard requiredTasks.contains(task), !project.completedRepairTasks.contains(task) else {
+        let optionalTasks = optionalProjectRepairTasks(for: project)
+        let isRequired = requiredTasks.contains(task)
+        let isOptional = optionalTasks.contains(task)
+        let isCompleted = isRequired
+            ? project.completedRepairTasks.contains(task)
+            : project.completedOptionalRepairTasks.contains(task)
+        guard (isRequired || isOptional), !isCompleted else {
             throw GameRuleError.invalidCommand("Bu restorasyon işi tamamlanmış veya araca ait değil.")
         }
         let taskCost = VehicleTradingRules.repairTaskCost(
@@ -142,12 +149,19 @@ extension GameEngine {
         }
         let skill = state.expertise[skillArea, default: SkillProgress()].level
         let score = min(100, max(20, performance + skill * 2))
-        state.projectCars[index].completedRepairTasks.insert(task)
+        if isRequired {
+            state.projectCars[index].completedRepairTasks.insert(task)
+        } else {
+            state.projectCars[index].completedOptionalRepairTasks.insert(task)
+        }
         state.projectCars[index].restorationScoreTotal += score
         state.projectCars[index].restorationCost = state.projectCars[index].restorationCost + taskCost
         let allDone = state.projectCars[index].completedRepairTasks.count == requiredTasks.count
+        let completedCount = state.projectCars[index].completedRepairTasks.count
+            + state.projectCars[index].completedOptionalRepairTasks.count
+        state.projectCars[index].restorationQuality = state.projectCars[index].restorationScoreTotal / max(1, completedCount)
+        let becameReady = project.stage == .awaitingRepair && allDone
         if allDone {
-            state.projectCars[index].restorationQuality = state.projectCars[index].restorationScoreTotal / max(1, requiredTasks.count)
             state.projectCars[index].startsAndDrives = true
             state.projectCars[index].stage = .readyForSale
         }
@@ -155,7 +169,7 @@ extension GameEngine {
         var events = advanceClock(by: duration)
         events.append(.moneyChanged(Money(minorUnits: -taskCost.minorUnits), reason: projectRepairTitle(task)))
         events.append(.projectRepairCompleted(projectID: projectID, task: task))
-        if allDone { events.append(.projectCarReady(projectID)) }
+        if becameReady { events.append(.projectCarReady(projectID)) }
         return events
     }
 
@@ -166,6 +180,10 @@ extension GameEngine {
             }.map { .panel($0.panel) }
             + project.structuralDamages.filter { $0.condition.requiresRepair }.map { .structural($0.area) }
             + (project.airbagsDeployed ? [.airbag] : [])
+    }
+
+    func optionalProjectRepairTasks(for project: ProjectCar) -> [ProjectRepairTask] {
+        project.optionalFaultIDs.map { .mechanical(faultID: $0) }
     }
 
     func projectRepairTitle(_ task: ProjectRepairTask) -> String {
@@ -452,6 +470,11 @@ extension GameEngine {
                 return StructuralDamage(area: area, condition: condition)
             }
             let fixedPrice = percent(vehicle.baseValue, 12 + random.next(upperBound: 14))
+            let requiredIDs = Set(faults.map(\.id))
+            let wornCount = min(2, max(1, catalog.faults.count - requiredIDs.count))
+            let wornFaults = catalog.faults.filter { !requiredIDs.contains($0.id) }
+                .shuffledDeterministically(using: &random)
+                .prefix(wornCount)
             return AuctionLot(
                 id: random.nextUUID(),
                 vehicleID: vehicle.id,
@@ -466,7 +489,8 @@ extension GameEngine {
                 mechanicalFaultIDs: faults.map(\.id),
                 airbagsDeployed: random.next(upperBound: 100) < 72,
                 startsAndDrives: random.next(upperBound: 100) < 43,
-                recordedDamage: percent(vehicle.baseValue, 62 + random.next(upperBound: 25))
+                recordedDamage: percent(vehicle.baseValue, 62 + random.next(upperBound: 25)),
+                wornFaultIDs: wornFaults.map(\.id)
             )
         }
         state.randomSeed = random.state

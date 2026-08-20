@@ -65,6 +65,8 @@ Tam hasarlı ve hurda tescilli araçlar onarım kabul etmediği için oyuncuya s
 
 Ekspertizde `Usta Hesabı` bölümü; o ana kadar bulunan kusurlardan tahmini onarım giderini, alış dahil toplam yatırımı, adil satış bandını ve kötümser/iyimser kâr aralığını gösterir. Yapılan her kontrol belirsizlik aralığını daraltır fakat kâr garantisi vermez. Restorasyondan sonra oyuncu adil fiyat önerisini görür, ilan fiyatını belirler ve fiyat yükseldikçe düşen tahmini satış ihtimalini izler. Alıcı kontrolü aracı otomatik satmaz. İsimli teklifler ilanın altında birikir; oyuncu teklifi kabul eder, reddeder veya ilan fiyatını aşmadan karşı fiyat gönderir. Karşı fiyat alıcının gizli limitine yakınsa alıcı üst sınırıyla pazarlığa devam eder, çok yüksekse çekilir.
 
+Satın alma sonrası Garaj'da zorunlu kusurlardan ayrı olarak `orta durumda` yıpranmış parçalar da gösterilir. Bunlar değiştirilmeden araç satışa çıkabilir; oyuncu minimum restorasyon için bırakabilir veya parça ve işçilik bedelini ödeyip mini oyunla yenileyebilir. İsteğe bağlı yenilemeler restorasyon kondisyonunu ve adil satış değerini yükseltir, fakat harcanan paranın tamamının satışta geri döneceğini garanti etmez.
+
 ## Banka kredisi
 
 Kredi limiti dükkân seviyesi ve dükkân puanıyla büyür. Kısa, dengeli ve esnek vadeler sırasıyla daha yüksek taksit/düşük faiz ile daha düşük taksit/yüksek faiz arasında seçim sunar. Kalan borç kullanılabilir limitten düşer. Taksitler gerçek zamanla veya uygulama açık kaldığı için işlemez; yalnız oyun içi eylemler ödeme tarihini geçtiğinde otomatik tahsil edilir ve kasa hareketlerinde ayrı görünür.

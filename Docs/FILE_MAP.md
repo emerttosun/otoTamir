@@ -22,12 +22,12 @@
 - `Money.swift`: Kuruş tabanlı güvenli para değerini ve Türk lirası gösterimini sağlar.
 - `ContentModels.swift`: JSON'dan gelen araç, ortak parçaya kimlikle bağlanan arıza, üç davranış değerli müşteri, bağlamsal bütüncül yorum, dükkân ve üç seviyeli yıkama gelişimi ile ayrıntılı gider dengelerini tanımlar.
 - `PartModels.swift`: Tekil parçaların kategori, taban fiyat ve bakım/normal tamire göre kalite profilini; bakım görevlerinin parça ve işçilik eşlemesini tanımlar.
-- `GameModels.swift`: Sürüm 17 `GameState` kayıt kökünü, eski güven değerinin dükkân puanına göçünü, kişilikli çırakları, kaybedilen müşteri havuzunu, alan bazlı yetkinliği ve eylem tabanlı zamanı tanımlar.
+- `GameModels.swift`: Sürüm 18 `GameState` kayıt kökünü, eski güven değerinin dükkân puanına göçünü, kişilikli çırakları, kaybedilen müşteri havuzunu, alan bazlı yetkinliği ve eylem tabanlı zamanı tanımlar.
 - `RepairModels.swift`: Müşteri teklifi, iş emri, parça kalitesi, bakım, ustalık ve itibar modellerini toplar.
 - `ApprenticeModels.swift`: Çırak geçmişini, beş gizli özelliği, mutluluğu, sadık müşterileri, ayrılık uyarısını, görev sayısını ve dört alandaki ilerlemeyi tanımlar.
 - `ApprenticeWorkOrder.swift`: Çırağın kayıtlar arasında korunan hazırlık, fiyat bekleme ve paralel tamir iş emrini tanımlar.
 - `FinanceModels.swift`: Kredi, kasa hareketi, yorum, envanter ve gecikmeli sonuç modellerini tanımlar.
-- `VehicleTradingModels.swift`: Onarılabilir ağır hasarlı araç, üç aşamalı olasılıksal ekspertiz, bilinen/gizli dış panel ve şasi ölçümü, restorasyon görevi ile ilan durumunu tanımlar.
+- `VehicleTradingModels.swift`: Onarılabilir ağır hasarlı araç, üç aşamalı olasılıksal ekspertiz, bilinen/gizli kusur, zorunlu iş ve isteğe bağlı yıpranmış parça yenilemesi ile ilan durumunu tanımlar.
 - `IncidentModels.swift`: Denetim, şikâyet, kredi, Hasarlı alımı, ilan ve benzeri dükkân olaylarını para ve itibar etkileriyle sürümlü kayda uygun tanımlar.
 - `GameContracts.swift`: Komut, olay, hata ve kayıt/bulut/satın alma portlarını tanımlar.
 
@@ -37,7 +37,7 @@
 - `BankingRules.swift`: Dükkân durumundan kredi limitini, vade faizini ve taksit tutarını deterministik hesaplar.
 - `WashBayRules.swift`: Yıkama bölümünün mevcut ve sıradaki veri tanımını, dükkân ve para yükseltme şartlarını değerlendirir.
 - `ApprenticeRules.swift`: Çırağın alan seviyesine göre yapabileceği işleri; kişilik, mutluluk ve çalışma hızına bağlı iş performansını belirler.
-- `VehicleTradingRules.swift`: Ekspertizde bulunan kusurlar ve kalan belirsizlikten Hasarlı yatırım aralığını, restorasyon maliyetini, adil ilan fiyatını ve satış ihtimalini deterministik hesaplar.
+- `VehicleTradingRules.swift`: Ekspertizde bulunan kusurlar ve kalan belirsizlikten Hasarlı yatırım aralığını; zorunlu/isteğe bağlı restorasyon maliyetini, yenileme değer katkısını, adil ilan fiyatını ve satış ihtimalini deterministik hesaplar.
 - `ProgressionRules.swift`: Alan uzmanlığı ve dükkân seviyesinden açık arıza, müşteri ve araç havuzunu deterministik hesaplar.
 - `PartPricingRules.swift`: Bakım görevlerinden değişecek benzersiz parçaları bulur; kalite katsayısı ve görev bazlı işçilik tutarlarını tek merkezde hesaplar.
 - `CustomerPricingRules.swift`: Tamir öncesi gösterilen parça, işçilik, normal toplam ve fiyat stratejilerinin istenen tutarlarını tek merkezde hesaplar.
@@ -72,7 +72,7 @@
 - `RestoredBodyHistoryView.swift`: İlan hazırlığında ve yayındaki ilanda restorasyon sonrası boyalı/değişen parçaları, yapısal onarımları ve airbag geçmişini açılır bölümde gösterir.
 - `VehicleBuyerOfferCard.swift`: Gelen araç teklifini kabul etme, reddetme ve alıcının bütçesine karşı fiyatla pazarlık yapma arayüzünü sunar.
 - `ProjectCarCard.swift`: Restorasyonu tamamlanan proje aracının ilan hazırlama ve yayındaki ilan durumlarını gösterir.
-- `ProjectRestorationCard.swift`: Hasarlı'dan alınan aracın mekanik, kaporta, taşıyıcı yapı ve güvenlik eksiklerini ayrı maliyet ve mini oyun görevleri halinde gösterir.
+- `ProjectRestorationCard.swift`: Hasarlı'dan alınan aracın zorunlu mekanik, kaporta, taşıyıcı ve güvenlik işlerini; ayrıca isteğe bağlı orta kondisyonlu parça yenilemelerini ayrı maliyet ve mini oyun görevleri halinde gösterir.
 - `ListingsView.swift`: Restorasyonu tamamlanan araçların fiyatlandırıldığı ve yayındaki alıcıların kontrol edildiği bağımsız ilan alanıdır.
 - `WorkshopDevelopmentView.swift`: Dükkân seviyesini, tesisleri, kapasite yükseltmelerini, uzmanlığı ve itibarı Gelişim sayfasında gösterir.
 - `ProgressViewScreen.swift`: Dükkân/ustalık gelişimini, yıldız puanını ve gelen müşteri yorumlarını tek bölümde gösterir.

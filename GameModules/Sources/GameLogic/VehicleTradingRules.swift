@@ -60,8 +60,9 @@ public enum VehicleTradingRules {
 
     public static func fairPrice(project: ProjectCar, vehicle: VehicleDefinition) -> Money {
         let qualityContribution = project.restorationQuality * 30 / 100
+        let renewedWearBonus = min(6, project.completedOptionalRepairTasks.count * 2)
         let historyPenalty = project.recordedDamage > vehicle.baseValue ? 4 : 0
-        return percent(vehicle.baseValue, max(50, 58 + qualityContribution - historyPenalty))
+        return percent(vehicle.baseValue, max(50, 58 + qualityContribution + renewedWearBonus - historyPenalty))
     }
 
     public static func listingEstimate(

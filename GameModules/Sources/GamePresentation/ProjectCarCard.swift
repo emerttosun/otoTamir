@@ -45,6 +45,10 @@ struct ProjectCarCard: View {
         return VStack(alignment: .leading, spacing: 9) {
             Text("Restorasyon kalitesi: %\(project.restorationQuality)")
                 .font(.caption.weight(.semibold))
+            if !project.optionalFaultIDs.isEmpty {
+                Text("Yıpranmış parça yenileme: \(project.completedOptionalRepairTasks.count)/\(project.optionalFaultIDs.count)")
+                    .font(.caption2).foregroundStyle(.secondary)
+            }
             RestoredBodyHistoryView(project: project)
             Text("İLAN HAZIRLA")
                 .font(.caption2.bold()).foregroundStyle(GarageStyle.orange)

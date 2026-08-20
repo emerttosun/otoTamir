@@ -451,6 +451,7 @@ struct GameLogicTests {
         #expect(lot.structuralDamages.count == StructuralArea.allCases.count)
         #expect(lot.structuralDamages.contains { $0.condition.requiresRepair })
         #expect(lot.mechanicalFaultIDs.count >= 3)
+        #expect(!lot.wornFaultIDs.isEmpty)
         #expect(lot.performedInspections.isEmpty)
         #expect(lot.revealedFaultIDs.isEmpty)
 
@@ -470,6 +471,43 @@ struct GameLogicTests {
         #expect(project.structuralDamages == lot.structuralDamages)
         #expect(engine.state.financeEntries.last?.category == .salvageVehicle)
         #expect(engine.state.incidents.last?.kind == .vehiclePurchase)
+    }
+
+    @Test("Yıpranmış parça zorunlu değildir; isteğe bağlı yenileme araç değerini artırır")
+    func optionalProjectPartReplacement() throws {
+        let catalog = try DefaultContentRepository().load()
+        let vehicle = catalog.vehicles[0]
+        let requiredFault = catalog.faults[0]
+        let wornFault = catalog.faults[1]
+        var state = GameState(startingCash: Money(minorUnits: 100_000_000), daySlots: 8)
+        let project = ProjectCar(
+            id: UUID(),
+            vehicleID: vehicle.id,
+            faultIDs: [requiredFault.id],
+            optionalFaultIDs: [wornFault.id],
+            purchasePrice: Money(minorUnits: 5_000_000)
+        )
+        state.projectCars = [project]
+        var engine = GameEngine(state: state, catalog: catalog)
+
+        try engine.handle(.completeProjectRepair(
+            projectID: project.id,
+            task: .mechanical(faultID: requiredFault.id),
+            performance: 90
+        ))
+        #expect(engine.state.projectCars[0].stage == .readyForSale)
+        #expect(engine.state.projectCars[0].completedOptionalRepairTasks.isEmpty)
+        let fairBefore = VehicleTradingRules.fairPrice(project: engine.state.projectCars[0], vehicle: vehicle)
+
+        try engine.handle(.completeProjectRepair(
+            projectID: project.id,
+            task: .mechanical(faultID: wornFault.id),
+            performance: 90
+        ))
+        let renewed = engine.state.projectCars[0]
+        #expect(renewed.stage == .readyForSale)
+        #expect(renewed.completedOptionalRepairTasks == [.mechanical(faultID: wornFault.id)])
+        #expect(VehicleTradingRules.fairPrice(project: renewed, vehicle: vehicle) > fairBefore)
     }
 
     @Test("Tam hasarlı hurda araç restorasyon için satın alınamaz")
