@@ -9,10 +9,11 @@ Fiyatlar tek bir gerçek marka veya modele ait canlı teklif değildir. 16 Ağus
 - Yıllık bakımda motor yağı, yağ filtresi, hava filtresi, polen filtresi, antifriz ve fren hidroliği ayrı katalog kayıtlarıdır. Her kaydın kendi taban fiyatı vardır.
 - Bakım görevi hangi parçaları değiştirdiğini ve kendi işçilik değerini katalogda belirtir. Akü ölçümü ile lastik/fren kontrolü yalnız kontrol bedeli üretir; otomatik parça bedeli eklemez.
 - Bakım parça alış tutarı, seçili görevlerin benzersiz parçalarının taban fiyat toplamına kalite katsayısı uygulanarak hesaplanır. Parça deposu varsa sonuç ayrıca `%10` azalır.
-- Normal müşteri bedeli gerçek parça alış tutarı ile seçili bakım görevlerinin işçilik toplamıdır; uygun/normal/yüksek/uçuk stratejisi bunun üzerine uygulanır.
+- Normal müşteri bedeli gerçek parça alış tutarı ile seçili bakım görevlerinin işçilik toplamıdır; uygun/normal/yüksek/uçuk stratejisi bunun üzerine tamir başlamadan önce uygulanır.
 - Normal arızalar da aynı ortak `parts` kataloğuna `partID` ile bağlanır. Arıza kaydında ikinci bir parça adı veya fiyatı tutulmaz; müşteri işi, ihale hesabı ve restorasyon aynı fiyat kaynağını kullanır.
 - Fiyat stratejisi: uygun `%85`, normal `%100`, yüksek `%135`, uçuk `%180`.
-- Teslim ekranı gerçek parça alış tutarını, katalogdan gelen işçiliği ve normal toplamı ayrı gösterir. Dört fiyat seçeneğinde kasaya girecek kesin tutar önceden görünür ve seçim yapıldığında aynen tahsil edilir; yüksek/uçuk fiyatın riski tahsilatı düşürmek yerine sonraki yorum, şikâyet ve denetimlere yansır.
+- Fiyat ekranı gerçek parça alış tutarını, katalogdan gelen işçiliği ve normal toplamı ayrı gösterir. Dört fiyat seçeneğinde müşteriden istenecek tutar önceden görünür. Fiyat bilgisi yüksek müşteri pahalı teklifi sorgularsa pazarlık açılır; karşı teklifi kabul etme, ortada buluşma veya kendi fiyatında diretme sonucunda kesin tutar belirlenir. Tamir bu anlaşmadan sonra başlar ve teslimde kasaya yalnız anlaşılmış tutar girer.
+- İlk istenen tutar ile pazarlık sonunda ödenen tutar müşteri değerlendirmesinde birlikte kullanılabilir. Yüksek fiyat söylemek tek başına şaibe değildir; gizlenen parça kalitesi ve benzeri dürüstlük ihlalleri ayrı risk üretir.
 - İşçilik ve parça güvenilirliği tekrar arıza ihtimalini etkiler.
 - Hileli davranışlar anında kazanç sağlar; dükkân puanı/yorum, şikâyet ve denetim sonraki takvim günlerinde uygulanır.
 - Para sıfırın altına inebilir ancak oyun bitmez. Böylece kriz cezalı fakat toparlanabilirdir.

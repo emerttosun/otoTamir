@@ -137,9 +137,8 @@ extension GameEngine {
             state.reputation.craftsmanship -= 5
             state.reputation.trust -= 3
         }
-        if strategy == .excessive { state.reputation.suspicion += 5 }
         if concealed { state.reputation.suspicion += 6 }
-        if noticed { state.reputation.trust -= 5; state.reputation.suspicion += 4 }
+        if noticed { state.reputation.trust -= 2 }
         state.reputation.clamp()
     }
 
@@ -195,7 +194,7 @@ extension GameEngine {
         noticed: Bool,
         random: inout SeededRandomSource
     ) {
-        let risky = quality == .poor || partQuality == .used || strategy == .excessive || concealed || noticed
+        let risky = quality == .poor || partQuality == .used || concealed
         if risky && random.next(upperBound: 100) < 62 {
             let isInspection = state.reputation.suspicion > 35
             let inspectionMessages = [

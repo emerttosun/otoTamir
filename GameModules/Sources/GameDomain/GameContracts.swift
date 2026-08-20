@@ -11,6 +11,8 @@ public enum GameCommand: Sendable {
     case completeRepair(jobID: UUID, performance: Int)
     case completeMaintenanceTask(jobID: UUID, task: MaintenanceTask, performance: Int)
     case setPrice(jobID: UUID, strategy: PriceStrategy, hidePartQuality: Bool)
+    case respondToCustomerOffer(jobID: UUID, response: CustomerNegotiationResponse)
+    case deliverVehicle(jobID: UUID)
     case washVehicle(jobID: UUID)
     case postApprenticeAd
     case checkApprenticeApplications
@@ -43,6 +45,9 @@ public enum GameEvent: Equatable, Sendable {
     case moneyChanged(Money, reason: String)
     case repairCompleted(WorkmanshipQuality)
     case maintenanceTaskCompleted(MaintenanceTask)
+    case customerCountered(askingPrice: Money, counterOffer: Money)
+    case customerPriceAccepted(Money)
+    case customerInsistenceRejected(Money)
     case priceSettled(Money, reaction: String)
     case vehicleWashed(UUID)
     case apprenticeHired(Apprentice)

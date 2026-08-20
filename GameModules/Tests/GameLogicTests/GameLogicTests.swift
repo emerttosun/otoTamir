@@ -22,7 +22,7 @@ struct GameLogicTests {
         #expect(first.state.randomSeed == second.state.randomSeed)
     }
 
-    @Test("Müşteri işi kontrol, parça, tamir ve fiyat sırasıyla tamamlanır")
+    @Test("Müşteri işi kontrol, parça, fiyat, tamir ve teslim sırasıyla tamamlanır")
     func customerVerticalSlice() throws {
         let catalog = try DefaultContentRepository().load()
         let fault = catalog.faults[0]
@@ -40,9 +40,11 @@ struct GameLogicTests {
 
         try engine.handle(.buyPart(jobID: offer.id, quality: .aftermarket))
         #expect(engine.state.inventory.count == 1)
+        try engine.handle(.setPrice(jobID: offer.id, strategy: .fair, hidePartQuality: false))
+        #expect(engine.state.activeJobs[0].stage == .readyForRepair)
         try engine.handle(.completeRepair(jobID: offer.id, performance: 100))
-        #expect(engine.state.activeJobs[0].stage == .awaitingPrice)
-        let events = try engine.handle(.setPrice(jobID: offer.id, strategy: .fair, hidePartQuality: false))
+        #expect(engine.state.activeJobs[0].stage == .awaitingDelivery)
+        let events = try engine.handle(.deliverVehicle(jobID: offer.id))
 
         #expect(engine.state.activeJobs.isEmpty)
         #expect(engine.state.inventory.isEmpty)
@@ -51,7 +53,7 @@ struct GameLogicTests {
         #expect(engine.state.expertise[fault.area, default: SkillProgress()].experience > 0)
     }
 
-    @Test("Fiyat ekranındaki tutar stratejiden bağımsız olarak kesin tahsil edilir")
+    @Test("Anlaşılan müşteri fiyatı teslimde kesin tahsil edilir")
     func selectedCustomerPriceIsCollectedExactly() throws {
         let sample = CustomerQuoteBreakdown(
             partCost: Money(minorUnits: 100_000),
@@ -73,7 +75,6 @@ struct GameLogicTests {
         }
         try engine.handle(.diagnose(jobID: offer.id, faultID: fault.id))
         try engine.handle(.buyPart(jobID: offer.id, quality: .aftermarket))
-        try engine.handle(.completeRepair(jobID: offer.id, performance: 100))
 
         let job = try #require(engine.state.activeJobs.first)
         let inventory = try #require(engine.state.inventory.first)
@@ -82,17 +83,66 @@ struct GameLogicTests {
             for: job,
             catalog: catalog
         )
-        let expectedPayment = breakdown.amount(for: .excessive)
+        let expectedPayment = breakdown.amount(for: .fair)
+        try engine.handle(.setPrice(jobID: offer.id, strategy: .fair, hidePartQuality: false))
+        try engine.handle(.completeRepair(jobID: offer.id, performance: 100))
         let cashBeforeDelivery = engine.state.cash
 
-        let events = try engine.handle(
-            .setPrice(jobID: offer.id, strategy: .excessive, hidePartQuality: false)
-        )
+        let events = try engine.handle(.deliverVehicle(jobID: offer.id))
 
         #expect(engine.state.cash == cashBeforeDelivery + expectedPayment)
         #expect(events.contains {
             if case let .priceSettled(amount, _) = $0 { amount == expectedPayment } else { false }
         })
+    }
+
+    @Test("Fiyat bilgisi yüksek müşteri karşı teklif verir ve orta yolda anlaşır")
+    func knowledgeableCustomerNegotiatesBeforeRepair() throws {
+        let catalog = try DefaultContentRepository().load()
+        let fault = catalog.faults[0]
+        let dealer = try #require(catalog.customer(id: "dealer_cemil"))
+        var state = GameState(
+            startingCash: catalog.balance.startingCash,
+            daySlots: catalog.balance.daySlots,
+            randomSeed: 7
+        )
+        let offer = CustomerOffer(
+            id: UUID(),
+            customerID: dealer.id,
+            vehicleID: catalog.vehicles[0].id,
+            actualFaultID: fault.id,
+            suspectedFaultIDs: [fault.id],
+            complaint: fault.complaint
+        )
+        state.offers = [offer]
+        var engine = GameEngine(state: state, catalog: catalog)
+        try engine.handle(.acceptOffer(offer.id))
+        for kind in Array(fault.inspectionFindings.keys.prefix(2)) {
+            try engine.handle(.performInspection(jobID: offer.id, kind: kind))
+        }
+        try engine.handle(.diagnose(jobID: offer.id, faultID: fault.id))
+        try engine.handle(.buyPart(jobID: offer.id, quality: .aftermarket))
+
+        var pricingState = engine.state
+        pricingState.randomSeed = 1
+        engine = GameEngine(state: pricingState, catalog: catalog)
+        let cashBeforeQuote = engine.state.cash
+        let events = try engine.handle(
+            .setPrice(jobID: offer.id, strategy: .excessive, hidePartQuality: false)
+        )
+        let negotiatingJob = try #require(engine.state.activeJobs.first)
+
+        #expect(negotiatingJob.stage == .negotiating)
+        #expect(negotiatingJob.customerCounterOffer != nil)
+        #expect(engine.state.cash == cashBeforeQuote)
+        #expect(events.contains { if case .customerCountered = $0 { true } else { false } })
+
+        try engine.handle(.respondToCustomerOffer(jobID: offer.id, response: .meetHalfway))
+        #expect(engine.state.activeJobs[0].stage == .readyForRepair)
+        #expect(engine.state.activeJobs[0].quote == CustomerNegotiationRules.halfway(
+            askingPrice: try #require(negotiatingJob.initialQuote),
+            counterOffer: try #require(negotiatingJob.customerCounterOffer)
+        ))
     }
 
     @Test("Geçersiz komut oyun zamanını tüketmez")
@@ -237,10 +287,11 @@ struct GameLogicTests {
         #expect(engine.state.inventory[0].partName.contains("Motor Yağı"))
         #expect(engine.state.inventory[0].partName.contains("Yağ Filtresi"))
         #expect(!engine.state.inventory[0].partName.contains("Akü"))
+        try engine.handle(.setPrice(jobID: id, strategy: .fair, hidePartQuality: false))
         for task in [MaintenanceTask.oilAndFilter, .batteryTest, .tireCheck] {
             try engine.handle(.completeMaintenanceTask(jobID: id, task: task, performance: 90))
         }
-        #expect(engine.state.activeJobs[0].stage == .awaitingPrice)
+        #expect(engine.state.activeJobs[0].stage == .awaitingDelivery)
         #expect(engine.state.activeJobs[0].completedMaintenanceTasks.count == 3)
     }
 
@@ -382,7 +433,7 @@ struct GameLogicTests {
 
         try engine.handle(.assignApprentice(apprenticeID: apprentice.id, jobID: jobID, task: nil))
 
-        #expect(engine.state.activeJobs[0].stage == .awaitingPrice)
+        #expect(engine.state.activeJobs[0].stage == .awaitingDelivery)
         #expect(engine.state.apprentices[0].experience > 0)
         #expect(engine.state.apprentices[0].expertise[fault.area]?.experience ?? 0 > 0)
     }
@@ -897,6 +948,7 @@ struct GameLogicTests {
         }
         try engine.handle(.diagnose(jobID: id, faultID: fault.id))
         try engine.handle(.buyPart(jobID: id, quality: .aftermarket))
+        try engine.handle(.setPrice(jobID: id, strategy: .fair, hidePartQuality: false))
         return engine
     }
 }

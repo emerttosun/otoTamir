@@ -290,10 +290,14 @@ private struct JobCard: View {
                 inspectionContent
             case .awaitingPart:
                 partContent
+            case .awaitingPrice:
+                quoteContent
+            case .negotiating:
+                negotiationContent
             case .readyForRepair:
                 repairContent
-            case .awaitingPrice:
-                priceContent
+            case .awaitingDelivery:
+                deliveryContent
             }
         }
         .garageCard()
@@ -465,12 +469,8 @@ private struct JobCard: View {
         }
     }
 
-    private var priceContent: some View {
+    private var quoteContent: some View {
         VStack(alignment: .leading, spacing: 10) {
-            if let quality = job.workmanship {
-                Label(quality.title, systemImage: "checkmark.seal.fill")
-                    .font(.subheadline.bold()).foregroundStyle(GarageStyle.mint)
-            }
             Text("\(customer?.appearance ?? "Müşteri") • \(customer?.profileHint ?? "Fiyat tepkisini kestirmek zor")")
                 .font(.caption).foregroundStyle(.secondary)
             VStack(spacing: 7) {
@@ -481,44 +481,7 @@ private struct JobCard: View {
             }
             .padding(12)
             .background(GarageStyle.raised.opacity(0.72), in: RoundedRectangle(cornerRadius: 12))
-            Text("Usta, müşteriye ne fiyat söyleyeceksin?").font(.caption.bold())
-            if let wash = catalog.washLevel(washLevel) {
-                if job.isWashed {
-                    Label("\(wash.name) tamamlandı, teslime hazır", systemImage: "sparkles")
-                        .font(.caption.bold()).foregroundStyle(.blue)
-                } else {
-                    VStack(spacing: 7) {
-                        Button {
-                            send(.washVehicle(jobID: job.id))
-                        } label: {
-                            Label(
-                                "Usta Yıkasın • \(wash.washCost.liraText) • \(wash.durationMinutes) dk",
-                                systemImage: "drop.fill"
-                            )
-                        }
-                        .buttonStyle(ActionButtonStyle(tint: .blue))
-
-                        if !apprentices.isEmpty {
-                            Menu {
-                                ForEach(apprentices) { apprentice in
-                                    Button("\(apprentice.name) • +8 XP") {
-                                        send(.assignApprenticeToWash(apprenticeID: apprentice.id, jobID: job.id))
-                                    }
-                                }
-                            } label: {
-                                Label("Çırağa Yıkat", systemImage: "person.fill.checkmark")
-                                    .font(.caption.bold())
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 9)
-                                    .background(.blue.opacity(0.18), in: RoundedRectangle(cornerRadius: 10))
-                            }
-                        }
-                    }
-                }
-            } else {
-                Label("Teslim yıkaması Gelişim bölümünden açılır", systemImage: "lock.fill")
-                    .font(.caption).foregroundStyle(.secondary)
-            }
+            Text("Tamire başlamadan önce müşteriye fiyat söyle.").font(.caption.bold())
             Toggle("Takılan parçanın kalitesini söyleme", isOn: $concealPartQuality)
                 .font(.caption).tint(GarageStyle.danger)
             LazyVGrid(columns: [.init(.flexible()), .init(.flexible())], spacing: 8) {
@@ -537,12 +500,112 @@ private struct JobCard: View {
                         .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(ActionButtonStyle(tint: strategy == .excessive ? GarageStyle.danger : GarageStyle.orange))
-                    .accessibilityLabel("\(strategy.title) fiyat, kesin tahsilat \(quoteBreakdown.amount(for: strategy).liraText)")
+                    .accessibilityLabel("\(strategy.title) istenen fiyat, \(quoteBreakdown.amount(for: strategy).liraText)")
                 }
             }
-            Text("Seçtiğin tutar teslimde kesin olarak kasaya girer. Yüksek fiyat daha sonra yorum, şikâyet veya denetim riski doğurabilir.")
+            Text("Bu müşteriye söyleyeceğin ilk fiyattır. Fiyat bilgisi yüksek müşteri karşı teklif verebilir.")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
+        }
+    }
+
+    private var negotiationContent: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label("Müşteri karşı teklif verdi", systemImage: "bubble.left.and.bubble.right.fill")
+                .font(.subheadline.bold())
+                .foregroundStyle(GarageStyle.orange)
+            quoteRow("Senin fiyatın", amount: job.initialQuote ?? .zero)
+            quoteRow("Müşterinin teklifi", amount: job.customerCounterOffer ?? .zero, emphasized: true)
+
+            Button(CustomerNegotiationResponse.acceptCounter.title) {
+                send(.respondToCustomerOffer(jobID: job.id, response: .acceptCounter))
+            }
+            .buttonStyle(ActionButtonStyle(tint: GarageStyle.mint))
+
+            Button {
+                send(.respondToCustomerOffer(jobID: job.id, response: .meetHalfway))
+            } label: {
+                Text("Ortada Buluş • \(halfwayPrice.liraText)")
+            }
+            .buttonStyle(ActionButtonStyle(tint: GarageStyle.orange))
+
+            Button(CustomerNegotiationResponse.insist.title) {
+                send(.respondToCustomerOffer(jobID: job.id, response: .insist))
+            }
+            .buttonStyle(ActionButtonStyle(tint: GarageStyle.danger))
+        }
+    }
+
+    private var deliveryContent: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            if let quality = job.workmanship {
+                Label(quality.title, systemImage: "checkmark.seal.fill")
+                    .font(.subheadline.bold()).foregroundStyle(GarageStyle.mint)
+            }
+            VStack(spacing: 7) {
+                quoteRow("Kullanılan parça", amount: quoteBreakdown.partCost)
+                HStack {
+                    Text(partDescription)
+                    Spacer()
+                    Text(job.hidePartQuality ? "Kalite gizli" : (job.partQuality?.title(for: qualityProfile) ?? "—"))
+                }
+                .font(.caption)
+                .foregroundStyle(job.hidePartQuality ? GarageStyle.danger : .secondary)
+                quoteRow("İşçilik", amount: quoteBreakdown.laborCost)
+                Divider().overlay(.white.opacity(0.15))
+                quoteRow("Anlaşılan toplam", amount: job.quote ?? .zero, emphasized: true)
+            }
+            .padding(12)
+            .background(GarageStyle.raised.opacity(0.72), in: RoundedRectangle(cornerRadius: 12))
+
+            washControls
+
+            Button {
+                send(.deliverVehicle(jobID: job.id))
+            } label: {
+                Label("Teslim Et • \((job.quote ?? .zero).liraText)", systemImage: "key.fill")
+            }
+            .buttonStyle(ActionButtonStyle(tint: GarageStyle.mint))
+            .accessibilityLabel("Aracı teslim et ve \((job.quote ?? .zero).liraText) tahsil et")
+        }
+    }
+
+    @ViewBuilder
+    private var washControls: some View {
+        if let wash = catalog.washLevel(washLevel) {
+            if job.isWashed {
+                Label("\(wash.name) tamamlandı, teslime hazır", systemImage: "sparkles")
+                    .font(.caption.bold()).foregroundStyle(.blue)
+            } else {
+                Button {
+                    send(.washVehicle(jobID: job.id))
+                } label: {
+                    Label(
+                        "Usta Yıkasın • \(wash.washCost.liraText) • \(wash.durationMinutes) dk",
+                        systemImage: "drop.fill"
+                    )
+                }
+                .buttonStyle(ActionButtonStyle(tint: .blue))
+
+                if !apprentices.isEmpty {
+                    Menu {
+                        ForEach(apprentices) { apprentice in
+                            Button("\(apprentice.name) • +8 XP") {
+                                send(.assignApprenticeToWash(apprenticeID: apprentice.id, jobID: job.id))
+                            }
+                        }
+                    } label: {
+                        Label("Çırağa Yıkat", systemImage: "person.fill.checkmark")
+                            .font(.caption.bold())
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 9)
+                            .background(.blue.opacity(0.18), in: RoundedRectangle(cornerRadius: 10))
+                    }
+                }
+            }
+        } else {
+            Label("Teslim yıkaması Gelişim bölümünden açılır", systemImage: "lock.fill")
+                .font(.caption).foregroundStyle(.secondary)
         }
     }
 
@@ -610,8 +673,10 @@ private struct JobCard: View {
         case .awaitingInspection: "KONTROL"
         case .awaitingDiagnosis: "TEŞHİS"
         case .awaitingPart: "PARÇA"
-        case .readyForRepair: "TAMİR"
         case .awaitingPrice: "FİYAT"
+        case .negotiating: "PAZARLIK"
+        case .readyForRepair: "TAMİR"
+        case .awaitingDelivery: "TESLİM"
         }
     }
 
@@ -638,6 +703,20 @@ private struct JobCard: View {
             for: job,
             catalog: catalog
         )
+    }
+
+    private var halfwayPrice: Money {
+        CustomerNegotiationRules.halfway(
+            askingPrice: job.initialQuote ?? .zero,
+            counterOffer: job.customerCounterOffer ?? .zero
+        )
+    }
+
+    private var partDescription: String {
+        if job.serviceKind == .periodicMaintenance {
+            return maintenanceParts.map(\.name).joined(separator: ", ")
+        }
+        return diagnosedPart?.name ?? "Parça"
     }
 
     private var maintenanceParts: [PartDefinition] {

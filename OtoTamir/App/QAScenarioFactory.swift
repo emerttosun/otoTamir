@@ -16,6 +16,8 @@ enum QAScenarioFactory {
             return try workshopState(catalog: catalog, stage: .readyForRepair)
         case "workshop-price":
             return try workshopState(catalog: catalog, stage: .awaitingPrice)
+        case "workshop-delivery":
+            return try workshopState(catalog: catalog, stage: .awaitingDelivery)
         case "auction-market":
             return try auctionMarketState(catalog: catalog)
         case "auction-project":
@@ -47,6 +49,7 @@ enum QAScenarioFactory {
 
     private static func miniGameState(catalog: ContentCatalog, kind: RepairGameKind) throws -> GameState {
         let fault = try required(catalog.faults.first { $0.repairGame == kind }, "QA mini oyun arızası")
+        let part = try required(catalog.part(for: fault), "QA arıza parçası")
         var state = baseState(catalog: catalog)
         let offer = CustomerOffer(
             id: UUID(uuidString: "00000000-0000-0000-0000-000000000301")!,
@@ -60,8 +63,10 @@ enum QAScenarioFactory {
         job.stage = .readyForRepair
         job.diagnosedFaultID = fault.id
         job.partQuality = .aftermarket
+        job.strategy = .fair
+        job.initialQuote = fault.laborValue + part.basePrice
+        job.quote = job.initialQuote
         state.activeJobs = [job]
-        let part = try required(catalog.part(for: fault), "QA arıza parçası")
         state.inventory = [InventoryItem(
             id: offer.id,
             jobID: offer.id,
@@ -104,10 +109,13 @@ enum QAScenarioFactory {
         if stage != .awaitingInspection && stage != .awaitingDiagnosis {
             try engine.handle(.diagnose(jobID: offer.id, faultID: fault.id))
         }
-        if stage == .readyForRepair || stage == .awaitingPrice {
+        if stage == .awaitingPrice || stage == .readyForRepair || stage == .awaitingDelivery {
             try engine.handle(.buyPart(jobID: offer.id, quality: .aftermarket))
         }
-        if stage == .awaitingPrice {
+        if stage == .readyForRepair || stage == .awaitingDelivery {
+            try engine.handle(.setPrice(jobID: offer.id, strategy: .fair, hidePartQuality: false))
+        }
+        if stage == .awaitingDelivery {
             try engine.handle(.completeRepair(jobID: offer.id, performance: 88))
         }
         var result = engine.state
@@ -138,6 +146,7 @@ enum QAScenarioFactory {
         try engine.handle(.acceptOffer(offer.id))
         if hasPurchasedParts {
             try engine.handle(.buyPart(jobID: offer.id, quality: .aftermarket))
+            try engine.handle(.setPrice(jobID: offer.id, strategy: .fair, hidePartQuality: false))
         }
         return engine.state
     }

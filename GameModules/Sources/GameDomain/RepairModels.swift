@@ -109,8 +109,24 @@ public enum RepairStage: String, Codable, Sendable {
     case awaitingInspection
     case awaitingDiagnosis
     case awaitingPart
-    case readyForRepair
     case awaitingPrice
+    case negotiating
+    case readyForRepair
+    case awaitingDelivery
+}
+
+public enum CustomerNegotiationResponse: String, Codable, CaseIterable, Sendable {
+    case acceptCounter
+    case meetHalfway
+    case insist
+
+    public var title: String {
+        switch self {
+        case .acceptCounter: "Kabul Et"
+        case .meetHalfway: "Ortada Buluş"
+        case .insist: "Fiyatım Bu"
+        }
+    }
 }
 
 public enum ServiceKind: String, Codable, Sendable {
@@ -272,7 +288,10 @@ public struct RepairJob: Codable, Hashable, Identifiable, Sendable {
     public var stage: RepairStage
     public var strategy: PriceStrategy?
     public var hidePartQuality: Bool
+    public var initialQuote: Money?
     public var quote: Money?
+    public var customerCounterOffer: Money?
+    public var priceWasQuestioned: Bool
     public var partQuality: PartQuality?
     public var workmanship: WorkmanshipQuality?
     public var repairPerformanceTotal: Int
@@ -299,7 +318,10 @@ public struct RepairJob: Codable, Hashable, Identifiable, Sendable {
         stage = offer.serviceKind == .periodicMaintenance ? .awaitingPart : .awaitingInspection
         strategy = nil
         hidePartQuality = false
+        initialQuote = nil
         quote = nil
+        customerCounterOffer = nil
+        priceWasQuestioned = false
         partQuality = nil
         workmanship = nil
         repairPerformanceTotal = 0
@@ -312,7 +334,8 @@ public struct RepairJob: Codable, Hashable, Identifiable, Sendable {
     private enum CodingKeys: String, CodingKey {
         case id, customerID, vehicleID, serviceKind, actualFaultID, suspectedFaultIDs
         case maintenanceTasks, complaint, acceptedAtMinute, completedMaintenanceTasks, performedInspections, findings, candidateFaultIDs
-        case diagnosedFaultID, stage, strategy, hidePartQuality, quote, partQuality, workmanship
+        case diagnosedFaultID, stage, strategy, hidePartQuality, initialQuote, quote, customerCounterOffer, priceWasQuestioned
+        case partQuality, workmanship
         case repairPerformanceTotal, repairPerformanceCount, isWashed, washTrustBonus, repairedByApprenticeID
     }
 
@@ -332,22 +355,27 @@ public struct RepairJob: Codable, Hashable, Identifiable, Sendable {
         findings = try values.decodeIfPresent([String].self, forKey: .findings) ?? []
         candidateFaultIDs = try values.decodeIfPresent([String].self, forKey: .candidateFaultIDs) ?? suspectedFaultIDs
         diagnosedFaultID = try values.decodeIfPresent(String.self, forKey: .diagnosedFaultID)
+        strategy = try values.decodeIfPresent(PriceStrategy.self, forKey: .strategy)
+        hidePartQuality = try values.decodeIfPresent(Bool.self, forKey: .hidePartQuality) ?? false
+        initialQuote = try values.decodeIfPresent(Money.self, forKey: .initialQuote)
+        quote = try values.decodeIfPresent(Money.self, forKey: .quote)
+        customerCounterOffer = try values.decodeIfPresent(Money.self, forKey: .customerCounterOffer)
+        priceWasQuestioned = try values.decodeIfPresent(Bool.self, forKey: .priceWasQuestioned) ?? false
+        partQuality = try values.decodeIfPresent(PartQuality.self, forKey: .partQuality)
+        workmanship = try values.decodeIfPresent(WorkmanshipQuality.self, forKey: .workmanship)
         let stageText = try values.decodeIfPresent(String.self, forKey: .stage)
         switch stageText {
         case "awaitingDiagnosis":
             stage = performedInspections.count >= 2 ? .awaitingDiagnosis : .awaitingInspection
         case "awaitingQuote": stage = .awaitingPart
         case "awaitingPart": stage = .awaitingPart
-        case "readyForRepair": stage = .readyForRepair
-        case "completed": stage = .awaitingPrice
+        case "awaitingPrice": stage = workmanship == nil ? .awaitingPrice : .awaitingDelivery
+        case "negotiating": stage = .negotiating
+        case "readyForRepair": stage = quote == nil ? .awaitingPrice : .readyForRepair
+        case "awaitingDelivery", "completed": stage = .awaitingDelivery
         case .some(let value): stage = RepairStage(rawValue: value) ?? .awaitingInspection
         case nil: stage = .awaitingInspection
         }
-        strategy = try values.decodeIfPresent(PriceStrategy.self, forKey: .strategy)
-        hidePartQuality = try values.decodeIfPresent(Bool.self, forKey: .hidePartQuality) ?? false
-        quote = try values.decodeIfPresent(Money.self, forKey: .quote)
-        partQuality = try values.decodeIfPresent(PartQuality.self, forKey: .partQuality)
-        workmanship = try values.decodeIfPresent(WorkmanshipQuality.self, forKey: .workmanship)
         repairPerformanceTotal = try values.decodeIfPresent(Int.self, forKey: .repairPerformanceTotal) ?? 0
         repairPerformanceCount = try values.decodeIfPresent(Int.self, forKey: .repairPerformanceCount) ?? 0
         isWashed = try values.decodeIfPresent(Bool.self, forKey: .isWashed) ?? false

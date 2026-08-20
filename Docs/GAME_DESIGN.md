@@ -4,7 +4,7 @@ Ana fantezi küçük bir sanayi dükkânını ustalıkla ve esnaflık kararları
 
 ## Döngüler
 
-- **Müşteri:** bekleyen müşteri, şikâyeti dinleme, araç kontrolleri, bulguyla bağlantılı teşhis, parça alma, tamir mini oyunu, fiyat seçimi, ödeme ve gecikmeli sonuç.
+- **Müşteri:** bekleyen müşteri, şikâyeti dinleme, araç kontrolleri, bulguyla bağlantılı teşhis, parçacı kataloğundan parça alma, fiyat söyleme ve gerekirse pazarlık, tamir mini oyunu, teslim, ödeme ve gecikmeli sonuç.
 - **Yıllık bakım:** bakım seti alma, yağ/filtre, akü, lastik-fren ve sıvı kontrollerini uygun mini oyunlarla tamamlama.
 - **Gelişim:** yapılan işlerden alan bazlı XP ve seviye, ustalık/güven/şaibe, dükkân puanı ve yorumlar, dükkân kabiliyetleri ve çıraklar.
 - **Hasarlı araç ihalesi:** sabit ihale bedelli, sigorta çıkması ve eksper tarafından onarılabilir kabul edilmiş ağır hasarlı araç; üstten kaporta şeması, ayrıntılı taşıyıcı yapı ölçümü, yatırım/kâr aralığı ve satın alma.
@@ -24,7 +24,9 @@ Müşteriler sabit bir günlük listede bulunmaz. Yapılan işlemler zamanı ile
 
 Her müşteri içerikte kişiliğiyle uyumlu üç adet `1...10` değere sahiptir: fiyat bilgisi pahalı teklifi fark etmeyi, teknik bilgi yanlış teşhis/düşük parça/kötü işçilik farkındalığını, pazarlık gücü ise karşı teklif davranışını belirler. Bu değerler tek bir genel hassasiyet statında birleştirilmez.
 
-Fiyat parça satın alınıp işçilik tamamlandıktan sonra `Uygun`, `Normal`, `Yüksek` veya `Uçuk` olarak seçilir. Müşterinin görünüşü ve davranış profili oyuncuya kesin olmayan bir ipucu verir. Hassas müşteri yüksek fiyatı fark edip pazarlık yapabilir; sonradan düşük puan, şikâyet veya denetim doğabilir. Ayrıntılı fatura ekranı ilk sürüm kapsamına alınmaz.
+Fiyat parça satın alındıktan sonra, tamir başlamadan önce `Uygun`, `Normal`, `Yüksek` veya `Uçuk` olarak söylenir. Ekran parça bedelini, işçiliği, normal toplamı ve her seçeneğin istenen tutarını gösterir; ayrıntılı resmî fatura ilk sürüm kapsamına alınmaz. Müşterinin görünüşü ve davranış profili oyuncuya fiyat bilgisi ve pazarlık gücü hakkında kesin olmayan bir ipucu verir.
+
+Müşteri fiyatı yüksek bulursa karşı teklif verir. Oyuncu karşı teklifi kabul eder, ortada buluşur veya kendi fiyatında diretir. Anlaşma sağlanınca tutar sabitlenir ve tamir başlar; tamir edilmiş araç için sonradan işi iptal etme akışı oluşmaz. Teslimde kasaya giren para anlaşılmış son tutardır. İlk istenen fiyat ile son ödenen fiyat müşteri değerlendirmesinde ayrı ayrı dikkate alınabilir; uçuk başlayıp pazarlıkla düşmek müşterinin yorumunu etkileyebilir fakat tek başına şaibe sayılmaz.
 
 ## Arızaya özgü mini oyunlar
 

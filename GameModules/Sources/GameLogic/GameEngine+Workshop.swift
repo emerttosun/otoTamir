@@ -118,7 +118,7 @@ extension GameEngine {
         guard state.cash - cost >= creditLimit else { throw GameRuleError.notEnoughMoney }
         state.cash = state.cash - cost
         state.activeJobs[index].partQuality = quality
-        state.activeJobs[index].stage = .readyForRepair
+        state.activeJobs[index].stage = .awaitingPrice
         state.inventory.append(InventoryItem(
             id: state.activeJobs[index].id,
             jobID: jobID,
@@ -167,7 +167,7 @@ extension GameEngine {
         state.activeJobs[index].workmanship = quality
         state.activeJobs[index].repairPerformanceTotal = performance
         state.activeJobs[index].repairPerformanceCount = 1
-        state.activeJobs[index].stage = .awaitingPrice
+        state.activeJobs[index].stage = .awaitingDelivery
         let xp = max(15, actualFault.requiredSkill * 14 + performance / 8)
         let experienceEvent: GameEvent?
         var apprenticeEvents: [GameEvent] = []
@@ -258,7 +258,7 @@ extension GameEngine {
         if state.activeJobs[index].completedMaintenanceTasks.count == state.activeJobs[index].maintenanceTasks.count {
             let average = state.activeJobs[index].repairPerformanceTotal / max(1, state.activeJobs[index].repairPerformanceCount)
             state.activeJobs[index].workmanship = workmanship(for: average + 8)
-            state.activeJobs[index].stage = .awaitingPrice
+            state.activeJobs[index].stage = .awaitingDelivery
             events.append(.repairCompleted(state.activeJobs[index].workmanship ?? .acceptable))
         }
         return events
@@ -271,30 +271,106 @@ extension GameEngine {
     ) throws -> [GameEvent] {
         guard let index = state.activeJobs.firstIndex(where: { $0.id == jobID }),
               state.activeJobs[index].stage == .awaitingPrice,
-              let partQuality = state.activeJobs[index].partQuality,
-              let workmanship = state.activeJobs[index].workmanship,
               let inventory = state.inventory.first(where: { $0.jobID == jobID }),
               let customer = catalog.customer(id: state.activeJobs[index].customerID) else {
-            throw GameRuleError.invalidCommand("İş tamamlanmadan fiyat belirlenemez.")
+            throw GameRuleError.invalidCommand("Parça seçilmeden fiyat belirlenemez.")
         }
 
         var random = SeededRandomSource(seed: state.randomSeed)
         let job = state.activeJobs[index]
-        let quote = CustomerPricingRules.quote(
+        let breakdown = CustomerPricingRules.quote(
             partCost: inventory.purchasePrice,
             for: job,
             catalog: catalog
         )
-        let paid = quote.amount(for: strategy)
-        let riskBonus = strategy == .excessive ? 45 : (strategy == .high ? 16 : 0)
-        let noticed = strategy != .affordable && strategy != .fair
-            && random.next(upperBound: 100) < min(92, customer.priceKnowledge * 6 + riskBonus)
+        let askingPrice = breakdown.amount(for: strategy)
+        let noticeChance = CustomerNegotiationRules.noticeChance(
+            for: strategy,
+            priceKnowledge: customer.priceKnowledge
+        )
+        let questioned = noticeChance > 0 && random.next(upperBound: 100) < noticeChance
+
+        state.activeJobs[index].strategy = strategy
+        state.activeJobs[index].hidePartQuality = hidePartQuality
+        state.activeJobs[index].initialQuote = askingPrice
+        state.activeJobs[index].priceWasQuestioned = questioned
+        state.randomSeed = random.state
+
+        if questioned {
+            let counterOffer = CustomerNegotiationRules.counterOffer(
+                normalTotal: breakdown.normalTotal,
+                askingPrice: askingPrice,
+                negotiationStrength: customer.negotiationStrength
+            )
+            state.activeJobs[index].customerCounterOffer = counterOffer
+            state.activeJobs[index].stage = .negotiating
+            return [.customerCountered(askingPrice: askingPrice, counterOffer: counterOffer)]
+        }
+
+        state.activeJobs[index].quote = askingPrice
+        state.activeJobs[index].stage = .readyForRepair
+        return [.customerPriceAccepted(askingPrice)]
+    }
+
+    mutating func respondToCustomerOffer(
+        jobID: UUID,
+        response: CustomerNegotiationResponse
+    ) throws -> [GameEvent] {
+        guard let index = state.activeJobs.firstIndex(where: { $0.id == jobID }),
+              state.activeJobs[index].stage == .negotiating,
+              let askingPrice = state.activeJobs[index].initialQuote,
+              let counterOffer = state.activeJobs[index].customerCounterOffer,
+              let customer = catalog.customer(id: state.activeJobs[index].customerID) else {
+            throw GameRuleError.invalidCommand("Bu müşteriyle devam eden bir pazarlık yok.")
+        }
+
+        let agreedPrice: Money
+        switch response {
+        case .acceptCounter:
+            agreedPrice = counterOffer
+        case .meetHalfway:
+            agreedPrice = CustomerNegotiationRules.halfway(
+                askingPrice: askingPrice,
+                counterOffer: counterOffer
+            )
+        case .insist:
+            var random = SeededRandomSource(seed: state.randomSeed)
+            let accepted = random.next(upperBound: 100)
+                < CustomerNegotiationRules.insistAcceptanceChance(
+                    negotiationStrength: customer.negotiationStrength
+                )
+            state.randomSeed = random.state
+            guard accepted else {
+                return [.customerInsistenceRejected(counterOffer)]
+            }
+            agreedPrice = askingPrice
+        }
+
+        state.activeJobs[index].quote = agreedPrice
+        state.activeJobs[index].stage = .readyForRepair
+        return [.customerPriceAccepted(agreedPrice)]
+    }
+
+    mutating func deliverVehicle(jobID: UUID) throws -> [GameEvent] {
+        guard let index = state.activeJobs.firstIndex(where: { $0.id == jobID }),
+              state.activeJobs[index].stage == .awaitingDelivery,
+              let partQuality = state.activeJobs[index].partQuality,
+              let workmanship = state.activeJobs[index].workmanship,
+              let strategy = state.activeJobs[index].strategy,
+              let paid = state.activeJobs[index].quote,
+              let customer = catalog.customer(id: state.activeJobs[index].customerID) else {
+            throw GameRuleError.invalidCommand("Tamir ve fiyat anlaşması tamamlanmadan araç teslim edilemez.")
+        }
+
+        var random = SeededRandomSource(seed: state.randomSeed)
+        let job = state.activeJobs[index]
+        let questioned = job.priceWasQuestioned
         let reaction: String
-        if noticed {
+        if questioned {
             let lines = [
-                "\(customer.name) hesabı görünce kaşını kaldırdı; ödedi ama fişi cebine dikkatlice koydu.",
-                "‘Usta bu paraya kaputu da mı veriyorsun?’ dedi; hesabı ödedi, sanayi grubuna soracağını söyledi.",
-                "Müşteri parça fiyatını aklına yazdı. Ödeme tamam ama bu hesap sonra şikâyet olarak dönebilir."
+                "\(customer.name) pazarlıkta anlaşılan hesabı ödedi; ilk söylenen fiyatı yine de unutmadı.",
+                "Pazarlık kapandı, anahtar teslim edildi. Müşteri son ödediği tutarı not etti.",
+                "Müşteri anlaşılmış fiyatı ödedi; ‘Başta biraz yüksekten açtın usta’ demeyi de ihmal etmedi."
             ]
             reaction = lines[random.next(upperBound: lines.count)]
         } else if strategy == .excessive {
@@ -322,10 +398,12 @@ extension GameEngine {
 
         state.cash = state.cash + paid
         recordFinance(amount: paid, category: .customerIncome, note: "\(customer.name) araç teslimi")
-        state.activeJobs[index].strategy = strategy
-        state.activeJobs[index].hidePartQuality = hidePartQuality
-        state.activeJobs[index].quote = paid
-        applyReputation(for: workmanship, strategy: strategy, concealed: hidePartQuality, noticed: noticed)
+        applyReputation(
+            for: workmanship,
+            strategy: strategy,
+            concealed: job.hidePartQuality,
+            noticed: questioned
+        )
         if job.isWashed {
             state.reputation.trust += max(1, job.washTrustBonus)
             state.reputation.clamp()
@@ -334,7 +412,7 @@ extension GameEngine {
             for: job,
             workmanship: workmanship,
             strategy: strategy,
-            noticed: noticed,
+            noticed: questioned,
             random: &random
         )
         if let newReview { addReview(newReview) }
@@ -344,8 +422,8 @@ extension GameEngine {
             quality: workmanship,
             partQuality: partQuality,
             strategy: strategy,
-            concealed: hidePartQuality,
-            noticed: noticed,
+            concealed: job.hidePartQuality,
+            noticed: questioned,
             random: &random
         )
         state.randomSeed = random.state
@@ -366,7 +444,7 @@ extension GameEngine {
             throw GameRuleError.invalidCommand("Araç yıkamak için Gelişim bölümünden Yıkama Seviye 1'i açmalısın.")
         }
         guard let index = state.activeJobs.firstIndex(where: { $0.id == jobID }),
-              state.activeJobs[index].stage == .awaitingPrice,
+              state.activeJobs[index].stage == .awaitingDelivery,
               !state.activeJobs[index].isWashed else {
             throw GameRuleError.invalidCommand("Bu araç şu anda yıkanamaz.")
         }

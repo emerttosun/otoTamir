@@ -46,6 +46,10 @@ public struct GameEngine: Sendable {
             events = try completeMaintenanceTask(jobID: jobID, task: task, performance: performance)
         case .setPrice(let jobID, let strategy, let hidePartQuality):
             events = try setPrice(jobID: jobID, strategy: strategy, hidePartQuality: hidePartQuality)
+        case .respondToCustomerOffer(let jobID, let response):
+            events = try respondToCustomerOffer(jobID: jobID, response: response)
+        case .deliverVehicle(let jobID):
+            events = try deliverVehicle(jobID: jobID)
         case .washVehicle(let jobID):
             events = try washVehicle(jobID: jobID)
         case .postApprenticeAd:

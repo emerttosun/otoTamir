@@ -274,8 +274,10 @@ private extension RepairStage {
         case .awaitingInspection: "Kontrol bekliyor"
         case .awaitingDiagnosis: "Teşhis bekliyor"
         case .awaitingPart: "Parça bekliyor"
+        case .awaitingPrice: "Fiyat bekliyor"
+        case .negotiating: "Müşteriyle pazarlık"
         case .readyForRepair: "Tamir bekliyor"
-        case .awaitingPrice: "Teslime hazır"
+        case .awaitingDelivery: "Teslime hazır"
         }
     }
 }
