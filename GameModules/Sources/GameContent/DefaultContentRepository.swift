@@ -88,6 +88,13 @@ public enum ContentValidator {
         guard catalog.customers.allSatisfy({ $0.minimumExpertise >= 1 }) else {
             throw ContentError.invalidValue("Müşteri uzmanlık açılışı en az 1 olmalı")
         }
+        guard catalog.customers.allSatisfy({ customer in
+            (1...10).contains(customer.priceKnowledge)
+                && (1...10).contains(customer.technicalKnowledge)
+                && (1...10).contains(customer.negotiationStrength)
+        }) else {
+            throw ContentError.invalidValue("Müşteri özellikleri 1 ile 10 arasında olmalı")
+        }
         guard Set(catalog.faults.map(\.area)) == Set(SkillArea.allCases) else {
             throw ContentError.invalidValue("Dört uzmanlık alanının tümü içerikte bulunmalı")
         }

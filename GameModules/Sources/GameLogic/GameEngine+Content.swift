@@ -44,7 +44,7 @@ extension GameEngine {
                 maintenanceTasks: tasks,
                 complaint: requestPrefix + "Yıllık bakım zamanı geldi. Yağına suyuna bakıp içimizi rahatlat usta.",
                 arrivedAtMinute: state.totalMinutes,
-                expiresAtMinute: state.totalMinutes + 75 + customer.patience * 15 + waitingAreaBonus
+                expiresAtMinute: state.totalMinutes + 180 + waitingAreaBonus
             )
         } else {
             let actual = faults[random.next(upperBound: faults.count)]
@@ -62,7 +62,7 @@ extension GameEngine {
                     random.next(upperBound: max(1, actual.complaintVariants.count + 1))
                 ],
                 arrivedAtMinute: state.totalMinutes,
-                expiresAtMinute: state.totalMinutes + 75 + customer.patience * 15 + waitingAreaBonus
+                expiresAtMinute: state.totalMinutes + 180 + waitingAreaBonus
             )
         }
         state.randomSeed = random.state

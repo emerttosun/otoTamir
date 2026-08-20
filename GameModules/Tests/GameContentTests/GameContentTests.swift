@@ -20,6 +20,16 @@ struct GameContentTests {
         #expect(Set(catalog.faults.map(\.repairGame)).count == catalog.faults.count)
         #expect(catalog.faults.allSatisfy { $0.complaintVariants.count >= 2 })
         #expect(catalog.customers.allSatisfy { $0.minimumExpertise >= 1 })
+        #expect(catalog.customers.allSatisfy {
+            (1...10).contains($0.priceKnowledge)
+                && (1...10).contains($0.technicalKnowledge)
+                && (1...10).contains($0.negotiationStrength)
+        })
+        let dealer = try #require(catalog.customer(id: "dealer_cemil"))
+        let newDriver = try #require(catalog.customer(id: "new_driver_emre"))
+        let enthusiast = try #require(catalog.customer(id: "enthusiast_arda"))
+        #expect(dealer.negotiationStrength > newDriver.negotiationStrength)
+        #expect(enthusiast.technicalKnowledge > newDriver.technicalKnowledge)
         #expect(catalog.faults.allSatisfy { $0.inspectionFindings.count >= 2 })
         #expect(catalog.maintenanceServices.allSatisfy { service in
             service.partIDs.allSatisfy { catalog.part(id: $0) != nil }

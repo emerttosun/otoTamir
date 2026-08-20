@@ -288,7 +288,7 @@ extension GameEngine {
         let paid = quote.amount(for: strategy)
         let riskBonus = strategy == .excessive ? 45 : (strategy == .high ? 16 : 0)
         let noticed = strategy != .affordable && strategy != .fair
-            && random.next(upperBound: 100) < min(92, customer.priceSensitivity * 6 + riskBonus)
+            && random.next(upperBound: 100) < min(92, customer.priceKnowledge * 6 + riskBonus)
         let reaction: String
         if noticed {
             let lines = [

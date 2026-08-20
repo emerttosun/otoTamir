@@ -191,8 +191,9 @@ public struct CustomerDefinition: Codable, Hashable, Identifiable, Sendable {
     public let name: String
     public let archetype: String
     public let greeting: String
-    public let patience: Int
-    public let priceSensitivity: Int
+    public let priceKnowledge: Int
+    public let technicalKnowledge: Int
+    public let negotiationStrength: Int
     public let appearance: String
     public let profileHint: String
     public let minimumExpertise: Int
@@ -202,8 +203,9 @@ public struct CustomerDefinition: Codable, Hashable, Identifiable, Sendable {
         name: String,
         archetype: String,
         greeting: String,
-        patience: Int,
-        priceSensitivity: Int,
+        priceKnowledge: Int,
+        technicalKnowledge: Int,
+        negotiationStrength: Int,
         appearance: String = "Sade giyimli",
         profileHint: String = "Tavrından ödeme gücünü kestirmek zor",
         minimumExpertise: Int = 1
@@ -212,15 +214,21 @@ public struct CustomerDefinition: Codable, Hashable, Identifiable, Sendable {
         self.name = name
         self.archetype = archetype
         self.greeting = greeting
-        self.patience = patience
-        self.priceSensitivity = priceSensitivity
+        self.priceKnowledge = min(10, max(1, priceKnowledge))
+        self.technicalKnowledge = min(10, max(1, technicalKnowledge))
+        self.negotiationStrength = min(10, max(1, negotiationStrength))
         self.appearance = appearance
         self.profileHint = profileHint
         self.minimumExpertise = minimumExpertise
     }
 
     private enum CodingKeys: String, CodingKey {
-        case id, name, archetype, greeting, patience, priceSensitivity, appearance, profileHint, minimumExpertise
+        case id, name, archetype, greeting, priceKnowledge, technicalKnowledge, negotiationStrength
+        case appearance, profileHint, minimumExpertise
+    }
+
+    private enum LegacyCodingKeys: String, CodingKey {
+        case priceSensitivity
     }
 
     public init(from decoder: any Decoder) throws {
@@ -229,8 +237,11 @@ public struct CustomerDefinition: Codable, Hashable, Identifiable, Sendable {
         name = try values.decode(String.self, forKey: .name)
         archetype = try values.decode(String.self, forKey: .archetype)
         greeting = try values.decode(String.self, forKey: .greeting)
-        patience = try values.decode(Int.self, forKey: .patience)
-        priceSensitivity = try values.decode(Int.self, forKey: .priceSensitivity)
+        let legacyValues = try decoder.container(keyedBy: LegacyCodingKeys.self)
+        let legacyPriceKnowledge = try legacyValues.decodeIfPresent(Int.self, forKey: .priceSensitivity) ?? 5
+        priceKnowledge = min(10, max(1, try values.decodeIfPresent(Int.self, forKey: .priceKnowledge) ?? legacyPriceKnowledge))
+        technicalKnowledge = min(10, max(1, try values.decodeIfPresent(Int.self, forKey: .technicalKnowledge) ?? 5))
+        negotiationStrength = min(10, max(1, try values.decodeIfPresent(Int.self, forKey: .negotiationStrength) ?? 5))
         appearance = try values.decodeIfPresent(String.self, forKey: .appearance) ?? "Sade giyimli"
         profileHint = try values.decodeIfPresent(String.self, forKey: .profileHint) ?? "Tavrından ödeme gücünü kestirmek zor"
         minimumExpertise = try values.decodeIfPresent(Int.self, forKey: .minimumExpertise) ?? 1
