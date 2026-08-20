@@ -26,7 +26,7 @@
 - `RepairModels.swift`: Müşteri teklifi, kabul ve kesin teslim hedefi taşıyan iş emri, parça kalitesi, bakım, ustalık ve itibar modellerini toplar.
 - `ApprenticeModels.swift`: Çırak geçmişini, beş gizli özelliği, mutluluğu, sadık müşterileri, ayrılık uyarısını, görev sayısını ve dört alandaki ilerlemeyi tanımlar.
 - `ApprenticeWorkOrder.swift`: Çırağın kayıtlar arasında korunan hazırlık, fiyat bekleme ve paralel tamir iş emrini tanımlar.
-- `FinanceModels.swift`: Kredi, kasa hareketi, yorum, envanter ve gecikmeli sonuç modellerini tanımlar.
+- `FinanceModels.swift`: Kredi, gecikmiş/yapılandırılmış borç, kasa hareketi, yorum, envanter ve gecikmeli sonuç modellerini tanımlar.
 - `VehicleTradingModels.swift`: Onarılabilir ağır hasarlı araç, üç aşamalı olasılıksal ekspertiz, bilinen/gizli kusur, zorunlu iş ve isteğe bağlı yıpranmış parça yenilemesi ile ilan durumunu tanımlar.
 - `IncidentModels.swift`: Denetim, şikâyet, kredi, Hasarlı alımı, ilan ve benzeri dükkân olaylarını para ve itibar etkileriyle sürümlü kayda uygun tanımlar.
 - `GameContracts.swift`: Komut, olay, hata ve kayıt/bulut/satın alma portlarını tanımlar.
@@ -34,7 +34,7 @@
 ## GameLogic ve GameContent
 
 - `SeededRandomSource.swift`: Kayıt seed'inden tekrar üretilebilir rastgele sayı ve kimlik üretir.
-- `BankingRules.swift`: Dükkân durumundan kredi limitini, vade faizini ve taksit tutarını deterministik hesaplar.
+- `BankingRules.swift`: Dükkân durumundan kredi limitini; normal/yapılandırılmış taksiti, gecikmiş borcu ve kriz eşiğini deterministik hesaplar.
 - `WashBayRules.swift`: Yıkama bölümünün mevcut ve sıradaki veri tanımını, dükkân ve para yükseltme şartlarını değerlendirir.
 - `ApprenticeRules.swift`: Çırağın alan seviyesine göre yapabileceği işleri; kişilik, mutluluk ve çalışma hızına bağlı iş performansını belirler.
 - `VehicleTradingRules.swift`: Ekspertizde bulunan kusurlar ve kalan belirsizlikten Hasarlı yatırım aralığını; zorunlu/isteğe bağlı restorasyon maliyetini, yenileme değer katkısını, adil ilan fiyatını ve satış ihtimalini deterministik hesaplar.
@@ -49,7 +49,8 @@
 - `GameEngine+Workshop.swift`: Kontrol, teşhis, parça, tamir, fiyat, kesin teslim hedefi/gecikme sonucu, `%10` kesintili parçacı iadesi, usta/çırak yıkaması ve seviye kontrollü çırak iş akışını yürütür.
 - `GameEngine+Apprentices.swift`: Çırak ilanı, deterministik aday üretimi, işe alım, prim, günlük bağlılık kontrolü, ayrılık uyarısı ve müşteri götürme akışını yürütür.
 - `GameEngine+ApprenticeWork.swift`: Kalite politikasıyla çırağa araç devretme, arka planda kontrol/teşhis ve fiyat sonrası paralel tamir sonucunu yürütür.
-- `GameEngine+World.swift`: Eylem tabanlı saat, gider, kredi ve dükkân gelişimini yürütür.
+- `GameEngine+World.swift`: Eylem tabanlı saat, günlük gider ve dükkân gelişimini yürütür.
+- `GameEngine+Debt.swift`: Kredi tahsilatı, gecikmiş borç, proje/ekipman/dükkân tasfiyesi ve uzun vadeli kriz yapılandırmasını yürütür.
 - `GameEngine+Trading.swift`: Üç gruplu olasılıksal ekspertiz, gizli kusurlu Hasarlı araç alımı, restorasyon, ilan ve satış akışını yürütür.
 - `GameEngine+Content.swift`: Deterministik müşteri/içerik seçimi, itibar, yorum ve gecikmeli sonuç üretir.
 - `GameEngine+Support.swift`: Para yüzdesi, tesis kontrolü ve kayıt defteri gibi ortak saf yardımcıları tutar.
@@ -80,7 +81,7 @@
 - `WorkshopDevelopmentView.swift`: Dükkân seviyesini, tesisleri, kapasite yükseltmelerini, uzmanlığı ve itibarı Gelişim sayfasında gösterir.
 - `ProgressViewScreen.swift`: Dükkân/ustalık gelişimini, yıldız puanını ve gelen müşteri yorumlarını tek bölümde gösterir.
 - `ApprenticesView.swift`: Çırak kadrosunu, deneyimlerini, boş kadroyu ve işe alma işlemini ayrı bölümde sunar.
-- `BankView.swift`: Kredi limiti, vade seçimi, taksit hesabı ve aktif borçları ayrı bölümde sunar.
+- `BankView.swift`: Kredi limiti, vade seçimi, taksit hesabı, gecikmiş borç ve yapılandırılmış aktif borçları ayrı bölümde sunar.
 - `ShopStoreView.swift`: Gerçek para ile alınabilen StoreKit oyun parası, kozmetik ve içerik ürünlerini ayrı mağazada sunar.
 - `FinanceLedgerView.swift`: Üstteki para göstergesine dokunulduğunda yalnız mevcut günün işletme sonucu, kredi hareketleri, net nakit değişimi ve ayrıntılı kasa hareketlerini açar.
 - `RepairMiniGames.swift`: Tamir isteğini ilgili mini oyun ailesine yönlendiren sunum girişidir.
@@ -98,5 +99,5 @@
 
 ## Testler
 
-- `GameLogicTests.swift`: Determinizm, müşteri, teşhis, bakım, adım adım proje restorasyonu, üç seviyeli yıkama, çırak, kredi/taksit, olay defteri, yatırım hesabı, teklif/pazarlık, gider dökümü, kriz, satın alma ve sürüm 10 kayıt göçünü doğrular.
+- `GameLogicTests.swift`: Determinizm, müşteri, teşhis, bakım, adım adım proje restorasyonu, üç seviyeli yıkama, çırak, kredi/taksit/gecikmiş borç, varlık tasfiyesi, yapılandırma, olay defteri, yatırım hesabı, teklif/pazarlık, gider dökümü, satın alma ve sürümlü kayıt göçünü doğrular.
 - `GameContentTests.swift`: İçerik sayısı, kontrol bağlantıları, yorumlar, benzersiz kimlik ve kapsama kurallarını doğrular.

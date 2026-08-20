@@ -1198,16 +1198,104 @@ struct GameLogicTests {
         #expect(estimate.profitHigh == estimate.fairSaleHigh - estimate.totalInvestmentLow)
     }
 
-    @Test("Kriz oyunu bitirmez ve veresiye desteğiyle devam eder")
-    func recoverableCrisis() throws {
+    @Test("Karşılanamayan kredi taksiti kasayı negatife düşürmeden gecikmiş borç olur")
+    func missedLoanInstallmentBecomesOverdue() throws {
         let catalog = try DefaultContentRepository().load()
-        var engine = GameEngine(catalog: catalog)
-        try engine.handle(.advanceTime(minutes: 25 * 1_440))
+        var state = GameState(startingCash: .zero, daySlots: 8)
+        let amount = Money(minorUnits: 1_000_000)
+        let total = BankingRules.totalRepayment(for: amount, plan: .short)
+        let installment = BankingRules.installmentAmount(for: amount, plan: .short)
+        state.loans = [BankLoan(
+            id: UUID(),
+            plan: .short,
+            borrowedAmount: amount,
+            totalRepayment: total,
+            installmentAmount: installment,
+            nextPaymentMinute: state.totalMinutes + 1
+        )]
+        var engine = GameEngine(state: state, catalog: catalog)
 
-        #expect(engine.state.day == 26)
-        #expect(engine.state.cash >= Money(minorUnits: -500_000))
-        try engine.handle(.prepareWorld)
-        #expect(!engine.state.offers.isEmpty)
+        try engine.handle(.advanceTime(minutes: 1))
+
+        let missedLoan = try #require(engine.state.loans.first)
+        #expect(engine.state.cash == .zero)
+        #expect(missedLoan.overdueBalance == installment)
+        #expect(missedLoan.remainingBalance == total)
+        #expect(!engine.state.financeEntries.contains { $0.category == .loanPayment })
+        #expect(BankingRules.availableCredit(for: engine.state) == .zero)
+
+        var fundedState = engine.state
+        fundedState.cash = installment
+        engine = GameEngine(state: fundedState, catalog: catalog)
+        try engine.handle(.advanceTime(minutes: 1))
+
+        let paidLoan = try #require(engine.state.loans.first)
+        #expect(engine.state.cash == .zero)
+        #expect(paidLoan.overdueBalance == .zero)
+        #expect(paidLoan.remainingBalance == total - installment)
+        #expect(engine.state.financeEntries.contains { $0.category == .loanPayment })
+    }
+
+    @Test("Büyük gecikmiş borç satılabilir varlık yoksa uzun vadeye yapılandırılır")
+    func debtCrisisIsRestructuredWithoutFreeSupport() throws {
+        let catalog = try DefaultContentRepository().load()
+        var state = GameState(startingCash: .zero, daySlots: 8)
+        var loan = BankLoan(
+            id: UUID(),
+            plan: .short,
+            borrowedAmount: Money(minorUnits: 50_000_000),
+            totalRepayment: Money(minorUnits: 60_000_000),
+            installmentAmount: Money(minorUnits: 12_000_000),
+            nextPaymentMinute: state.totalMinutes + 1
+        )
+        loan.remainingBalance = Money(minorUnits: 60_000_000)
+        state.loans = [loan]
+        var engine = GameEngine(state: state, catalog: catalog)
+
+        try engine.handle(.advanceTime(minutes: 1))
+
+        let restructured = try #require(engine.state.loans.first)
+        #expect(engine.state.cash == .zero)
+        #expect(restructured.overdueBalance == .zero)
+        #expect(restructured.isRestructured)
+        #expect(restructured.remainingInstallments == BankingRules.restructuringInstallmentCount)
+        #expect(restructured.installmentAmount == BankingRules.restructuredInstallment(for: restructured.remainingBalance))
+        #expect(restructured.nextPaymentMinute == engine.state.totalMinutes + BankingRules.restructuringIntervalMinutes)
+        #expect(!engine.state.financeEntries.contains { $0.category == .support })
+    }
+
+    @Test("Borç krizinde proje aracı önce tasfiye edilip gecikmiş takside aktarılır")
+    func debtCrisisLiquidatesProjectCarBeforeRestructuring() throws {
+        let catalog = try DefaultContentRepository().load()
+        var state = GameState(startingCash: .zero, daySlots: 8)
+        let vehicle = try #require(catalog.vehicles.first)
+        state.projectCars = [ProjectCar(
+            id: UUID(),
+            vehicleID: vehicle.id,
+            faultIDs: [],
+            purchasePrice: Money(minorUnits: 30_000_000)
+        )]
+        var loan = BankLoan(
+            id: UUID(),
+            plan: .short,
+            borrowedAmount: Money(minorUnits: 50_000_000),
+            totalRepayment: Money(minorUnits: 60_000_000),
+            installmentAmount: Money(minorUnits: 12_000_000),
+            nextPaymentMinute: state.totalMinutes + 1
+        )
+        loan.remainingBalance = Money(minorUnits: 60_000_000)
+        state.loans = [loan]
+        var engine = GameEngine(state: state, catalog: catalog)
+
+        try engine.handle(.advanceTime(minutes: 1))
+
+        let activeLoan = try #require(engine.state.loans.first)
+        #expect(engine.state.projectCars.isEmpty)
+        #expect(activeLoan.overdueBalance == .zero)
+        #expect(!activeLoan.isRestructured)
+        #expect(engine.state.cash >= .zero)
+        #expect(engine.state.financeEntries.contains { $0.category == .assetLiquidation })
+        #expect(!engine.state.financeEntries.contains { $0.category == .support })
     }
 
     @Test("Aynı StoreKit işlemi yalnızca bir kez ödül verir")

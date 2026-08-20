@@ -19,6 +19,7 @@ public enum FinanceCategory: String, Codable, Sendable {
     case support
     case loanProceeds
     case loanPayment
+    case assetLiquidation
     case listingFee
 
     public var title: String {
@@ -41,6 +42,7 @@ public enum FinanceCategory: String, Codable, Sendable {
         case .support: "Esnaf desteği"
         case .loanProceeds: "Banka kredisi"
         case .loanPayment: "Kredi taksiti"
+        case .assetLiquidation: "Kriz varlık satışı"
         case .listingFee: "İlan ücreti"
         }
     }
@@ -97,9 +99,11 @@ public struct BankLoan: Codable, Hashable, Identifiable, Sendable {
     public let totalRepayment: Money
     public var remainingBalance: Money
     public var remainingInstallments: Int
-    public let installmentAmount: Money
-    public let installmentIntervalMinutes: Int
+    public var installmentAmount: Money
+    public var installmentIntervalMinutes: Int
     public var nextPaymentMinute: Int
+    public var overdueBalance: Money
+    public var isRestructured: Bool
 
     public init(
         id: UUID,
@@ -118,6 +122,29 @@ public struct BankLoan: Codable, Hashable, Identifiable, Sendable {
         self.installmentAmount = installmentAmount
         installmentIntervalMinutes = plan.installmentIntervalDays * 1_440
         self.nextPaymentMinute = nextPaymentMinute
+        overdueBalance = .zero
+        isRestructured = false
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, plan, borrowedAmount, totalRepayment, remainingBalance
+        case remainingInstallments, installmentAmount, installmentIntervalMinutes
+        case nextPaymentMinute, overdueBalance, isRestructured
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = try values.decode(UUID.self, forKey: .id)
+        plan = try values.decode(LoanPlan.self, forKey: .plan)
+        borrowedAmount = try values.decode(Money.self, forKey: .borrowedAmount)
+        totalRepayment = try values.decode(Money.self, forKey: .totalRepayment)
+        remainingBalance = try values.decode(Money.self, forKey: .remainingBalance)
+        remainingInstallments = try values.decode(Int.self, forKey: .remainingInstallments)
+        installmentAmount = try values.decode(Money.self, forKey: .installmentAmount)
+        installmentIntervalMinutes = try values.decode(Int.self, forKey: .installmentIntervalMinutes)
+        nextPaymentMinute = try values.decode(Int.self, forKey: .nextPaymentMinute)
+        overdueBalance = try values.decodeIfPresent(Money.self, forKey: .overdueBalance) ?? .zero
+        isRestructured = try values.decodeIfPresent(Bool.self, forKey: .isRestructured) ?? false
     }
 }
 

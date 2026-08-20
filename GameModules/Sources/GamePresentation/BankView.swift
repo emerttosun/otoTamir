@@ -24,8 +24,14 @@ struct BankView: View {
             Text("SANAYİ ESNAF BANKASI")
                 .font(.caption.weight(.black)).foregroundStyle(GarageStyle.orange)
             Text("Araç yatırım kredisi").font(.title3.bold())
-            Text("Hasarlı araç almak veya dükkânı büyütmek için kredi kullan. Taksitler yalnız oyun içi işlemler zamanı ilerlettiğinde tahsil edilir.")
+            Text("Hasarlı araç almak veya dükkânı büyütmek için kredi kullan. Kasada para yoksa taksit gecikmiş borca dönüşür; borç büyürse banka varlık tasfiyesi veya uzun vade yapılandırması uygular.")
                 .font(.caption).foregroundStyle(.secondary)
+            let overdue = BankingRules.totalOverdue(for: store.state)
+            if overdue > .zero {
+                Label("Gecikmiş Borç: \(overdue.liraText)", systemImage: "exclamationmark.triangle.fill")
+                    .font(.caption.bold())
+                    .foregroundStyle(.red)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .garageCard()
@@ -71,7 +77,9 @@ struct BankView: View {
                 }
                 .buttonStyle(ActionButtonStyle(tint: GarageStyle.orange))
             } else {
-                Text("Mevcut borç azaldıkça kredi limitin yeniden açılır.")
+                Text(BankingRules.totalOverdue(for: store.state) > .zero
+                     ? "Gecikmiş borç varken yeni kredi kullanılamaz. Kasaya para girdikçe gecikmiş borç otomatik ödenir."
+                     : "Mevcut borç azaldıkça kredi limitin yeniden açılır.")
                     .font(.caption).foregroundStyle(.secondary)
             }
         }
@@ -88,12 +96,22 @@ struct BankView: View {
                     VStack(alignment: .leading, spacing: 5) {
                         HStack {
                             Text(loan.plan.title).font(.subheadline.bold())
+                            if loan.isRestructured {
+                                Text("YAPILANDIRILMIŞ")
+                                    .font(.caption2.weight(.black))
+                                    .foregroundStyle(GarageStyle.orange)
+                            }
                             Spacer()
                             Text("Kalan \(loan.remainingBalance.liraText)")
                                 .font(.caption.bold().monospacedDigit())
                         }
-                        Text("\(loan.remainingInstallments) taksit • sıradaki ödeme \(paymentDistance(loan)) sonra • \(loan.installmentAmount.liraText)")
+                        Text(paymentScheduleText(loan))
                             .font(.caption2).foregroundStyle(.secondary)
+                        if loan.overdueBalance > .zero {
+                            Text("Gecikmiş Borç: \(loan.overdueBalance.liraText)")
+                                .font(.caption.bold().monospacedDigit())
+                                .foregroundStyle(.red)
+                        }
                     }
                     .padding(10)
                     .background(GarageStyle.raised.opacity(0.7), in: RoundedRectangle(cornerRadius: 11))
@@ -110,9 +128,12 @@ struct BankView: View {
         }
     }
 
-    private func paymentDistance(_ loan: BankLoan) -> String {
+    private func paymentScheduleText(_ loan: BankLoan) -> String {
+        if loan.overdueBalance > .zero {
+            return "\(loan.remainingInstallments) taksit • ödeme gecikmiş • \(loan.installmentAmount.liraText)"
+        }
         let minutes = max(0, loan.nextPaymentMinute - store.state.totalMinutes)
         let days = max(1, (minutes + 1_439) / 1_440)
-        return "\(days) oyun günü"
+        return "\(loan.remainingInstallments) taksit • sıradaki ödeme \(days) oyun günü sonra • \(loan.installmentAmount.liraText)"
     }
 }

@@ -76,13 +76,6 @@ extension GameEngine {
             recordFinance(amount: Money(minorUnits: -wage.minorUnits), category: .wages, note: "\(state.apprentices.count) çırak günlük ücreti")
             events.append(.moneyChanged(Money(minorUnits: -wage.minorUnits), reason: "Çırak ücretleri"))
         }
-        if state.cash < Money(minorUnits: -500_000) {
-            let support = Money(minorUnits: -200_000 - state.cash.minorUnits)
-            state.cash = state.cash + support
-            recordFinance(amount: support, category: .support, note: "Parçacı veresiye desteği")
-            events.append(.consequence("Parçacı veresiye defterini açtı: ‘İşi çevir usta, sonra konuşuruz.’"))
-        }
-
         let due = state.consequences.filter { $0.dueDay <= newDay }
         state.consequences.removeAll { $0.dueDay <= newDay }
         for consequence in due {
@@ -211,44 +204,6 @@ extension GameEngine {
             cashImpact: amount
         )
         return [.moneyChanged(amount, reason: "Banka kredisi"), .loanTaken(amount: amount, totalRepayment: total)]
-    }
-
-    mutating func processLoanPayments() -> [GameEvent] {
-        var events: [GameEvent] = []
-        var index = 0
-        while index < state.loans.count {
-            while state.loans[index].nextPaymentMinute <= state.totalMinutes,
-                  state.loans[index].remainingBalance > .zero {
-                let payment = min(state.loans[index].installmentAmount, state.loans[index].remainingBalance)
-                state.cash = state.cash - payment
-                state.loans[index].remainingBalance = state.loans[index].remainingBalance - payment
-                state.loans[index].remainingInstallments = max(0, state.loans[index].remainingInstallments - 1)
-                state.loans[index].nextPaymentMinute += state.loans[index].installmentIntervalMinutes
-                recordFinance(
-                    amount: Money(minorUnits: -payment.minorUnits),
-                    category: .loanPayment,
-                    note: "\(state.loans[index].plan.title) kredi taksiti"
-                )
-                recordIncident(
-                    kind: .loan,
-                    message: "\(state.loans[index].plan.title) kredi taksiti ödendi. Kalan borç \(state.loans[index].remainingBalance.liraText).",
-                    cashImpact: Money(minorUnits: -payment.minorUnits)
-                )
-                events.append(.moneyChanged(Money(minorUnits: -payment.minorUnits), reason: "Kredi taksiti"))
-                events.append(.loanInstallmentPaid(
-                    amount: payment,
-                    remainingBalance: state.loans[index].remainingBalance
-                ))
-            }
-            if state.loans[index].remainingBalance <= .zero {
-                let id = state.loans[index].id
-                state.loans.remove(at: index)
-                events.append(.loanClosed(id))
-            } else {
-                index += 1
-            }
-        }
-        return events
     }
 
 }

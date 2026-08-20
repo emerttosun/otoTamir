@@ -18,15 +18,15 @@ Fiyatlar tek bir gerçek marka veya modele ait canlı teklif değildir. 16 Ağus
 - Müşteri tamir başlamadan fiyat yüzünden ayrılırsa satın alınan parça parçacıya otomatik iade edilir. Alış bedeli pozitif `Parça iadesi`, `%10` kesinti negatif `Parça iade kesintisi` olarak iki kasa hareketine yazılır; kasaya net `%90` döner.
 - İşçilik ve parça güvenilirliği tekrar arıza ihtimalini etkiler.
 - Hileli davranışlar anında kazanç sağlar; dükkân puanı/yorum, şikâyet ve denetim sonraki takvim günlerinde uygulanır.
-- Para sıfırın altına inebilir ancak oyun bitmez. Böylece kriz cezalı fakat toparlanabilirdir.
+- İşletme giderleri kasayı zorlayabilir ancak karşılanamayan kredi taksiti kasadan çekilmiş veya ödenmiş sayılmaz; `Gecikmiş Borç` olarak tutulur. Kasaya yeniden para girdiğinde önce bu borç kapatılır.
 - Dükkân boşta açık kaldığında zaman ilerlemez ve gider yazılmaz. Takvim gideri yalnız oyuncu eylemi yeni güne geçtiğinde oluşur.
 - Günlük gider; kira, elektrik-su/enerji ve sarf-temizlik olarak ayrı kasa hareketlerine yazılır. Çırak ücretleri kişi başı ayrıca görünür.
 - Yıkama, çırak işe alımı, hasarlı araç alımı ve restorasyon parçaları da ayrı gider kategorileridir.
 - Kaporta-boya kabini proje araç restorasyon giderini azaltır; satış vitrini ilanların alıcı ihtimalini yükseltir.
-- Banka limiti dükkân seviyesi ve dükkân puanından hesaplanır. Üç vadede toplam faiz baştan görünür; kalan borç limiti meşgul eder ve taksitler yalnız oyun zamanı ilerlediğinde tahsil edilir.
+- Banka limiti dükkân seviyesi ve dükkân puanından hesaplanır. Üç vadede toplam faiz baştan görünür; kalan borç limiti meşgul eder ve taksitler yalnız oyun zamanı ilerlediğinde tahsil edilir. Gecikmiş borç varken yeni kredi kullanılamaz.
+- Gecikmiş borç 100.000 ₺ eşiğine ulaşırsa banka önce proje araçlarını, ardından yıkama ekipmanını ve kapasite uygunsa dükkân seviyesini indirimli tasfiye değeriyle satar. Satılabilir varlık kalmadığında kalan krediler 24 düşük taksitli, yedi oyun günü aralıklı uzun vadeli plana yapılandırılır. Bu akış ücretsiz para üretmez; eski `Esnaf desteği` kategorisi yalnız geçmiş kayıtları okuyabilmek için korunur.
 - Hasarlı araç raporu tek kâr rakamı vermez: onarım, toplam yatırım, adil satış ve olası kâr/zarar aralıkları gösterilir.
 - Restorasyon sonrası araç doğrudan satılmaz. İlan fiyatı adil fiyatın üzerine çıktıkça satış ihtimali düşer; her ilan yayını sabit bir ilan gideri üretir.
-- Parçacı en fazla 10.000 ₺ veresiye parça verir; kasa -5.000 ₺ altına düşerse gün sonunda çalışmayı sürdürecek seviyede esnaf avansı açılır.
 - Gerçek para paketleri yalnız nakit sağlar; uzmanlık, itibar ve kalite sonucu satın alınamaz.
 
 Denge değerleri koddan bağımsız içerik dosyasında tutulur ve içerik doğrulama testinden geçer. Yeni bir bakım parçası eklenirken `parts` kaydı oluşturulur, ilgili `maintenanceServices.partIDs` listesine kimliği eklenir; hesaplama kodunun değiştirilmesi gerekmez.

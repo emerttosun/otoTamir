@@ -71,7 +71,7 @@ Satın alma sonrası Garaj'da zorunlu kusurlardan ayrı olarak `orta durumda` y�
 
 ## Banka kredisi
 
-Kredi limiti dükkân seviyesi ve dükkân puanıyla büyür. Kısa, dengeli ve esnek vadeler sırasıyla daha yüksek taksit/düşük faiz ile daha düşük taksit/yüksek faiz arasında seçim sunar. Kalan borç kullanılabilir limitten düşer. Taksitler gerçek zamanla veya uygulama açık kaldığı için işlemez; yalnız oyun içi eylemler ödeme tarihini geçtiğinde otomatik tahsil edilir ve kasa hareketlerinde ayrı görünür.
+Kredi limiti dükkân seviyesi ve dükkân puanıyla büyür. Kısa, dengeli ve esnek vadeler sırasıyla daha yüksek taksit/düşük faiz ile daha düşük taksit/yüksek faiz arasında seçim sunar. Kalan borç kullanılabilir limitten düşer. Taksitler gerçek zamanla veya uygulama açık kaldığı için işlemez; yalnız oyun içi eylemler ödeme tarihini geçtiğinde tahsil edilir. Kasada yeterli para yoksa taksit ödenmiş sayılmaz ve kasayı negatife düşürmeden `Gecikmiş Borç` olur. Gecikmiş borç varken yeni kredi kapalıdır. Borç 100.000 ₺ kriz eşiğine ulaştığında banka önce proje aracı, yıkama ekipmanı ve kapasite uygunsa dükkân gelişimi gibi satılabilir varlıkları tasfiye eder; varlık kalmazsa kalan kredileri 24 düşük taksitli uzun vadeye yapılandırır. Ücretsiz esnaf avansı verilmez ve oyuncu borçlu olsa da yeniden toparlanabilir.
 
 Para göstergesinden açılan finans ekranı geçmiş günleri tutan bir muhasebe sayfası değildir; yalnız mevcut oyun gününü özetler. Tamir/araç satış geliri, parça/işletme gideri, işletme sonucu, yeni kredi, kredi taksiti, net nakit değişimi ve güncel kasa ayrı görünür. Kredi anaparası kasayı artırsa da işletme geliri veya kâr olarak hesaplanmaz.
 
