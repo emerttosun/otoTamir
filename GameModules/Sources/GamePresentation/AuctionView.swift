@@ -16,7 +16,10 @@ struct AuctionView: View {
                             SalvageLotCard(
                                 lot: lot,
                                 catalog: store.catalog,
-                                hasBodyPaintBooth: currentFacilities.contains(.bodyPaintBooth)
+                                hasBodyPaintBooth: currentFacilities.contains(.bodyPaintBooth),
+                                inspect: { kind in
+                                    store.send(.inspectSalvageLot(lotID: lot.id, kind: kind))
+                                }
                             ) {
                                 store.send(.purchaseAuctionLot(lot.id))
                             }
@@ -72,6 +75,7 @@ private struct SalvageLotCard: View {
     let lot: AuctionLot
     let catalog: ContentCatalog
     let hasBodyPaintBooth: Bool
+    let inspect: (SalvageInspectionKind) -> Void
     let purchase: () -> Void
 
     var body: some View {
@@ -88,43 +92,67 @@ private struct SalvageLotCard: View {
                     .background(GarageStyle.danger, in: Capsule())
             }
 
-            HStack(spacing: 7) {
-                statusChip(lot.startsAndDrives ? "Çalışır / yürür" : "Çalışmaz / çekici", good: lot.startsAndDrives)
-                statusChip(lot.airbagsDeployed ? "Airbag açmış" : "Airbag sağlam", good: !lot.airbagsDeployed)
+            VStack(alignment: .leading, spacing: 7) {
+                Text("EKSPER ÖZETİ").font(.caption2.bold()).foregroundStyle(GarageStyle.orange)
+                Label(impactSummary, systemImage: "car.rear.road.lane")
+                Label(
+                    lot.airbagsDeployed ? "Hava yastıkları açmış" : "Hava yastığı sistemi kayıtlı olarak sağlam",
+                    systemImage: "shield.lefthalf.filled"
+                )
+                Label(
+                    lot.startsAndDrives ? "Araç çalışıyor ve yürür durumda" : "Araç çalışmıyor veya çekici gerekiyor",
+                    systemImage: "engine.combustion.fill"
+                )
+                Text("Mekanik ve taşıyıcı ayrıntılar inceleme yapılmadan belirsizdir.")
+                    .foregroundStyle(.secondary)
+            }
+            .font(.caption)
+
+            inspectionControls
+
+            if !lot.performedInspections.isEmpty {
+                VehicleInspectionDiagram(
+                    damages: lot.panelDamages,
+                    structuralDamages: lot.structuralDamages,
+                    knownPanels: lot.revealedPanelIDs,
+                    knownStructuralAreas: lot.revealedStructuralAreas
+                )
             }
 
-            VehicleInspectionDiagram(
-                damages: lot.panelDamages,
-                structuralDamages: lot.structuralDamages
-            )
-
-            VStack(alignment: .leading, spacing: 7) {
-                Text("HASARLI VE EKSİK DIŞ PARÇALAR").font(.caption2.bold()).foregroundStyle(GarageStyle.orange)
-                ForEach(lot.panelDamages.filter { $0.condition != .original && VehiclePanel.exteriorCases.contains($0.panel) }) { damage in
-                    HStack {
-                        Text(damage.panel.title).font(.caption)
-                        Spacer()
-                        Text(damage.condition.title)
-                            .font(.caption.bold()).foregroundStyle(conditionColor(damage.condition))
+            if lot.performedInspections.contains(.body) {
+                VStack(alignment: .leading, spacing: 7) {
+                    Text("TESPİT EDİLEN DIŞ PARÇALAR").font(.caption2.bold()).foregroundStyle(GarageStyle.orange)
+                    ForEach(revealedPanelDamages) { damage in
+                        HStack {
+                            Text(damage.panel.title).font(.caption)
+                            Spacer()
+                            Text(damage.condition.title)
+                                .font(.caption.bold()).foregroundStyle(conditionColor(damage.condition))
+                        }
                     }
                 }
+            }
+
+            if !lot.revealedFaultIDs.isEmpty {
+                VStack(alignment: .leading, spacing: 7) {
+                    Text("TESPİT EDİLEN SİSTEM KUSURLARI").font(.caption2.bold()).foregroundStyle(GarageStyle.orange)
+                    ForEach(lot.revealedFaultIDs, id: \.self) { id in
+                        if let fault = catalog.fault(id: id) {
+                            Label(
+                                "\(fault.name) • \(catalog.part(for: fault)?.name ?? "parça kaydı eksik")",
+                                systemImage: "exclamationmark.triangle.fill"
+                            )
+                                .font(.caption).foregroundStyle(.white.opacity(0.84))
+                        }
+                    }
+                }
+            } else if lot.performedInspections.contains(.underbody) || lot.performedInspections.contains(.systems) {
+                Label("Bu kontrollerde kesinleşen ek sistem kusuru bulunamadı.", systemImage: "questionmark.circle")
+                    .font(.caption).foregroundStyle(.secondary)
             }
 
             if let vehicle {
                 investmentReport(vehicle: vehicle)
-            }
-
-            VStack(alignment: .leading, spacing: 7) {
-                Text("MEKANİK VE ELEKTRİK KUSURLARI").font(.caption2.bold()).foregroundStyle(GarageStyle.orange)
-                ForEach(lot.mechanicalFaultIDs, id: \.self) { id in
-                    if let fault = catalog.fault(id: id) {
-                        Label(
-                            "\(fault.name) • \(catalog.part(for: fault)?.name ?? "parça kaydı eksik")",
-                            systemImage: "exclamationmark.triangle.fill"
-                        )
-                            .font(.caption).foregroundStyle(.white.opacity(0.84))
-                    }
-                }
             }
 
             HStack {
@@ -140,6 +168,9 @@ private struct SalvageLotCard: View {
                 }
             }
 
+            Text("İnceleme bulma olasılığını yükseltir fakat bütün gizli kusurları garanti etmez. Satın alma sonrası sökümde yeni işler çıkabilir.")
+                .font(.caption2).foregroundStyle(.secondary)
+
             Button(action: purchase) {
                 Label(lot.severity == .heavy ? "Hasarlı Aracı Satın Al" : "Hurda Araç Satın Alınamaz", systemImage: "cart.fill")
             }
@@ -149,6 +180,46 @@ private struct SalvageLotCard: View {
         }
         .garageCard()
         .padding(.horizontal, 12)
+    }
+
+    private var inspectionControls: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("USTANIN İNCELEMESİ").font(.caption2.bold()).foregroundStyle(GarageStyle.orange)
+            Text("İstediğin kontrolleri yapabilir veya mevcut bilgiyle risk alabilirsin.")
+                .font(.caption2).foregroundStyle(.secondary)
+            ForEach(SalvageInspectionKind.allCases, id: \.self) { kind in
+                if lot.performedInspections.contains(kind) {
+                    Label("\(kind.title) tamamlandı", systemImage: "checkmark.circle.fill")
+                        .font(.caption.bold()).foregroundStyle(GarageStyle.mint)
+                } else {
+                    Button {
+                        inspect(kind)
+                    } label: {
+                        Label("\(kind.title) • \(kind.durationMinutes) dk", systemImage: "magnifyingglass")
+                    }
+                    .buttonStyle(ActionButtonStyle(tint: GarageStyle.raised, foreground: .white))
+                }
+            }
+        }
+    }
+
+    private var impactSummary: String {
+        let damaged = lot.panelDamages.filter { $0.condition != .original }
+        let frontPanels: Set<VehiclePanel> = [.frontBumper, .hood, .leftFrontFender, .rightFrontFender]
+        let rearPanels: Set<VehiclePanel> = [.trunk, .rearBumper, .leftRearFender, .rightRearFender]
+        let front = damaged.filter { frontPanels.contains($0.panel) }.count
+        let rear = damaged.filter { rearPanels.contains($0.panel) }.count
+        if front > rear { return "Ön bölüm darbe kaydı bulunuyor" }
+        if rear > front { return "Arka bölüm darbe kaydı bulunuyor" }
+        return "Yan ve çevresel kaporta hasarı bulunuyor"
+    }
+
+    private var revealedPanelDamages: [PanelDamage] {
+        lot.panelDamages.filter {
+            $0.condition != .original
+                && VehiclePanel.exteriorCases.contains($0.panel)
+                && lot.revealedPanelIDs.contains($0.panel)
+        }
     }
 
     private func investmentReport(vehicle: VehicleDefinition) -> some View {
@@ -170,14 +241,6 @@ private struct SalvageLotCard: View {
         .padding(10)
         .background(GarageStyle.raised.opacity(0.58), in: RoundedRectangle(cornerRadius: 11))
         .id("investment")
-    }
-
-    private func statusChip(_ text: String, good: Bool) -> some View {
-        Text(text)
-            .font(.caption2.bold())
-            .foregroundStyle(good ? GarageStyle.mint : GarageStyle.danger)
-            .padding(.horizontal, 8).padding(.vertical, 6)
-            .background(GarageStyle.raised, in: Capsule())
     }
 
     private func conditionColor(_ condition: PanelCondition) -> Color {

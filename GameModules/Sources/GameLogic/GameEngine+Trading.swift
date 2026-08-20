@@ -2,6 +2,60 @@ import Foundation
 import GameDomain
 
 extension GameEngine {
+    mutating func inspectSalvageLot(
+        lotID: UUID,
+        kind: SalvageInspectionKind
+    ) throws -> [GameEvent] {
+        guard var market = state.auction,
+              let index = market.lots.firstIndex(where: { $0.id == lotID }),
+              !market.lots[index].performedInspections.contains(kind) else {
+            throw GameRuleError.invalidCommand("Bu araçta seçilen ekspertiz kontrolü zaten yapıldı veya araç artık satışta değil.")
+        }
+        var lot = market.lots[index]
+        var random = SeededRandomSource(seed: state.randomSeed)
+        let revealedBefore = knownDefectCount(in: lot)
+        let equipment = catalog.shopLevel(state.shopLevel)?.equipmentBonus ?? 0
+
+        switch kind {
+        case .body:
+            lot.revealedPanelIDs.formUnion(lot.panelDamages.map(\.panel))
+        case .underbody:
+            let skill = state.expertise[.chassis, default: SkillProgress()].level
+            let chance = min(92, 48 + skill * 9 + equipment / 2)
+            for damage in lot.structuralDamages {
+                let obvious = damage.condition == .cutOrWelded || damage.condition == .cracked
+                if obvious || random.next(upperBound: 100) < chance {
+                    lot.revealedStructuralAreas.insert(damage.area)
+                }
+            }
+            revealFaults(
+                in: &lot,
+                matching: { $0.area == .chassis },
+                baseChance: chance,
+                random: &random
+            )
+        case .systems:
+            let engineSkill = state.expertise[.engine, default: SkillProgress()].level
+            let electricalSkill = state.expertise[.electrical, default: SkillProgress()].level
+            let chance = min(92, 42 + ((engineSkill + electricalSkill) / 2) * 10 + equipment / 2)
+            revealFaults(
+                in: &lot,
+                matching: { $0.area != .chassis },
+                baseChance: chance,
+                random: &random
+            )
+        }
+
+        lot.performedInspections.insert(kind)
+        let revealedCount = max(0, knownDefectCount(in: lot) - revealedBefore)
+        market.lots[index] = lot
+        state.auction = market
+        state.randomSeed = random.state
+        var events = advanceClock(by: kind.durationMinutes)
+        events.append(.salvageInspectionCompleted(kind: kind, revealedCount: revealedCount))
+        return events
+    }
+
     mutating func purchaseAuctionLot(_ lotID: UUID) throws -> [GameEvent] {
         guard var auction = state.auction,
               let lotIndex = auction.lots.firstIndex(where: { $0.id == lotID }) else {
@@ -37,10 +91,17 @@ extension GameEngine {
         auction.lots.remove(at: lotIndex)
         state.auction = auction.lots.isEmpty ? nil : auction
         let name = catalog.vehicle(id: lot.vehicleID)?.name ?? "Hasarlı araç"
-        return [
+        let hiddenCount = hiddenDefectCount(in: lot)
+        var events: [GameEvent] = [
             .auctionWon(vehicleName: name, price: lot.fixedPrice),
             .moneyChanged(Money(minorUnits: -lot.fixedPrice.minorUnits), reason: "Hasarlı araç alımı")
         ]
+        if hiddenCount > 0 {
+            let message = "Araç garaja alınınca sökümde ekspertizde görünmeyen \(hiddenCount) ek kusur ortaya çıktı."
+            recordIncident(kind: .vehiclePurchase, message: message)
+            events.append(.consequence(message))
+        }
+        return events
     }
 
     mutating func completeProjectRepair(
@@ -410,6 +471,44 @@ extension GameEngine {
         }
         state.randomSeed = random.state
         return AuctionState(lots: lots)
+    }
+
+    private mutating func revealFaults(
+        in lot: inout AuctionLot,
+        matching predicate: (FaultDefinition) -> Bool,
+        baseChance: Int,
+        random: inout SeededRandomSource
+    ) {
+        for faultID in lot.mechanicalFaultIDs {
+            guard let fault = catalog.fault(id: faultID), predicate(fault) else { continue }
+            let knownFromSummary = faultID == lot.visibleFaultID
+            let chance = min(96, baseChance + (knownFromSummary ? 12 : 0))
+            if random.next(upperBound: 100) < chance, !lot.revealedFaultIDs.contains(faultID) {
+                lot.revealedFaultIDs.append(faultID)
+            }
+        }
+    }
+
+    private func knownDefectCount(in lot: AuctionLot) -> Int {
+        let panels = lot.panelDamages.filter {
+            $0.condition != .original && lot.revealedPanelIDs.contains($0.panel)
+        }.count
+        let structure = lot.structuralDamages.filter {
+            $0.condition.requiresRepair && lot.revealedStructuralAreas.contains($0.area)
+        }.count
+        return panels + structure + lot.revealedFaultIDs.count
+    }
+
+    private func hiddenDefectCount(in lot: AuctionLot) -> Int {
+        let panels = lot.panelDamages.filter {
+            $0.condition != .original && !lot.revealedPanelIDs.contains($0.panel)
+        }.count
+        let structure = lot.structuralDamages.filter {
+            $0.condition.requiresRepair && !lot.revealedStructuralAreas.contains($0.area)
+        }.count
+        let knownFaults = Set(lot.revealedFaultIDs)
+        let faults = lot.mechanicalFaultIDs.filter { !knownFaults.contains($0) }.count
+        return panels + structure + faults
     }
 
 }

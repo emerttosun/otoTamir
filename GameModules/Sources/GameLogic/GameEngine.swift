@@ -74,6 +74,8 @@ public struct GameEngine: Sendable {
             events = try upgradeShop()
         case .upgradeWashBay:
             events = try upgradeWashBay()
+        case .inspectSalvageLot(let lotID, let kind):
+            events = try inspectSalvageLot(lotID: lotID, kind: kind)
         case .purchaseAuctionLot(let lotID):
             events = try purchaseAuctionLot(lotID)
         case .completeProjectRepair(let projectID, let task, let performance):

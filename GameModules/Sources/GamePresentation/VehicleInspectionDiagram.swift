@@ -4,10 +4,19 @@ import SwiftUI
 struct VehicleInspectionDiagram: View {
     let damages: [PanelDamage]
     let structuralDamages: [StructuralDamage]
+    let knownPanels: Set<VehiclePanel>?
+    let knownStructuralAreas: Set<StructuralArea>?
 
-    init(damages: [PanelDamage], structuralDamages: [StructuralDamage] = []) {
+    init(
+        damages: [PanelDamage],
+        structuralDamages: [StructuralDamage] = [],
+        knownPanels: Set<VehiclePanel>? = nil,
+        knownStructuralAreas: Set<StructuralArea>? = nil
+    ) {
         self.damages = damages
         self.structuralDamages = structuralDamages
+        self.knownPanels = knownPanels
+        self.knownStructuralAreas = knownStructuralAreas
     }
 
     private let columns = [
@@ -29,6 +38,7 @@ struct VehicleInspectionDiagram: View {
                 legend("Ezik", .damaged)
                 legend("Ağır ezik", .heavyDamage)
                 legend("Eksik", .missing)
+                unknownLegend
             }
 
             ZStack {
@@ -56,6 +66,11 @@ struct VehicleInspectionDiagram: View {
                 Text("ŞASİ VE TAŞIYICI YAPI ÖLÇÜMÜ")
                     .font(.system(size: 10, weight: .black))
                     .foregroundStyle(GarageStyle.orange)
+                if structuralRows.isEmpty {
+                    Text("Taşıyıcı yapı henüz ölçülmedi.")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
                 ForEach(structuralRows, id: \.0) { area, condition in
                     HStack(alignment: .firstTextBaseline, spacing: 8) {
                         Text(area.title)
@@ -90,7 +105,7 @@ struct VehicleInspectionDiagram: View {
 
         for panel in visiblePanels {
             let path = panelPath(panel, size: size)
-            context.fill(path, with: .color(color(condition(for: panel))))
+            context.fill(path, with: .color(panelColor(for: panel)))
             context.stroke(path, with: .color(.white.opacity(0.9)), lineWidth: 1.5)
         }
 
@@ -195,8 +210,28 @@ struct VehicleInspectionDiagram: View {
     }
 
     private var structuralRows: [(StructuralArea, StructuralCondition)] {
-        StructuralArea.allCases.map { area in
+        StructuralArea.allCases.filter { area in
+            knownStructuralAreas?.contains(area) ?? true
+        }.map { area in
             (area, structuralDamages.first { $0.area == area }?.condition ?? .intact)
+        }
+    }
+
+    private func panelColor(for panel: VehiclePanel) -> Color {
+        guard knownPanels?.contains(panel) ?? true else {
+            return Color(red: 0.30, green: 0.31, blue: 0.32)
+        }
+        return color(condition(for: panel))
+    }
+
+    private var unknownLegend: some View {
+        HStack(spacing: 5) {
+            RoundedRectangle(cornerRadius: 2)
+                .fill(Color(red: 0.30, green: 0.31, blue: 0.32))
+                .frame(width: 13, height: 13)
+            Text("İncelenmedi")
+                .font(.system(size: 9, weight: .semibold))
+                .lineLimit(1)
         }
     }
 
@@ -212,7 +247,9 @@ struct VehicleInspectionDiagram: View {
     }
 
     private var accessibilitySummary: String {
-        let changed = damages.filter { $0.condition != .original }
+        let changed = damages.filter {
+            $0.condition != .original && (knownPanels?.contains($0.panel) ?? true)
+        }
             .map { "\($0.panel.title): \($0.condition.title)" }
             .joined(separator: ", ")
         let structure = structuralRows.filter { $0.1.requiresRepair }

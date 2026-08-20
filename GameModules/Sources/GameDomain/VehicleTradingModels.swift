@@ -1,5 +1,27 @@
 import Foundation
 
+public enum SalvageInspectionKind: String, Codable, CaseIterable, Sendable {
+    case body
+    case underbody
+    case systems
+
+    public var title: String {
+        switch self {
+        case .body: "Kaporta taraması"
+        case .underbody: "Alt ve taşıyıcı ölçümü"
+        case .systems: "Motor, elektrik ve güvenlik"
+        }
+    }
+
+    public var durationMinutes: Int {
+        switch self {
+        case .body: 25
+        case .underbody: 35
+        case .systems: 40
+        }
+    }
+}
+
 public struct AuctionLot: Codable, Hashable, Identifiable, Sendable {
     public let id: UUID
     public let vehicleID: String
@@ -17,6 +39,9 @@ public struct AuctionLot: Codable, Hashable, Identifiable, Sendable {
     public var airbagsDeployed: Bool
     public var startsAndDrives: Bool
     public var recordedDamage: Money
+    public var performedInspections: Set<SalvageInspectionKind>
+    public var revealedPanelIDs: Set<VehiclePanel>
+    public var revealedStructuralAreas: Set<StructuralArea>
 
     public init(
         id: UUID,
@@ -34,7 +59,10 @@ public struct AuctionLot: Codable, Hashable, Identifiable, Sendable {
         mechanicalFaultIDs: [String]? = nil,
         airbagsDeployed: Bool = true,
         startsAndDrives: Bool = false,
-        recordedDamage: Money = .zero
+        recordedDamage: Money = .zero,
+        performedInspections: Set<SalvageInspectionKind> = [],
+        revealedPanelIDs: Set<VehiclePanel> = [],
+        revealedStructuralAreas: Set<StructuralArea> = []
     ) {
         self.id = id
         self.vehicleID = vehicleID
@@ -52,6 +80,9 @@ public struct AuctionLot: Codable, Hashable, Identifiable, Sendable {
         self.airbagsDeployed = airbagsDeployed
         self.startsAndDrives = startsAndDrives
         self.recordedDamage = recordedDamage
+        self.performedInspections = performedInspections
+        self.revealedPanelIDs = revealedPanelIDs
+        self.revealedStructuralAreas = revealedStructuralAreas
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -59,6 +90,7 @@ public struct AuctionLot: Codable, Hashable, Identifiable, Sendable {
         case currentBid, competitorMaximum, playerIsHighest
         case fixedPrice, severity, panelDamages, structuralDamages, mechanicalFaultIDs
         case airbagsDeployed, startsAndDrives, recordedDamage
+        case performedInspections, revealedPanelIDs, revealedStructuralAreas
     }
 
     public init(from decoder: any Decoder) throws {
@@ -81,6 +113,12 @@ public struct AuctionLot: Codable, Hashable, Identifiable, Sendable {
         airbagsDeployed = try values.decodeIfPresent(Bool.self, forKey: .airbagsDeployed) ?? true
         startsAndDrives = try values.decodeIfPresent(Bool.self, forKey: .startsAndDrives) ?? false
         recordedDamage = try values.decodeIfPresent(Money.self, forKey: .recordedDamage) ?? .zero
+        let decodedInspections = try values.decodeIfPresent(Set<SalvageInspectionKind>.self, forKey: .performedInspections)
+        performedInspections = decodedInspections ?? Set(SalvageInspectionKind.allCases)
+        revealedPanelIDs = try values.decodeIfPresent(Set<VehiclePanel>.self, forKey: .revealedPanelIDs)
+            ?? Set(panelDamages.map(\.panel))
+        revealedStructuralAreas = try values.decodeIfPresent(Set<StructuralArea>.self, forKey: .revealedStructuralAreas)
+            ?? Set(structuralDamages.map(\.area))
     }
 }
 

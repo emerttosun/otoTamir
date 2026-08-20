@@ -437,7 +437,7 @@ struct GameLogicTests {
         #expect(PartQuality.used.title(for: .replacementPart) == "Çıkma")
     }
 
-    @Test("Hasarlı araç pazarı sabit fiyat ve tam ekspertiz raporuyla satın alınır")
+    @Test("Hasarlı araçta üçlü inceleme bilgi verir, gizli kusur riski satın alımda kalır")
     func salvageMarketRules() throws {
         let catalog = try DefaultContentRepository().load()
         var engine = GameEngine(catalog: catalog, seed: 99)
@@ -451,9 +451,25 @@ struct GameLogicTests {
         #expect(lot.structuralDamages.count == StructuralArea.allCases.count)
         #expect(lot.structuralDamages.contains { $0.condition.requiresRepair })
         #expect(lot.mechanicalFaultIDs.count >= 3)
+        #expect(lot.performedInspections.isEmpty)
+        #expect(lot.revealedFaultIDs.isEmpty)
+
+        let minuteBefore = engine.state.totalMinutes
+        try engine.handle(.inspectSalvageLot(lotID: lot.id, kind: .body))
+        let inspectedLot = try #require(engine.state.auction?.lots.first { $0.id == lot.id })
+        #expect(engine.state.totalMinutes == minuteBefore + SalvageInspectionKind.body.durationMinutes)
+        #expect(inspectedLot.performedInspections == [.body])
+        #expect(inspectedLot.revealedPanelIDs.count == VehiclePanel.exteriorCases.count)
+        #expect(throws: GameRuleError.self) {
+            try engine.handle(.inspectSalvageLot(lotID: lot.id, kind: .body))
+        }
+
         try engine.handle(.purchaseAuctionLot(lot.id))
-        #expect(engine.state.projectCars.contains { $0.id == lot.id })
+        let project = try #require(engine.state.projectCars.first { $0.id == lot.id })
+        #expect(project.faultIDs == lot.mechanicalFaultIDs)
+        #expect(project.structuralDamages == lot.structuralDamages)
         #expect(engine.state.financeEntries.last?.category == .salvageVehicle)
+        #expect(engine.state.incidents.last?.kind == .vehiclePurchase)
     }
 
     @Test("Tam hasarlı hurda araç restorasyon için satın alınamaz")
@@ -914,7 +930,7 @@ struct GameLogicTests {
         #expect(!engine.state.projectCars[0].buyerOffers.contains { $0.id == lowBudgetOffer.id })
     }
 
-    @Test("İhale aracı mekanik, kaporta ve güvenlik işleri tek tek bitmeden satışa hazır olmaz")
+    @Test("Hasarlı araç mekanik, kaporta ve güvenlik işleri tek tek bitmeden satışa hazır olmaz")
     func projectCarRequiresEveryRepairTask() throws {
         let catalog = try DefaultContentRepository().load()
         let vehicle = catalog.vehicles[0]

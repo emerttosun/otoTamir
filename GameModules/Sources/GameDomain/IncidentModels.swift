@@ -6,6 +6,7 @@ public enum IncidentKind: String, Codable, Sendable {
     case referral
     case loan
     case vehicleSale
+    case vehiclePurchase
     case listing
     case apprentice
 
@@ -16,6 +17,7 @@ public enum IncidentKind: String, Codable, Sendable {
         case .referral: "Müşteri Tavsiyesi"
         case .loan: "Banka Hareketi"
         case .vehicleSale: "Araç Satışı"
+        case .vehiclePurchase: "Hasarlı Araç"
         case .listing: "İlan Hareketi"
         case .apprentice: "Çırak İşi"
         }
@@ -28,6 +30,7 @@ public enum IncidentKind: String, Codable, Sendable {
         case .referral: "person.2.fill"
         case .loan: "building.columns.fill"
         case .vehicleSale: "car.side.fill"
+        case .vehiclePurchase: "car.side.rear.open.fill"
         case .listing: "rectangle.and.pencil.and.ellipsis"
         case .apprentice: "person.badge.clock.fill"
         }

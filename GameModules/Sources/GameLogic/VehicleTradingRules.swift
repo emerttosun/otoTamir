@@ -27,18 +27,21 @@ public enum VehicleTradingRules {
         catalog: ContentCatalog,
         hasBodyPaintBooth: Bool
     ) -> VehicleInvestmentEstimate {
-        let mechanical = mechanicalPartCost(for: lot.mechanicalFaultIDs, catalog: catalog)
-        let body = lot.panelDamages.reduce(Money.zero) { partial, damage in
+        let mechanical = mechanicalPartCost(for: lot.revealedFaultIDs, catalog: catalog)
+        let body = lot.panelDamages.filter { lot.revealedPanelIDs.contains($0.panel) }.reduce(Money.zero) { partial, damage in
             partial + panelRepairCost(for: damage.condition, vehicleValue: vehicle.baseValue)
         }
-        let structure = lot.structuralDamages.reduce(Money.zero) { partial, damage in
+        let structure = lot.structuralDamages.filter { lot.revealedStructuralAreas.contains($0.area) }.reduce(Money.zero) { partial, damage in
             partial + structuralRepairCost(for: damage.condition, vehicleValue: vehicle.baseValue)
         }
         let airbag = lot.airbagsDeployed ? percent(vehicle.baseValue, 6) : .zero
-        var repairMid = percent(mechanical, 85) + body + structure + airbag
-        if hasBodyPaintBooth { repairMid = percent(repairMid, 90) }
-        let repairLow = percent(repairMid, 85)
-        let repairHigh = percent(repairMid, 125)
+        var knownRepair = percent(mechanical, 85) + body + structure + airbag
+        if hasBodyPaintBooth { knownRepair = percent(knownRepair, 90) }
+        let completed = lot.performedInspections.count
+        let uncertaintyLow = percent(vehicle.baseValue, max(1, 7 - completed * 2))
+        let uncertaintyHigh = percent(vehicle.baseValue, max(5, 22 - completed * 5))
+        let repairLow = percent(knownRepair, 85) + uncertaintyLow
+        let repairHigh = percent(knownRepair, 125) + uncertaintyHigh
         let fairSaleLow = percent(vehicle.baseValue, lot.severity == .totalLoss ? 58 : 64)
         let fairSaleHigh = percent(vehicle.baseValue, lot.severity == .totalLoss ? 76 : 84)
         let totalLow = lot.fixedPrice + repairLow
