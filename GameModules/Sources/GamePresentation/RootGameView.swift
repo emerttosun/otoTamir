@@ -39,6 +39,8 @@ public struct RootGameView: View {
                     WorkshopView(store: store)
                 case .auction:
                     AuctionView(store: store)
+                case .garage:
+                    GarageView(store: store)
                 case .listings:
                     ListingsView(store: store)
                 case .progress:

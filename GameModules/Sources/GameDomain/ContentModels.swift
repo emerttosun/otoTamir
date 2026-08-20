@@ -299,6 +299,7 @@ public struct ShopLevelDefinition: Codable, Hashable, Identifiable, Sendable {
     public let equipmentBonus: Int
     public let facilities: [ShopFacility]
     public let maxApprentices: Int
+    public let garageCapacity: Int
 
     public init(
         id: Int,
@@ -307,7 +308,8 @@ public struct ShopLevelDefinition: Codable, Hashable, Identifiable, Sendable {
         upgradeCost: Money,
         equipmentBonus: Int,
         facilities: [ShopFacility] = [.basicRepair],
-        maxApprentices: Int = 0
+        maxApprentices: Int = 0,
+        garageCapacity: Int = 0
     ) {
         self.id = id
         self.name = name
@@ -316,6 +318,7 @@ public struct ShopLevelDefinition: Codable, Hashable, Identifiable, Sendable {
         self.equipmentBonus = equipmentBonus
         self.facilities = facilities
         self.maxApprentices = maxApprentices
+        self.garageCapacity = garageCapacity
     }
 }
 

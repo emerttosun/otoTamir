@@ -115,6 +115,13 @@ public enum ContentValidator {
         guard catalog.shopLevels.allSatisfy({ $0.facilities.contains(.basicRepair) }) else {
             throw ContentError.invalidValue("Her dükkân seviyesinde temel tamir kabiliyeti bulunmalı")
         }
+        let garageCapacities = catalog.shopLevels.map(\.garageCapacity)
+        guard garageCapacities.first == 0,
+              garageCapacities.last == 4,
+              garageCapacities.allSatisfy({ $0 >= 0 }),
+              zip(garageCapacities, garageCapacities.dropFirst()).allSatisfy({ $0 <= $1 }) else {
+            throw ContentError.invalidValue("Garaj kapasitesi kapalı başlayıp dükkân seviyesiyle artmalı")
+        }
         guard catalog.shopLevels[1].facilities.contains(.periodicMaintenance),
               catalog.shopLevels[1].maxApprentices >= 1,
               catalog.shopLevels[2].facilities.contains(.washBay),

@@ -7,7 +7,7 @@ extension GameEngine {
             throw GameRuleError.invalidCommand("Bu müşteri artık dükkânda beklemiyor.")
         }
         let capacity = catalog.shopLevel(state.shopLevel)?.capacity ?? 1
-        guard state.activeJobs.count + state.projectCars.count < capacity else {
+        guard state.activeJobs.count < capacity else {
             throw GameRuleError.shopIsFull
         }
         let offer = state.offers.remove(at: index)

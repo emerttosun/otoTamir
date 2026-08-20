@@ -8,8 +8,8 @@ Ana fantezi küçük bir sanayi dükkânını ustalıkla ve esnaflık kararları
 - **Yıllık bakım:** bakım seti alma, yağ/filtre, akü, lastik-fren ve sıvı kontrollerini uygun mini oyunlarla tamamlama.
 - **Gelişim:** yapılan işlerden alan bazlı XP ve seviye, işçilik şöhreti, şaibe, dükkân puanı ve yorumlar, dükkân kabiliyetleri ve çıraklar.
 - **Hasarlı araç pazarı:** sabit satış bedelli, sigorta çıkması ve eksper tarafından onarılabilir kabul edilmiş ağır hasarlı araç; kısa eksper özeti, isteğe bağlı üç inceleme, ustanın bulduğu ölçümler, belirsizlikli yatırım/kâr aralığı ve satın alma.
-- **Dükkân sahnesi:** kabul edilen müşteri araçlarını ve satın alınan proje araçlarını geliş sırasına göre (FIFO) tek araçlık yatay sayfalarda gösterir; işlem paneli yalnız oyuncu araca dokunduğunda açılır.
-- **Proje restorasyonu:** Hasarlı'dan alınan araç tek düğmeyle bitmez. Her mekanik arıza, hasarlı veya eksik dış parça, şasi/podye/direk onarımı ve hava yastığı sistemi ayrı maliyetli bir iş ve uygun mini oyunla oyuncu tarafından tamamlanır.
+- **Dükkân sahnesi:** yalnız kabul edilen müşteri araçlarını geliş sırasına göre (FIFO) tek araçlık yatay sayfalarda gösterir; işlem paneli yalnız oyuncu araca dokunduğunda açılır.
+- **Garaj ve proje restorasyonu:** Hasarlı'dan alınan araç bağımsız Garaj'a gider ve müşteri liftini işgal etmez. Proje araçları geliş sırasıyla tek araçlık yatay sayfalarda gösterilir. Her mekanik arıza, hasarlı veya eksik dış parça, şasi/podye/direk onarımı ve hava yastığı sistemi ayrı maliyetli bir iş ve uygun mini oyunla oyuncu tarafından tamamlanır.
 - **İlan yeri:** restorasyonu biten araç için fiyat belirleme, satış ihtimali, ayrı ilan takibi ve dürüst veya riskli satış.
 - **Finansman:** dükkân puanı ve gelişim seviyesine bağlı banka limiti; araç yatırımı için farklı faiz/vade seçenekleri ve eylem tabanlı taksitler.
 - **Olay Defteri:** denetim, şikâyet, tavsiye, kredi, ilan, araç satışı ve çırak sonuçlarını para/itibar etkileriyle Gelişim ekranında kalıcı tutar.
@@ -47,13 +47,13 @@ Sistem uyarısı veya ayrı iPhone penceresi açılmaz; oyunlar dükkân ekranı
 
 ## Dükkân, yıkama ve çırak
 
-- Seviye 1: temel lift ve tek araç kapasitesi.
-- Seviye 2: ikinci lift, oturma alanı, yıllık bakım ve ilk çırak tezgâhı.
+- Seviye 1: temel lift ve tek müşteri aracı kapasitesi; proje Garajı kapalıdır.
+- Seviye 2: ikinci lift, oturma alanı, yıllık bakım, ilk çırak tezgâhı ve bir proje araçlık Garaj.
 - Dükkân Seviye 3'te bağımsız yıkama gelişimi açılır. Yıkama Seviye 1 temel dış yıkama, Seviye 2 iç-dış detaylı temizlik, Seviye 3 premium teslim sunar; ilerledikçe işlem süresi ve sarf maliyeti düşer, dükkân puanına küçük katkısı artar.
-- Seviye 4: üç araç kapasitesi, ikinci çırak ve kontrolleri hızlandıran teşhis laboratuvarı.
-- Seviye 5: hasarlı araç restorasyon giderini azaltan kaporta-boya kabini.
-- Seviye 6: dört araç kapasitesi, detaylı temizlik ve üçüncü çırak.
-- Seviye 7: beş araç kapasitesi, dört çırak ve ilan satış ihtimalini yükselten araç vitrini.
+- Seviye 4: üç müşteri aracı kapasitesi, iki proje araçlık Garaj, ikinci çırak ve kontrolleri hızlandıran teşhis laboratuvarı.
+- Seviye 5: iki proje araçlık Garaj ve hasarlı araç restorasyon giderini azaltan kaporta-boya kabini.
+- Seviye 6: dört müşteri aracı kapasitesi, üç proje araçlık Garaj, detaylı temizlik ve üçüncü çırak.
+- Seviye 7: beş müşteri aracı kapasitesi, dört proje araçlık Garaj, dört çırak ve ilan satış ihtimalini yükselten araç vitrini.
 
 Oyuncu kabul edilmiş bir aracı çırağa devretmeden önce parça kalitesini belirler. Çırak kendi yeterliliğine göre kontrol ve teşhisi yapar, parçacı siparişini hazırlar ve fiyat kararı için ustayı bekler. Müşteriyle fiyatı yalnız usta konuşur; anlaşmadan sonra çırak tamiri oyun saati içinde arka planda sürdürürken oyuncu başka araçla ilgilenebilir. Fiyatlandırma ve teslim daima ustada kalır. Çırak başlangıçta ustadan daha düşük ve değişken performans gösterir; tamamladığı bütün işlerden XP kazanıp alan seviyesi açar. Araç teslimden önce mevcut yıkama seviyesinde temizlenebilir; o seviyenin sarf maliyetini ve süresini kullanır, temiz teslim seviyesine göre dükkân puanına küçük katkı sağlar.
 

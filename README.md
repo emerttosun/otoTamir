@@ -6,7 +6,7 @@ Türk sanayi kültüründen esinlenen, SwiftUI ve SpriteKit ile geliştirilmiş 
 
 1. `OtoTamir.xcodeproj` dosyasını Xcode 26 veya daha yeni sürümde açın.
 2. `OtoTamir` scheme'ini ve bir iOS 17+ iPhone simülatörünü seçin.
-3. Çalıştırın. İlk müşteri dükkânda görünür; sonraki müşteriler yapılan işlemler veya “Biraz Müşteri Bekle” eylemiyle gelir. Kabul edilen müşteri araçları ve Hasarlı'dan alınan proje araçları Dükkân sahnesine eklenir; işlem paneli yalnız araca dokununca açılır. Oyun boşta para harcamaz. Sigorta çıkması araçlar Hasarlı bölümünde ekspertizle alınır, Garaj'da restore edilir ve İlanlar bölümünde satışa çıkarılır. Çıraklar, Banka ve gerçek para ürünlerini içeren Mağaza ayrı bölümlerdir; para göstergesi kasa hareketlerini açar.
+3. Çalıştırın. İlk müşteri dükkânda görünür; sonraki müşteriler yapılan işlemler veya “Biraz Müşteri Bekle” eylemiyle gelir. Kabul edilen müşteri araçları Dükkân sahnesine eklenir ve işlem paneli yalnız araca dokununca açılır. Oyun boşta para harcamaz. Sigorta çıkması araçlar Hasarlı bölümünde ekspertizle alınır; dükkân gelişimiyle açılan bağımsız Garaj'da restore edilir ve İlanlar bölümünde satışa çıkarılır. Proje araçları müşteri liftlerini işgal etmez. Çıraklar, Banka ve gerçek para ürünlerini içeren Mağaza ayrı bölümlerdir; para göstergesi kasa hareketlerini açar.
 
 StoreKit ürünlerini yerel test etmek için paylaşılan `OtoTamir` scheme'i `OtoTamir/Resources/OtoTamir.storekit` yapılandırmasını otomatik kullanır. Canlı gerçek para satışları için aynı ürün kimlikleri App Store Connect'te oluşturulup onaylanmalıdır. Gerçek iCloud için bundle identifier, geliştirici takımı ve CloudKit container App Store Connect/Developer Portal üzerinde oluşturulmalıdır; servis kullanılamazsa oyun yerel kayda devam eder.
 

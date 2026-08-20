@@ -94,6 +94,7 @@ public enum GameRuleError: LocalizedError, Equatable, Sendable {
     case notEnoughTime
     case notEnoughMoney
     case shopIsFull
+    case garageIsFull
     case contentMissing(String)
 
     public var errorDescription: String? {
@@ -102,6 +103,7 @@ public enum GameRuleError: LocalizedError, Equatable, Sendable {
         case .notEnoughTime: "Bu işlem için oyun zamanı ilerletilemedi."
         case .notEnoughMoney: "Kasada bu işlem için yeterli para yok."
         case .shopIsFull: "Dükkânda boş araç yeri yok."
+        case .garageIsFull: "Garaj kapalı veya proje aracı kapasitesi dolu. Dükkân gelişiminden Garaj'ı yükselt."
         case .contentMissing(let id): "İçerik bulunamadı: \(id)"
         }
     }

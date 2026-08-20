@@ -15,12 +15,12 @@
 - `OtoTamir/Resources/Localizable.xcstrings`: Türkçe kaynak dilini ve gelecekteki yerelleştirmeleri taşır.
 - `OtoTamir/Resources/OtoTamir.storekit`: İki nakit, bir kozmetik ve bir içerik test ürününü tanımlar.
 - `OtoTamir/Resources/workshop-background-v1.png`: Marka ve yazı içermeyen, iki liftli özgün 2D tamirhane sahne arka planıdır.
-- `OtoTamir/Resources/workshop-car-sprite-v1.png`: Dükkândaki müşteri ve proje araçlarının içerik rengine boyanabilen şeffaf, markasız araç sprite'ıdır.
+- `OtoTamir/Resources/workshop-car-sprite-v1.png`: Dükkândaki müşteri araçlarının içerik rengine boyanabilen şeffaf, markasız araç sprite'ıdır.
 
 ## GameDomain
 
 - `Money.swift`: Kuruş tabanlı güvenli para değerini ve Türk lirası gösterimini sağlar.
-- `ContentModels.swift`: JSON'dan gelen araç, ortak parçaya kimlikle bağlanan arıza, üç davranış değerli müşteri, bağlamsal bütüncül yorum, dükkân ve üç seviyeli yıkama gelişimi ile ayrıntılı gider dengelerini tanımlar.
+- `ContentModels.swift`: JSON'dan gelen araç, ortak parçaya kimlikle bağlanan arıza, üç davranış değerli müşteri, bağlamsal bütüncül yorum, müşteri liftinden bağımsız Garaj kapasiteli dükkân ve üç seviyeli yıkama gelişimi ile ayrıntılı gider dengelerini tanımlar.
 - `PartModels.swift`: Tekil parçaların kategori, taban fiyat ve bakım/normal tamire göre kalite profilini; bakım görevlerinin parça ve işçilik eşlemesini tanımlar.
 - `GameModels.swift`: Sürüm 18 `GameState` kayıt kökünü, eski güven değerinin dükkân puanına göçünü, kişilikli çırakları, kaybedilen müşteri havuzunu, alan bazlı yetkinliği ve eylem tabanlı zamanı tanımlar.
 - `RepairModels.swift`: Müşteri teklifi, iş emri, parça kalitesi, bakım, ustalık ve itibar modellerini toplar.
@@ -63,11 +63,12 @@
 ## GamePresentation
 
 - `GameStore.swift`: UI ile oyun motoru arasındaki MainActor köprüsü, otomatik yerel/bulut kayıt ve oyun içi bildirim durumlarını yönetir.
-- `RootGameView.swift`: Dikey uygulama kabuğu, tıklanabilir para göstergesi, kasa ekranı, oyun içi bildirim ve Dükkân/Hasarlı/İlanlar/Gelişim/Çıraklar/Banka/Mağaza geçişlerini sunar.
+- `RootGameView.swift`: Dikey uygulama kabuğu, tıklanabilir para göstergesi, kasa ekranı, oyun içi bildirim ve Dükkân/Hasarlı/Garaj/İlanlar/Gelişim/Çıraklar/Banka/Mağaza geçişlerini sunar.
 - `GameSection.swift`: Üst gezinti sekmelerinin başlık, simge ve tek seferlik kısa tanıtım metinlerini tanımlar.
 - `SectionIntroductionCard.swift`: Bir sekme ilk kez açıldığında akışı kilitlemeden kısa kullanım açıklamasını gösterir.
-- `WorkshopView.swift`: Yeniden yüklenmeden çalışan araç seçimini, müşteri kuyruğunu, proje restorasyonunu ve kontrol, teşhis, parça, tamir/bakım, fiyat sıralı iş akışını gösterir.
+- `WorkshopView.swift`: Yeniden yüklenmeden çalışan müşteri aracı seçimini, müşteri kuyruğunu ve kontrol, teşhis, parça, tamir/bakım, fiyat sıralı iş akışını gösterir.
 - `AuctionView.swift`: Sabit satış bedelli ağır hasarlı araçların kısa özetini, üç isteğe bağlı kontrolünü, belirsizlikli yatırım hesabını ve satın alma akışını sunar.
+- `GarageView.swift`: Dükkân seviyesine bağlı bağımsız proje kapasitesini, geliş sıralı tek araçlık yatay sayfaları, restorasyon görevlerini ve proje mini oyunlarını sunar.
 - `VehicleInspectionDiagram.swift`: Hasarlı veya eksik dış parçaları sade üstten 2B kaporta şemasında; yalnız incelenmiş şasi, podye, kule, direk, panel ve bagaj havuzunu ayrı metin satırlarında ve VoiceOver özetiyle gösterir.
 - `RestoredBodyHistoryView.swift`: İlan hazırlığında ve yayındaki ilanda restorasyon sonrası boyalı/değişen parçaları, yapısal onarımları ve airbag geçmişini açılır bölümde gösterir.
 - `VehicleBuyerOfferCard.swift`: Gelen araç teklifini kabul etme, reddetme ve alıcının bütçesine karşı fiyatla pazarlık yapma arayüzünü sunar.
@@ -90,7 +91,7 @@
 - `RepairMiniGames/AdvancedElectricalMiniGames.swift`: Bobin, sigorta, kablo sürekliliği, cam krikosu ve far ayarı işlemlerini canlandırır.
 - `RepairMiniGames/AdvancedChassisMiniGames.swift`: Disk salgısı, amortisör, rulman ve aks körüğü işlemlerini canlandırır.
 - `RepairMiniGames/AdvancedBodyMiniGames.swift`: Kaput hizalama, nokta kaynak ve boya katmanı işlemlerini canlandırır.
-- `WorkshopScene.swift`: Kalıcı SpriteKit sahnesinde araçları kabul sırasıyla tek tek büyük gösterir; iPhone'da yatay sayfalama ve dokunarak iş seçimi sağlar.
+- `WorkshopScene.swift`: Kalıcı SpriteKit sahnesinde yalnız müşteri araçlarını kabul sırasıyla tek tek büyük gösterir; iPhone'da yatay sayfalama ve dokunarak iş seçimi sağlar.
 - `Style.swift`: Paylaşılan renk, kart, düğme stilleri ve iPhone dokunsal geri bildirimini tanımlar.
 
 ## Testler

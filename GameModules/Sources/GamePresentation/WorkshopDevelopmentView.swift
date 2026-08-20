@@ -79,8 +79,9 @@ struct WorkshopDevelopmentView: View {
 
             if let current = store.catalog.shopLevel(store.state.shopLevel) {
                 Text(current.name).font(.title3.bold())
-                HStack(spacing: 8) {
+                LazyVGrid(columns: [.init(.flexible()), .init(.flexible())], spacing: 8) {
                     metricPill("\(current.capacity) araç", icon: "car.2.fill")
+                    metricPill(current.garageCapacity == 0 ? "Garaj kapalı" : "\(current.garageCapacity) garaj", icon: "building.2.crop.circle")
                     metricPill("+\(current.equipmentBonus) ekipman", icon: "wrench.and.screwdriver.fill")
                     metricPill("\(current.maxApprentices) çırak", icon: "person.2.fill")
                 }
@@ -100,6 +101,10 @@ struct WorkshopDevelopmentView: View {
                 Text(next.name).font(.subheadline.bold())
                 ForEach(newFacilities(in: next), id: \.self) { facility in
                     Label(facility.title, systemImage: "lock.open.fill")
+                        .font(.caption).foregroundStyle(GarageStyle.orange)
+                }
+                if next.garageCapacity > currentGarageCapacity {
+                    Label("Garaj kapasitesi \(next.garageCapacity) araç olur", systemImage: "car.side.rear.open.fill")
                         .font(.caption).foregroundStyle(GarageStyle.orange)
                 }
                 Button("Dükkânı Geliştir • \(next.upgradeCost.liraText)") {
@@ -176,5 +181,9 @@ struct WorkshopDevelopmentView: View {
     private func newFacilities(in next: ShopLevelDefinition) -> [ShopFacility] {
         let current = store.catalog.shopLevel(store.state.shopLevel)?.facilities ?? []
         return next.facilities.filter { !current.contains($0) }
+    }
+
+    private var currentGarageCapacity: Int {
+        store.catalog.shopLevel(store.state.shopLevel)?.garageCapacity ?? 0
     }
 }

@@ -4,11 +4,10 @@ import SwiftUI
 
 enum WorkshopVehicleSelection: Hashable {
     case job(UUID)
-    case project(UUID)
 
     var id: UUID {
         switch self {
-        case .job(let id), .project(let id): id
+        case .job(let id): id
         }
     }
 }
@@ -145,16 +144,6 @@ public final class WorkshopScene: SKScene {
         car.position = CGPoint(x: 0, y: 14)
         root.addChild(car)
 
-        if vehicle.isDamaged {
-            let warning = SKLabelNode(text: "⚠︎")
-            warning.fontName = "AvenirNext-Heavy"
-            warning.fontSize = width * 0.18
-            warning.fontColor = .systemOrange
-            warning.position = CGPoint(x: width * 0.34, y: width * 0.15)
-            warning.zPosition = 3
-            root.addChild(warning)
-        }
-
         let labelWidth = min(max(190, width + 8), size.width - 28)
         let labelBackground = SKShapeNode(rectOf: CGSize(width: labelWidth, height: 42), cornerRadius: 10)
         labelBackground.fillColor = SKColor.black.withAlphaComponent(0.76)
@@ -179,7 +168,7 @@ public final class WorkshopScene: SKScene {
         let status = SKLabelNode(text: vehicle.status)
         status.fontName = "AvenirNext-Bold"
         status.fontSize = 9
-        status.fontColor = vehicle.isProject ? .systemOrange : SKColor(red: 0.35, green: 0.82, blue: 0.68, alpha: 1)
+        status.fontColor = SKColor(red: 0.35, green: 0.82, blue: 0.68, alpha: 1)
         status.horizontalAlignmentMode = .left
         status.verticalAlignmentMode = .center
         status.position = CGPoint(x: -labelWidth / 2 + 11, y: -8)
@@ -212,23 +201,10 @@ public final class WorkshopScene: SKScene {
                 status: job.serviceKind == .periodicMaintenance
                     ? "Yıllık bakım • \(job.stage.sceneTitle)"
                     : "Tamir • \(job.stage.sceneTitle)",
-                color: SKColor(hex: vehicle.accentHex),
-                isProject: false,
-                isDamaged: false
+                color: SKColor(hex: vehicle.accentHex)
             )
         }
-        let projects = state.projectCars.compactMap { project -> SceneVehicle? in
-            guard let vehicle = catalog.vehicle(id: project.vehicleID) else { return nil }
-            return SceneVehicle(
-                selection: .project(project.id),
-                name: vehicle.name,
-                status: "Proje aracı • \(project.stage.sceneTitle)",
-                color: SKColor(hex: vehicle.accentHex),
-                isProject: true,
-                isDamaged: project.stage == .awaitingRepair
-            )
-        }
-        return Array((jobs + projects).prefix(5))
+        return Array(jobs.prefix(5))
     }
 
     private func horizontalPositions(count: Int) -> [CGFloat] {
@@ -244,11 +220,7 @@ public final class WorkshopScene: SKScene {
     private func decodeSelection(_ name: String) -> WorkshopVehicleSelection? {
         let parts = name.split(separator: ":")
         guard parts.count == 3, let id = UUID(uuidString: String(parts[2])) else { return nil }
-        switch parts[1] {
-        case "job": return .job(id)
-        case "project": return .project(id)
-        default: return nil
-        }
+        return parts[1] == "job" ? .job(id) : nil
     }
 }
 
@@ -257,13 +229,10 @@ private struct SceneVehicle {
     let name: String
     let status: String
     let color: SKColor
-    let isProject: Bool
-    let isDamaged: Bool
 
     var selectionKey: String {
         switch selection {
         case .job(let id): "job:\(id.uuidString)"
-        case .project(let id): "project:\(id.uuidString)"
         }
     }
 }
@@ -283,16 +252,6 @@ private extension RepairStage {
     }
 }
 
-private extension ProjectCarStage {
-    var sceneTitle: String {
-        switch self {
-        case .awaitingRepair: "Proje • restorasyon"
-        case .readyForSale: "Proje • satışa hazır"
-        case .listed: "Proje • ilanda"
-        }
-    }
-}
-
 private extension SKColor {
     convenience init(hex: String) {
         let value = UInt64(hex, radix: 16) ?? 0xD68A36
@@ -305,7 +264,7 @@ private extension SKColor {
     }
 }
 
-struct GarageSceneView: View {
+struct WorkshopSceneView: View {
     let state: GameState
     let catalog: ContentCatalog
     @Binding var selection: WorkshopVehicleSelection?
@@ -322,7 +281,7 @@ struct GarageSceneView: View {
             vehicleStatusBar
             Group {
                 if vehicles.isEmpty {
-                    GarageVehiclePage(state: state, catalog: catalog, vehicle: nil, selection: $selection)
+                    WorkshopVehiclePage(state: state, catalog: catalog, vehicle: nil, selection: $selection)
                 } else {
                     vehiclePager
                 }
@@ -357,17 +316,9 @@ struct GarageSceneView: View {
     }
 
     private var vehicles: [WorkshopVehicleSelection] {
-        var entries: [(vehicle: WorkshopVehicleSelection, minute: Int, order: Int)] = []
-        for (index, job) in state.activeJobs.enumerated() {
-            entries.append((.job(job.id), job.acceptedAtMinute, index))
-        }
-        let offset = state.activeJobs.count
-        for (index, project) in state.projectCars.enumerated() {
-            entries.append((.project(project.id), project.purchasedAtMinute, offset + index))
-        }
-        return entries.sorted {
-            $0.minute == $1.minute ? $0.order < $1.order : $0.minute < $1.minute
-        }.map(\.vehicle)
+        state.activeJobs
+            .sorted { $0.acceptedAtMinute < $1.acceptedAtMinute }
+            .map { .job($0.id) }
     }
 
     @ViewBuilder
@@ -382,7 +333,7 @@ struct GarageSceneView: View {
     private var pager: some View {
         TabView(selection: $visiblePage) {
             ForEach(Array(vehicles.enumerated()), id: \.element.id) { index, vehicle in
-                GarageVehiclePage(
+                WorkshopVehiclePage(
                     state: state,
                     catalog: catalog,
                     vehicle: vehicle,
@@ -396,13 +347,12 @@ struct GarageSceneView: View {
 
     private var sceneDescription: String {
         let jobCount = state.activeJobs.count
-        let projectCount = state.projectCars.count
-        if jobCount + projectCount == 0 { return "Tamirhanedeki liftler boş." }
-        return "Tamirhanede \(jobCount) müşteri aracı ve \(projectCount) proje aracı bulunuyor. İşlem yapmak için araç seç."
+        if jobCount == 0 { return "Tamirhanedeki müşteri liftleri boş." }
+        return "Tamirhanede \(jobCount) müşteri aracı bulunuyor. İşlem yapmak için araç seç."
     }
 }
 
-private struct GarageVehiclePage: View {
+private struct WorkshopVehiclePage: View {
     let state: GameState
     let catalog: ContentCatalog
     let vehicle: WorkshopVehicleSelection?
@@ -446,9 +396,6 @@ private struct GarageVehiclePage: View {
         case .job(let id):
             result.activeJobs = state.activeJobs.filter { $0.id == id }
             result.projectCars = []
-        case .project(let id):
-            result.activeJobs = []
-            result.projectCars = state.projectCars.filter { $0.id == id }
         case nil:
             result.activeJobs = []
             result.projectCars = []

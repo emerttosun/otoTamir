@@ -66,9 +66,9 @@ extension GameEngine {
             throw GameRuleError.invalidCommand("Tam hasarlı ve hurda tescilli araç yeniden trafiğe çıkarılamaz.")
         }
         guard state.cash >= lot.fixedPrice else { throw GameRuleError.notEnoughMoney }
-        let capacity = catalog.shopLevel(state.shopLevel)?.capacity ?? 1
-        guard state.activeJobs.count + state.projectCars.count < capacity else {
-            throw GameRuleError.shopIsFull
+        let garageCapacity = catalog.shopLevel(state.shopLevel)?.garageCapacity ?? 0
+        guard state.projectCars.count < garageCapacity else {
+            throw GameRuleError.garageIsFull
         }
         state.cash = state.cash - lot.fixedPrice
         state.projectCars.append(ProjectCar(

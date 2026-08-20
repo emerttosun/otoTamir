@@ -442,6 +442,7 @@ struct GameLogicTests {
         let catalog = try DefaultContentRepository().load()
         var engine = GameEngine(catalog: catalog, seed: 99)
         try engine.handle(.grantPurchase(transactionID: "test-funds", cash: Money(minorUnits: 200_000_000), themeID: nil))
+        try engine.handle(.upgradeShop)
         try engine.handle(.prepareWorld)
         let lot = try #require(engine.state.auction?.lots.first)
 
@@ -471,6 +472,53 @@ struct GameLogicTests {
         #expect(project.structuralDamages == lot.structuralDamages)
         #expect(engine.state.financeEntries.last?.category == .salvageVehicle)
         #expect(engine.state.incidents.last?.kind == .vehiclePurchase)
+    }
+
+    @Test("Garaj kapalı başlar, gelişimle açılır ve müşteri liftinden bağımsızdır")
+    func progressiveGarageCapacity() throws {
+        let catalog = try DefaultContentRepository().load()
+        var state = GameState(startingCash: Money(minorUnits: 200_000_000), daySlots: 8, randomSeed: 81)
+        var engine = GameEngine(state: state, catalog: catalog)
+        try engine.handle(.prepareWorld)
+        let lockedLot = try #require(engine.state.auction?.lots.first)
+
+        #expect(throws: GameRuleError.garageIsFull) {
+            try engine.handle(.purchaseAuctionLot(lockedLot.id))
+        }
+
+        try engine.handle(.upgradeShop)
+        try engine.handle(.purchaseAuctionLot(lockedLot.id))
+        #expect(engine.state.projectCars.count == 1)
+        let secondLot = try #require(engine.state.auction?.lots.first)
+        #expect(throws: GameRuleError.garageIsFull) {
+            try engine.handle(.purchaseAuctionLot(secondLot.id))
+        }
+
+        state = engine.state
+        let fault = catalog.faults[0]
+        let firstCustomer = CustomerOffer(
+            id: UUID(),
+            customerID: catalog.customers[0].id,
+            vehicleID: catalog.vehicles[0].id,
+            actualFaultID: fault.id,
+            suspectedFaultIDs: [fault.id],
+            complaint: fault.complaint
+        )
+        let secondCustomer = CustomerOffer(
+            id: UUID(),
+            customerID: catalog.customers[1].id,
+            vehicleID: catalog.vehicles[1].id,
+            actualFaultID: fault.id,
+            suspectedFaultIDs: [fault.id],
+            complaint: fault.complaint
+        )
+        state.offers = [firstCustomer, secondCustomer]
+        engine = GameEngine(state: state, catalog: catalog)
+        try engine.handle(.acceptOffer(firstCustomer.id))
+        try engine.handle(.acceptOffer(secondCustomer.id))
+
+        #expect(engine.state.activeJobs.count == 2)
+        #expect(engine.state.projectCars.count == 1)
     }
 
     @Test("Yıpranmış parça zorunlu değildir; isteğe bağlı yenileme araç değerini artırır")

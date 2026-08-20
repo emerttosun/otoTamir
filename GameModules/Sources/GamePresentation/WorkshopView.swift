@@ -12,7 +12,7 @@ struct WorkshopView: View {
         ZStack {
             ScrollView {
                 LazyVStack(spacing: 12) {
-                    GarageSceneView(
+                    WorkshopSceneView(
                         state: store.state,
                         catalog: store.catalog,
                         selection: $selectedVehicle
@@ -41,11 +41,9 @@ struct WorkshopView: View {
                         } startMiniGame: { request in
                             miniGame = request
                         }
-                    } else if let selectedProject {
-                        selectedProjectContent(selectedProject)
                     } else {
-                        emptyCard(store.state.activeJobs.isEmpty && store.state.projectCars.isEmpty
-                                  ? "Dükkânda araç yok. Bekleyen müşteriden araç kabul edebilir veya Hasarlı'dan proje aracı alabilirsin."
+                        emptyCard(store.state.activeJobs.isEmpty
+                                  ? "Müşteri liftleri boş. Bekleyen bir müşterinin aracını kabul edebilirsin; proje araçları ayrı Garaj bölümünde durur."
                                   : "İşlem yapmak için tamirhane görselindeki bir araca dokun.")
                     }
 
@@ -114,8 +112,6 @@ struct WorkshopView: View {
             if ProcessInfo.processInfo.environment["OTOTAMIR_QA_SELECT_FIRST_VEHICLE"] == "1" {
                 if let job = store.state.activeJobs.first {
                     selectedVehicle = .job(job.id)
-                } else if let project = store.state.projectCars.first {
-                    selectedVehicle = .project(project.id)
                 }
             }
             #endif
@@ -129,8 +125,7 @@ struct WorkshopView: View {
                 jobID: job.id,
                 title: store.catalog.part(for: fault)?.name ?? fault.name,
                 kind: kind,
-                maintenanceTask: nil,
-                projectTask: nil
+                maintenanceTask: nil
             )
         }
         .onChange(of: store.state.revision) { _, _ in
@@ -138,10 +133,6 @@ struct WorkshopView: View {
             switch selectedVehicle {
             case .job(let id):
                 if !store.state.activeJobs.contains(where: { $0.id == id }) {
-                    self.selectedVehicle = nil
-                }
-            case .project(let id):
-                if !store.state.projectCars.contains(where: { $0.id == id }) {
                     self.selectedVehicle = nil
                 }
             }
@@ -153,57 +144,9 @@ struct WorkshopView: View {
         return store.state.activeJobs.first { $0.id == id }
     }
 
-    private var selectedProject: ProjectCar? {
-        guard case .project(let id) = selectedVehicle else { return nil }
-        return store.state.projectCars.first { $0.id == id }
-    }
-
-    @ViewBuilder
-    private func selectedProjectContent(_ project: ProjectCar) -> some View {
-        if project.stage != .listed {
-            ProjectRestorationCard(
-                project: project,
-                catalog: store.catalog,
-                hasBodyPaintBooth: currentFacilities.contains(.bodyPaintBooth)
-            ) { task, title, kind in
-                miniGame = MiniGameRequest(
-                    jobID: project.id,
-                    title: title,
-                    kind: kind,
-                    maintenanceTask: nil,
-                    projectTask: task
-                )
-            }
-            if project.stage == .readyForSale {
-                Text("Zorunlu işler tamamlandı. İstersen yıpranmış parçaları yenile; hazır olduğunda İlanlar bölümünden satışa çıkar.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .garageCard()
-                    .padding(.horizontal, 12)
-            }
-        } else {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(store.catalog.vehicle(id: project.vehicleID)?.name ?? "Proje Araç")
-                    .font(.headline)
-                Label("Araç ilanda", systemImage: "checkmark.seal.fill")
-                    .font(.subheadline.bold()).foregroundStyle(GarageStyle.mint)
-                Text("Fiyat ve alıcı işlemlerini İlanlar bölümünden yönetebilirsin.")
-                    .font(.caption).foregroundStyle(.secondary)
-            }
-            .garageCard()
-            .padding(.horizontal, 12)
-        }
-    }
-
-    private var currentFacilities: [ShopFacility] {
-        store.catalog.shopLevel(store.state.shopLevel)?.facilities ?? []
-    }
-
     private func finishMiniGame(_ request: MiniGameRequest, score: Int) {
         miniGame = nil
-        if let projectTask = request.projectTask {
-            store.send(.completeProjectRepair(projectID: request.jobID, task: projectTask, performance: score))
-        } else if let task = request.maintenanceTask {
+        if let task = request.maintenanceTask {
             store.send(.completeMaintenanceTask(jobID: request.jobID, task: task, performance: score))
         } else {
             store.send(.completeRepair(jobID: request.jobID, performance: score))
@@ -238,7 +181,6 @@ private struct MiniGameRequest: Identifiable, Equatable {
     let title: String
     let kind: RepairGameKind
     let maintenanceTask: MaintenanceTask?
-    let projectTask: ProjectRepairTask?
 }
 
 private struct OfferCard: View {
@@ -455,8 +397,7 @@ private struct JobCard: View {
                                     jobID: job.id,
                                     title: task.title,
                                     kind: task.gameKind,
-                                    maintenanceTask: task,
-                                    projectTask: nil
+                                    maintenanceTask: task
                                 ))
                             } label: {
                                 Label(task.title, systemImage: "wrench.adjustable.fill")
@@ -471,8 +412,7 @@ private struct JobCard: View {
                         jobID: job.id,
                         title: diagnosedPart?.name ?? fault.name,
                         kind: fault.repairGame,
-                        maintenanceTask: nil,
-                        projectTask: nil
+                        maintenanceTask: nil
                     ))
                 } label: {
                     Label("Tamire Başla", systemImage: "wrench.adjustable.fill")
