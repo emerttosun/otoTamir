@@ -32,6 +32,8 @@ struct WorkshopView: View {
                             shopLevel: store.state.shopLevel,
                             washLevel: store.state.washLevel,
                             apprentices: store.state.apprentices,
+                            activeJobs: store.state.activeJobs,
+                            currentMinute: store.state.totalMinutes,
                             catalog: store.catalog,
                             partPurchasePrice: store.state.inventory.first { $0.jobID == selectedJob.id }?.purchasePrice
                         ) { command in
@@ -276,6 +278,8 @@ private struct JobCard: View {
     let shopLevel: Int
     let washLevel: Int
     let apprentices: [Apprentice]
+    let activeJobs: [RepairJob]
+    let currentMinute: Int
     let catalog: ContentCatalog
     let partPurchasePrice: Money?
     let send: (GameCommand) -> Void
@@ -296,6 +300,8 @@ private struct JobCard: View {
                 negotiationContent
             case .readyForRepair:
                 repairContent
+            case .apprenticeWorking:
+                apprenticeWorkingContent
             case .awaitingDelivery:
                 deliveryContent
             }
@@ -367,6 +373,7 @@ private struct JobCard: View {
                     }
                 }
             }
+            apprenticeAssignmentMenu
         }
     }
 
@@ -422,6 +429,7 @@ private struct JobCard: View {
                 }
                 .buttonStyle(ActionButtonStyle(tint: quality == .used ? .gray : GarageStyle.orange))
             }
+            apprenticeAssignmentMenu
         }
     }
 
@@ -447,7 +455,6 @@ private struct JobCard: View {
                                 Label(task.title, systemImage: "wrench.adjustable.fill")
                             }
                             .buttonStyle(ActionButtonStyle(tint: GarageStyle.mint))
-                            apprenticeMenu(task: task)
                         }
                     }
                 }
@@ -464,7 +471,31 @@ private struct JobCard: View {
                     Label("Tamire Başla", systemImage: "wrench.adjustable.fill")
                 }
                 .buttonStyle(ActionButtonStyle(tint: GarageStyle.mint))
-                apprenticeMenu(task: nil)
+            }
+        }
+    }
+
+    private var apprenticeWorkingContent: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            if let order = job.apprenticeWorkOrder,
+               let apprentice = apprentices.first(where: { $0.id == order.apprenticeID }) {
+                Label("\(apprentice.name) araç üzerinde çalışıyor", systemImage: "person.badge.clock.fill")
+                    .font(.subheadline.bold())
+                    .foregroundStyle(GarageStyle.mint)
+                Text(order.phase == .preparation
+                     ? "Kontrol, teşhis ve parçacı siparişi hazırlanıyor. Sen bu sırada başka araçlarla ilgilenebilirsin."
+                     : "Fiyat müşteriyle anlaşıldı. Çırak tamiri tamamlıyor; teslimi yine sen yapacaksın.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                if let due = order.completesAtMinute {
+                    Text("Kalan iş süresi: \(max(0, due - currentMinute)) dakika")
+                        .font(.caption.bold())
+                        .monospacedDigit()
+                }
+                Button("30 Dakika İlerle") {
+                    send(.advanceTime(minutes: 30))
+                }
+                .buttonStyle(ActionButtonStyle(tint: GarageStyle.raised, foreground: .white))
             }
         }
     }
@@ -625,47 +656,35 @@ private struct JobCard: View {
     }
 
     @ViewBuilder
-    private func apprenticeMenu(task: MaintenanceTask?) -> some View {
+    private var apprenticeAssignmentMenu: some View {
         if !apprentices.isEmpty {
             Menu {
                 ForEach(apprentices) { apprentice in
-                    let assessment = apprenticeAssessment(apprentice, task: task)
-                    Button("\(apprentice.name) • \(assessment.area.title) Sv.\(assessment.level) / \(assessment.required)") {
-                        send(.assignApprentice(apprenticeID: apprentice.id, jobID: job.id, task: task))
+                    let busy = activeJobs.contains {
+                        $0.id != job.id && $0.apprenticeWorkOrder?.apprenticeID == apprentice.id
                     }
-                    .disabled(!assessment.canPerform)
+                    let canHandle = ApprenticeRules.canHandle(job, apprentice: apprentice, catalog: catalog)
+                    Menu("\(apprentice.name)\(busy ? " • Meşgul" : (canHandle ? "" : " • Seviye yetersiz"))") {
+                        ForEach(PartQuality.allCases, id: \.self) { quality in
+                            Button(quality.title(for: qualityProfile)) {
+                                send(.assignApprentice(
+                                    apprenticeID: apprentice.id,
+                                    jobID: job.id,
+                                    partQuality: quality
+                                ))
+                            }
+                        }
+                    }
+                    .disabled(busy || !canHandle)
                 }
             } label: {
-                Label("Çırağa İş Ver", systemImage: "person.badge.clock")
+                Label("Kaliteyi Seçip Çırağa Devret", systemImage: "person.badge.clock")
                     .font(.caption.bold())
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 9)
                     .background(GarageStyle.raised, in: RoundedRectangle(cornerRadius: 10))
             }
         }
-    }
-
-    private func apprenticeAssessment(
-        _ apprentice: Apprentice,
-        task: MaintenanceTask?
-    ) -> (area: SkillArea, level: Int, required: Int, canPerform: Bool) {
-        if let task {
-            return (
-                task.skillArea,
-                apprentice.skillLevel(for: task.skillArea),
-                ApprenticeRules.requiredLevel(for: task),
-                ApprenticeRules.canPerform(task, apprentice: apprentice)
-            )
-        }
-        if let fault = diagnosedFault {
-            return (
-                fault.area,
-                apprentice.skillLevel(for: fault.area),
-                ApprenticeRules.requiredLevel(for: fault),
-                ApprenticeRules.canPerform(fault, apprentice: apprentice)
-            )
-        }
-        return (.engine, apprentice.skillLevel(for: .engine), 1, false)
     }
 
     private var stageTitle: String {
@@ -676,6 +695,7 @@ private struct JobCard: View {
         case .awaitingPrice: "FİYAT"
         case .negotiating: "PAZARLIK"
         case .readyForRepair: "TAMİR"
+        case .apprenticeWorking: "ÇIRAK ÇALIŞIYOR"
         case .awaitingDelivery: "TESLİM"
         }
     }

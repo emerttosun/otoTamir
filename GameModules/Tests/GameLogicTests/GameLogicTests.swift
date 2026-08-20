@@ -537,20 +537,38 @@ struct GameLogicTests {
         }
     }
 
-    @Test("Çırak işe alınır, tamire atanır ve tecrübe kazanır")
+    @Test("Çırak kalite seçimiyle işi paralel tamamlar, fiyat ve teslim ustada kalır")
     func apprenticeAssignment() throws {
         let catalog = try DefaultContentRepository().load()
         let fault = try #require(catalog.faults.first { $0.requiredSkill == 1 })
-        var engine = try makeReadyForRepairEngine(catalog: catalog, fault: fault, shopLevel: 2)
+        var engine = makeFaultEngine(catalog: catalog, fault: fault, shopLevel: 2)
         try engine.handle(.grantPurchase(transactionID: "apprentice-funds", cash: Money(minorUnits: 5_000_000), themeID: nil))
         try engine.handle(.postApprenticeAd)
         try engine.handle(.checkApprenticeApplications)
         let application = try #require(engine.state.apprenticeRecruitment?.applications.first)
         try engine.handle(.acceptApprenticeApplication(application.id))
         let apprentice = try #require(engine.state.apprentices.first)
-        let jobID = try #require(engine.state.activeJobs.first?.id)
+        let jobID = try #require(engine.state.offers.first?.id)
+        try engine.handle(.acceptOffer(jobID))
 
-        try engine.handle(.assignApprentice(apprenticeID: apprentice.id, jobID: jobID, task: nil))
+        let assignedAt = engine.state.totalMinutes
+        try engine.handle(.assignApprentice(
+            apprenticeID: apprentice.id,
+            jobID: jobID,
+            partQuality: .aftermarket
+        ))
+        #expect(engine.state.totalMinutes == assignedAt)
+        #expect(engine.state.activeJobs[0].stage == .apprenticeWorking)
+        let saved = try JSONEncoder().encode(engine.state)
+        let restored = try JSONDecoder().decode(GameState.self, from: saved)
+        #expect(restored.activeJobs[0].apprenticeWorkOrder?.partQuality == .aftermarket)
+
+        try engine.handle(.advanceTime(minutes: 300))
+        #expect(engine.state.activeJobs[0].stage == .awaitingPrice)
+        #expect(engine.state.activeJobs[0].diagnosedFaultID == fault.id)
+        try engine.handle(.setPrice(jobID: jobID, strategy: .fair, hidePartQuality: false))
+        #expect(engine.state.activeJobs[0].stage == .apprenticeWorking)
+        try engine.handle(.advanceTime(minutes: 300))
 
         #expect(engine.state.activeJobs[0].stage == .awaitingDelivery)
         #expect(engine.state.apprentices[0].experience > 0)
@@ -561,17 +579,22 @@ struct GameLogicTests {
     func apprenticeSkillGate() throws {
         let catalog = try DefaultContentRepository().load()
         let fault = try #require(catalog.faults.first { $0.requiredSkill >= 4 })
-        var engine = try makeReadyForRepairEngine(catalog: catalog, fault: fault, shopLevel: 2)
+        var engine = makeFaultEngine(catalog: catalog, fault: fault, shopLevel: 2)
         var state = engine.state
         let apprentice = Apprentice(id: UUID(), name: "Mert")
         state.apprentices = [apprentice]
         engine = GameEngine(state: state, catalog: catalog)
-        let jobID = try #require(engine.state.activeJobs.first?.id)
+        let jobID = try #require(engine.state.offers.first?.id)
+        try engine.handle(.acceptOffer(jobID))
 
         #expect(throws: GameRuleError.self) {
-            try engine.handle(.assignApprentice(apprenticeID: apprentice.id, jobID: jobID, task: nil))
+            try engine.handle(.assignApprentice(
+                apprenticeID: apprentice.id,
+                jobID: jobID,
+                partQuality: .aftermarket
+            ))
         }
-        #expect(engine.state.activeJobs[0].stage == .readyForRepair)
+        #expect(engine.state.activeJobs[0].stage == .awaitingInspection)
     }
 
     @Test("Her çırak aracı yıkayıp genel tecrübe kazanabilir")
@@ -1039,7 +1062,7 @@ struct GameLogicTests {
         let repository = JSONFileSaveRepository(directory: directory)
         let migrated = try #require(try await repository.load())
 
-        #expect(migrated.schemaVersion == 15)
+        #expect(migrated.schemaVersion == GameState.currentSchemaVersion)
         #expect(migrated.ratingTenths == 43)
         #expect(migrated.reputation.craftsmanship == 42)
         #expect(migrated.reputation.suspicion == 7)

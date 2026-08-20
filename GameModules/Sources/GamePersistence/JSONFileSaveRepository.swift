@@ -129,6 +129,9 @@ enum SaveMigrator {
         if state.schemaVersion < 15 {
             state.schemaVersion = 15
         }
+        if state.schemaVersion < 16 {
+            state.schemaVersion = 16
+        }
         return state
     }
 }

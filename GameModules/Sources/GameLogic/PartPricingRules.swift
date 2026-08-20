@@ -1,5 +1,12 @@
 import GameDomain
 
+struct PartOrderDetails: Sendable {
+    let referenceID: String
+    let name: String
+    let baseCost: Money
+    let qualityProfile: PartQualityProfile
+}
+
 public enum PartPricingRules {
     public static func replacementPart(
         for fault: FaultDefinition,
@@ -42,6 +49,28 @@ public enum PartPricingRules {
         profile: PartQualityProfile
     ) -> Money {
         percent(baseCost, quality.costPercent(for: profile))
+    }
+
+    static func orderDetails(for job: RepairJob, catalog: ContentCatalog) -> PartOrderDetails? {
+        if job.serviceKind == .periodicMaintenance {
+            let parts = maintenanceParts(for: job.maintenanceTasks, catalog: catalog)
+            guard !parts.isEmpty else { return nil }
+            return PartOrderDetails(
+                referenceID: "periodic_maintenance",
+                name: parts.map(\.name).joined(separator: ", "),
+                baseCost: parts.reduce(.zero) { $0 + $1.basePrice },
+                qualityProfile: .maintenanceSupply
+            )
+        }
+        guard let faultID = job.diagnosedFaultID ?? job.actualFaultID,
+              let fault = catalog.fault(id: faultID),
+              let part = replacementPart(for: fault, catalog: catalog) else { return nil }
+        return PartOrderDetails(
+            referenceID: faultID,
+            name: part.name,
+            baseCost: part.basePrice,
+            qualityProfile: part.qualityProfile
+        )
     }
 
     private static func percent(_ money: Money, _ value: Int) -> Money {

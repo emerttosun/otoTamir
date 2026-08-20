@@ -126,6 +126,10 @@ extension GameEngine {
         for index in state.apprentices.indices {
             guard state.apprentices[index].lastRetentionCheckDay < newDay else { continue }
             state.apprentices[index].lastRetentionCheckDay = newDay
+            let isWorking = state.activeJobs.contains {
+                $0.apprenticeWorkOrder?.apprenticeID == state.apprentices[index].id
+            }
+            if isWorking { continue }
 
             if state.apprentices[index].traits.contains(.loyal) {
                 state.apprentices[index].changeHappiness(by: 1)

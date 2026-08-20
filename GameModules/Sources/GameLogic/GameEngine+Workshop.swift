@@ -84,34 +84,14 @@ extension GameEngine {
         }
 
         let job = state.activeJobs[index]
-        let partName: String
-        let faultID: String
-        let baseCost: Money
-        let qualityProfile: PartQualityProfile
-        if job.serviceKind == .periodicMaintenance {
-            let parts = PartPricingRules.maintenanceParts(for: job.maintenanceTasks, catalog: catalog)
-            guard !parts.isEmpty else {
-                throw GameRuleError.invalidCommand("Bu bakımda satın alınacak parça bulunmuyor.")
-            }
-            partName = parts.map(\.name).joined(separator: ", ")
-            faultID = "periodic_maintenance"
-            baseCost = PartPricingRules.maintenanceBasePartCost(for: job.maintenanceTasks, catalog: catalog)
-            qualityProfile = .maintenanceSupply
-        } else if let diagnosedID = job.diagnosedFaultID,
-                  let fault = catalog.fault(id: diagnosedID),
-                  let part = PartPricingRules.replacementPart(for: fault, catalog: catalog) {
-            partName = part.name
-            faultID = diagnosedID
-            baseCost = part.basePrice
-            qualityProfile = part.qualityProfile
-        } else {
+        guard let order = PartPricingRules.orderDetails(for: job, catalog: catalog) else {
             throw GameRuleError.invalidCommand("Önce doğru teşhisi koymalısın.")
         }
 
         let cost = PartPricingRules.purchasePrice(
-            baseCost: baseCost,
+            baseCost: order.baseCost,
             quality: quality,
-            profile: qualityProfile
+            profile: order.qualityProfile
         )
         let creditLimit = Money(minorUnits: -1_000_000)
         guard state.cash - cost >= creditLimit else { throw GameRuleError.notEnoughMoney }
@@ -121,20 +101,20 @@ extension GameEngine {
         state.inventory.append(InventoryItem(
             id: state.activeJobs[index].id,
             jobID: jobID,
-            faultID: faultID,
-            partName: partName,
+            faultID: order.referenceID,
+            partName: order.name,
             quality: quality,
             purchasePrice: cost
         ))
         recordFinance(
             amount: Money(minorUnits: -cost.minorUnits),
             category: .parts,
-            note: "\(quality.title(for: qualityProfile)) \(partName)"
+            note: "\(quality.title(for: order.qualityProfile)) \(order.name)"
         )
         var events = advanceClock(by: 30)
         events.append(.moneyChanged(
             Money(minorUnits: -cost.minorUnits),
-            reason: "\(quality.title(for: qualityProfile)) \(partName)"
+            reason: "\(quality.title(for: order.qualityProfile)) \(order.name)"
         ))
         return events
     }
@@ -308,7 +288,7 @@ extension GameEngine {
 
         state.activeJobs[index].quote = askingPrice
         state.activeJobs[index].stage = .readyForRepair
-        return [.customerPriceAccepted(askingPrice)]
+        return [.customerPriceAccepted(askingPrice)] + scheduleApprenticeRepairIfNeeded(jobIndex: index)
     }
 
     mutating func respondToCustomerOffer(
@@ -366,7 +346,7 @@ extension GameEngine {
 
         state.activeJobs[index].quote = agreedPrice
         state.activeJobs[index].stage = .readyForRepair
-        return [.customerPriceAccepted(agreedPrice)]
+        return [.customerPriceAccepted(agreedPrice)] + scheduleApprenticeRepairIfNeeded(jobIndex: index)
     }
 
     mutating func deliverVehicle(jobID: UUID) throws -> [GameEvent] {
@@ -477,78 +457,12 @@ extension GameEngine {
         return events
     }
 
-    mutating func assignApprentice(
-        apprenticeID: UUID,
-        jobID: UUID,
-        task: MaintenanceTask?
-    ) throws -> [GameEvent] {
-        guard let apprentice = state.apprentices.first(where: { $0.id == apprenticeID }),
-              let jobIndex = state.activeJobs.firstIndex(where: { $0.id == jobID }),
-              state.activeJobs[jobIndex].stage == .readyForRepair else {
-            throw GameRuleError.invalidCommand("Çırak bu işe atanamıyor.")
-        }
-        let area: SkillArea
-        if state.activeJobs[jobIndex].serviceKind == .periodicMaintenance {
-            guard let task else {
-                throw GameRuleError.invalidCommand("Çırağa verilecek bakım adımını seçmelisin.")
-            }
-            guard ApprenticeRules.canPerform(task, apprentice: apprentice) else {
-                throw GameRuleError.invalidCommand(
-                    "\(apprentice.name), \(task.title.lowercased()) için henüz yeterli \(task.skillArea.title.lowercased()) seviyesinde değil."
-                )
-            }
-            area = task.skillArea
-        } else {
-            guard task == nil,
-                  let faultID = state.activeJobs[jobIndex].diagnosedFaultID,
-                  let fault = catalog.fault(id: faultID) else {
-                throw GameRuleError.invalidCommand("Bu tamir çırağa verilemiyor.")
-            }
-            guard ApprenticeRules.canPerform(fault, apprentice: apprentice) else {
-                throw GameRuleError.invalidCommand(
-                    "\(apprentice.name), bu iş için gereken \(fault.area.title) Seviye \(fault.requiredSkill) düzeyine henüz ulaşmadı."
-                )
-            }
-            area = fault.area
-        }
-
-        var random = SeededRandomSource(seed: state.randomSeed)
-        let performance = ApprenticeRules.performance(
-            apprentice: apprentice,
-            area: area,
-            randomBonus: random.next(upperBound: 19)
-        )
-        state.randomSeed = random.state
-        state.activeJobs[jobIndex].repairedByApprenticeID = apprenticeID
-        let events: [GameEvent]
-        if state.activeJobs[jobIndex].serviceKind == .periodicMaintenance {
-            guard let task else { throw GameRuleError.invalidCommand("Bakım adımı bulunamadı.") }
-            events = try completeMaintenanceTask(jobID: jobID, task: task, performance: performance)
-        } else {
-            guard task == nil else { throw GameRuleError.invalidCommand("Bu tamirde bakım adımı bulunmuyor.") }
-            events = try completeRepair(jobID: jobID, performance: performance)
-        }
-        if let remainingIndex = state.activeJobs.firstIndex(where: { $0.id == jobID }) {
-            state.activeJobs[remainingIndex].repairedByApprenticeID = nil
-        }
-        let quality = events.compactMap { event -> WorkmanshipQuality? in
-            switch event {
-            case .repairCompleted(let value): value
-            case .apprenticeCompleted(_, let value): value
-            default: nil
-            }
-        }.last
-        recordIncident(
-            kind: .apprentice,
-            message: "\(apprentice.name) verilen \(task?.title ?? "tamir") işini \(quality?.title.lowercased() ?? "tamamlanmış") olarak teslim etti.",
-            craftsmanshipImpact: quality == .poor ? -2 : (quality == .good ? 1 : 0)
-        )
-        return events
-    }
-
     mutating func assignApprenticeToWash(apprenticeID: UUID, jobID: UUID) throws -> [GameEvent] {
         guard let apprenticeIndex = state.apprentices.firstIndex(where: { $0.id == apprenticeID }) else {
             throw GameRuleError.invalidCommand("Bu çırak artık dükkânda çalışmıyor.")
+        }
+        guard !state.activeJobs.contains(where: { $0.apprenticeWorkOrder?.apprenticeID == apprenticeID }) else {
+            throw GameRuleError.invalidCommand("Bu çırak başka bir araç üzerinde çalışıyor.")
         }
         let apprenticeName = state.apprentices[apprenticeIndex].name
         var events = try washVehicle(jobID: jobID)

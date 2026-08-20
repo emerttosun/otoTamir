@@ -154,7 +154,8 @@ public final class GameStore: ObservableObject {
             case .tutorial, .consequence, .inspectionCompleted, .diagnosisCompleted, .repairCompleted,
                  .customerCountered, .customerPriceAccepted, .customerWalkedAway,
                  .priceSettled, .vehicleWashed, .apprenticeHired, .apprenticeApplicationReceived,
-                 .apprenticeApplicationRejected, .apprenticeCompleted, .apprenticeWashed,
+                 .apprenticeApplicationRejected, .apprenticeAssigned, .apprenticePreparationDelayed,
+                 .apprenticeReadyForPrice, .apprenticeCompleted, .apprenticeWashed,
                  .apprenticeTraitRevealed, .apprenticeHappinessChanged,
                  .apprenticeDepartureWarning, .apprenticeStayed, .apprenticeLeft,
                  .experienceGained, .reviewReceived, .auctionWon, .projectCarSold, .shopUpgraded:
@@ -194,6 +195,12 @@ public final class GameStore: ObservableObject {
             bannerMessage = "Çırak ilanına \(application.name) başvurdu: \(application.background.title)."
         case .apprenticeApplicationRejected(let name):
             bannerMessage = "\(name) adlı adayın çırak başvurusu reddedildi."
+        case .apprenticeAssigned(let name, _):
+            bannerMessage = "\(name) işi aldı. Çalışırken sen başka araçlarla ilgilenebilirsin."
+        case .apprenticePreparationDelayed(let name, _):
+            bannerMessage = "\(name) ilk kontrolde emin olamadı; 30 dakika daha ölçüm yapacak."
+        case .apprenticeReadyForPrice(let name):
+            bannerMessage = "\(name) kontrolü, teşhisi ve parça siparişini tamamladı. Müşteriye fiyatı sen söyleyeceksin."
         case .apprenticeCompleted(let name, let quality):
             bannerMessage = "\(name) verilen işi tamamladı: \(quality.title)."
         case .apprenticeWashed(let name):

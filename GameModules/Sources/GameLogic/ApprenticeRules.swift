@@ -20,6 +20,40 @@ public enum ApprenticeRules {
         apprentice.skillLevel(for: task.skillArea) >= requiredLevel(for: task)
     }
 
+    public static func canHandle(
+        _ job: RepairJob,
+        apprentice: Apprentice,
+        catalog: ContentCatalog
+    ) -> Bool {
+        if job.serviceKind == .periodicMaintenance {
+            return job.maintenanceTasks.allSatisfy { canPerform($0, apprentice: apprentice) }
+        }
+        let possibleFaults = job.suspectedFaultIDs.compactMap(catalog.fault(id:))
+        return !possibleFaults.isEmpty && possibleFaults.allSatisfy { canPerform($0, apprentice: apprentice) }
+    }
+
+    public static func workArea(for job: RepairJob, catalog: ContentCatalog) -> SkillArea? {
+        if job.serviceKind == .periodicMaintenance {
+            return job.maintenanceTasks.max { requiredLevel(for: $0) < requiredLevel(for: $1) }?.skillArea
+        }
+        return job.suspectedFaultIDs.compactMap(catalog.fault(id:))
+            .max { $0.requiredSkill < $1.requiredSkill }?.area
+    }
+
+    public static func preparationDuration(
+        for job: RepairJob,
+        apprentice: Apprentice,
+        catalog: ContentCatalog
+    ) -> Int {
+        let difficulty: Int
+        if job.serviceKind == .periodicMaintenance {
+            difficulty = job.maintenanceTasks.map(requiredLevel(for:)).max() ?? 1
+        } else {
+            difficulty = job.suspectedFaultIDs.compactMap(catalog.fault(id:)).map(\.requiredSkill).max() ?? 1
+        }
+        return adjustedDuration(baseMinutes: 35 + difficulty * 15, apprentice: apprentice)
+    }
+
     public static func performance(
         apprentice: Apprentice,
         area: SkillArea,

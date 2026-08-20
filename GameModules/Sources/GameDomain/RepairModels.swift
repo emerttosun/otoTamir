@@ -110,6 +110,7 @@ public enum RepairStage: String, Codable, Sendable {
     case awaitingPrice
     case negotiating
     case readyForRepair
+    case apprenticeWorking
     case awaitingDelivery
 }
 
@@ -294,6 +295,7 @@ public struct RepairJob: Codable, Hashable, Identifiable, Sendable {
     public var isWashed: Bool
     public var washRatingBonus: Int
     public var repairedByApprenticeID: UUID?
+    public var apprenticeWorkOrder: ApprenticeWorkOrder?
 
     public init(offer: CustomerOffer) {
         id = offer.id
@@ -324,6 +326,7 @@ public struct RepairJob: Codable, Hashable, Identifiable, Sendable {
         isWashed = false
         washRatingBonus = 0
         repairedByApprenticeID = nil
+        apprenticeWorkOrder = nil
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -332,6 +335,7 @@ public struct RepairJob: Codable, Hashable, Identifiable, Sendable {
         case diagnosedFaultID, stage, strategy, hidePartQuality, initialQuote, quote, customerCounterOffer, priceWasQuestioned
         case partQuality, workmanship
         case repairPerformanceTotal, repairPerformanceCount, isWashed, washRatingBonus, repairedByApprenticeID
+        case apprenticeWorkOrder
     }
 
     private enum LegacyCodingKeys: String, CodingKey {
@@ -371,6 +375,7 @@ public struct RepairJob: Codable, Hashable, Identifiable, Sendable {
         case "awaitingPrice": stage = workmanship == nil ? .awaitingPrice : .awaitingDelivery
         case "negotiating": stage = .negotiating
         case "readyForRepair": stage = quote == nil ? .awaitingPrice : .readyForRepair
+        case "apprenticeWorking": stage = .apprenticeWorking
         case "awaitingDelivery", "completed": stage = .awaitingDelivery
         case .some(let value): stage = RepairStage(rawValue: value) ?? .awaitingInspection
         case nil: stage = .awaitingInspection
@@ -383,5 +388,6 @@ public struct RepairJob: Codable, Hashable, Identifiable, Sendable {
             ?? legacyValues.decodeIfPresent(Int.self, forKey: .washTrustBonus)
             ?? (isWashed ? 1 : 0)
         repairedByApprenticeID = try values.decodeIfPresent(UUID.self, forKey: .repairedByApprenticeID)
+        apprenticeWorkOrder = try values.decodeIfPresent(ApprenticeWorkOrder.self, forKey: .apprenticeWorkOrder)
     }
 }

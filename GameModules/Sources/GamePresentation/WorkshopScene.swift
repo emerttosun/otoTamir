@@ -277,6 +277,7 @@ private extension RepairStage {
         case .awaitingPrice: "Fiyat bekliyor"
         case .negotiating: "Müşteriyle pazarlık"
         case .readyForRepair: "Tamir bekliyor"
+        case .apprenticeWorking: "Çırak çalışıyor"
         case .awaitingDelivery: "Teslime hazır"
         }
     }

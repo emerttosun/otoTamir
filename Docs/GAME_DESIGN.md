@@ -55,7 +55,7 @@ Sistem uyarısı veya ayrı iPhone penceresi açılmaz; oyunlar dükkân ekranı
 - Seviye 6: dört araç kapasitesi, detaylı temizlik ve üçüncü çırak.
 - Seviye 7: beş araç kapasitesi, dört çırak ve ilan satış ihtimalini yükselten araç vitrini.
 
-Çırak tamir veya tek bir bakım adımına atanabilir. Başlangıçta ustadan daha düşük ve değişken performans gösterir; tamamladığı işlerden XP kazanıp seviye atlar. Araç teslimden önce mevcut yıkama seviyesinde temizlenebilir; o seviyenin sarf maliyetini ve süresini kullanır, temiz teslim seviyesine göre dükkân puanına küçük katkı sağlar.
+Oyuncu kabul edilmiş bir aracı çırağa devretmeden önce parça kalitesini belirler. Çırak kendi yeterliliğine göre kontrol ve teşhisi yapar, parçacı siparişini hazırlar ve fiyat kararı için ustayı bekler. Müşteriyle fiyatı yalnız usta konuşur; anlaşmadan sonra çırak tamiri oyun saati içinde arka planda sürdürürken oyuncu başka araçla ilgilenebilir. Fiyatlandırma ve teslim daima ustada kalır. Çırak başlangıçta ustadan daha düşük ve değişken performans gösterir; tamamladığı bütün işlerden XP kazanıp alan seviyesi açar. Araç teslimden önce mevcut yıkama seviyesinde temizlenebilir; o seviyenin sarf maliyetini ve süresini kullanır, temiz teslim seviyesine göre dükkân puanına küçük katkı sağlar.
 
 ## Ağır hasarlı araç raporu
 
