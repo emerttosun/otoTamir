@@ -143,6 +143,88 @@ struct GameLogicTests {
             askingPrice: try #require(negotiatingJob.initialQuote),
             counterOffer: try #require(negotiatingJob.customerCounterOffer)
         ))
+        let suspicionBeforeDelivery = engine.state.reputation.suspicion
+        try engine.handle(.completeRepair(jobID: offer.id, performance: 95))
+        let deliveryEvents = try engine.handle(.deliverVehicle(jobID: offer.id))
+        #expect(engine.state.reputation.suspicion == suspicionBeforeDelivery)
+        #expect(deliveryEvents.filter { if case .reviewReceived = $0 { true } else { false } }.count <= 1)
+    }
+
+    @Test("Teknik bilgisi yüksek müşteri kötü işçiliği daha kolay fark eder")
+    func technicalKnowledgeAffectsCustomerEvaluation() throws {
+        let catalog = try DefaultContentRepository().load()
+        let fault = catalog.faults[0]
+        let offer = CustomerOffer(
+            id: UUID(),
+            customerID: "new_driver_emre",
+            vehicleID: catalog.vehicles[0].id,
+            actualFaultID: fault.id,
+            suspectedFaultIDs: [fault.id],
+            complaint: fault.complaint
+        )
+        var job = RepairJob(offer: offer)
+        let normalTotal = Money(minorUnits: 500_000)
+        job.initialQuote = normalTotal
+        job.quote = normalTotal
+        let lowKnowledge = try #require(catalog.customer(id: "new_driver_emre"))
+        let highKnowledge = try #require(catalog.customer(id: "enthusiast_arda"))
+        var lowRandom = SeededRandomSource(seed: 1)
+        var highRandom = SeededRandomSource(seed: 1)
+
+        let lowEvaluation = CustomerExperienceRules.evaluate(
+            job: job,
+            customer: lowKnowledge,
+            workmanship: .poor,
+            partQuality: .aftermarket,
+            normalTotal: normalTotal,
+            random: &lowRandom
+        )
+        let highEvaluation = CustomerExperienceRules.evaluate(
+            job: job,
+            customer: highKnowledge,
+            workmanship: .poor,
+            partQuality: .aftermarket,
+            normalTotal: normalTotal,
+            random: &highRandom
+        )
+
+        #expect(!lowEvaluation.detectedPoorWork)
+        #expect(highEvaluation.detectedPoorWork)
+        #expect(highEvaluation.stars < lowEvaluation.stars)
+    }
+
+    @Test("Yıkama kötü işçiliği iyi müşteri deneyimine çeviremez")
+    func washingIsOnlyAFinalTouch() throws {
+        let catalog = try DefaultContentRepository().load()
+        let customer = try #require(catalog.customer(id: "enthusiast_arda"))
+        let fault = catalog.faults[0]
+        let offer = CustomerOffer(
+            id: UUID(),
+            customerID: customer.id,
+            vehicleID: catalog.vehicles[0].id,
+            actualFaultID: fault.id,
+            suspectedFaultIDs: [fault.id],
+            complaint: fault.complaint
+        )
+        var job = RepairJob(offer: offer)
+        let normalTotal = Money(minorUnits: 500_000)
+        job.initialQuote = normalTotal
+        job.quote = normalTotal
+        job.isWashed = true
+        var random = SeededRandomSource(seed: 1)
+
+        let evaluation = CustomerExperienceRules.evaluate(
+            job: job,
+            customer: customer,
+            workmanship: .poor,
+            partQuality: .aftermarket,
+            normalTotal: normalTotal,
+            random: &random
+        )
+
+        #expect(evaluation.detectedPoorWork)
+        #expect(evaluation.stars <= 2)
+        #expect(evaluation.tone == .negative)
     }
 
     @Test("Fiyatta diretilince ayrılan müşterinin parçası yüzde on kesintiyle iade edilir")

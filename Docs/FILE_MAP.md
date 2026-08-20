@@ -20,7 +20,7 @@
 ## GameDomain
 
 - `Money.swift`: Kuruş tabanlı güvenli para değerini ve Türk lirası gösterimini sağlar.
-- `ContentModels.swift`: JSON'dan gelen araç, ortak parçaya kimlikle bağlanan arıza, müşteri, yorum, dükkân ve üç seviyeli yıkama gelişimi ile ayrıntılı gider dengelerini tanımlar.
+- `ContentModels.swift`: JSON'dan gelen araç, ortak parçaya kimlikle bağlanan arıza, üç davranış değerli müşteri, bağlamsal bütüncül yorum, dükkân ve üç seviyeli yıkama gelişimi ile ayrıntılı gider dengelerini tanımlar.
 - `PartModels.swift`: Tekil parçaların kategori, taban fiyat ve bakım/normal tamire göre kalite profilini; bakım görevlerinin parça ve işçilik eşlemesini tanımlar.
 - `GameModels.swift`: Sürüm 15 `GameState` kayıt kökünü, eski güven değerinin dükkân puanına göçünü, kişilikli çırakları, kaybedilen müşteri havuzunu, alan bazlı yetkinliği ve eylem tabanlı zamanı tanımlar.
 - `RepairModels.swift`: Müşteri teklifi, iş emri, parça kalitesi, bakım, ustalık ve itibar modellerini toplar.
@@ -41,6 +41,7 @@
 - `PartPricingRules.swift`: Bakım görevlerinden değişecek benzersiz parçaları bulur; kalite katsayısı ve görev bazlı işçilik tutarlarını tek merkezde hesaplar.
 - `CustomerPricingRules.swift`: Tamir öncesi gösterilen parça, işçilik, normal toplam ve fiyat stratejilerinin istenen tutarlarını tek merkezde hesaplar.
 - `CustomerNegotiationRules.swift`: Müşterinin fiyat bilgisi ve pazarlık gücünden fark etme, karşı teklif, orta yol ve diretme olasılığını deterministik hesaplar.
+- `CustomerExperienceRules.swift`: Fiyat bilgisi, teknik bilgi, ilk/son fiyat, parça, işçilik ve yıkamayı tek müşteri değerlendirmesine dönüştürür.
 - `GameEngine.swift`: Komutları doğrular ve ilgili kural uzantısına yönlendiren küçük oyun motoru girişidir.
 - `GameEngine+Workshop.swift`: Kontrol, teşhis, parça, tamir, fiyat, `%10` kesintili parçacı iadesi, usta/çırak yıkaması ve seviye kontrollü çırak iş akışını yürütür.
 - `GameEngine+Apprentices.swift`: Çırak ilanı, deterministik aday üretimi, işe alım, prim, günlük bağlılık kontrolü, ayrılık uyarısı ve müşteri götürme akışını yürütür.

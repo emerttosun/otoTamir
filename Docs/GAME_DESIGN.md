@@ -28,6 +28,8 @@ Fiyat parça satın alındıktan sonra, tamir başlamadan önce `Uygun`, `Normal
 
 Müşteri fiyatı yüksek bulursa karşı teklif verir. Oyuncu karşı teklifi kabul eder, ortada buluşur veya kendi fiyatında diretir. Anlaşma sağlanınca tutar sabitlenir ve tamir başlar; tamir edilmiş araç için sonradan işi iptal etme akışı oluşmaz. Teslimde kasaya giren para anlaşılmış son tutardır. İlk istenen fiyat ile son ödenen fiyat müşteri değerlendirmesinde ayrı ayrı dikkate alınabilir; uçuk başlayıp pazarlıkla düşmek müşterinin yorumunu etkileyebilir fakat tek başına şaibe sayılmaz.
 
+Teslimde işçilik, kullanılan parça, parçanın gizlenip gizlenmediği, ilk ve son fiyat ile yıkama tek bir müşteri deneyimi puanında birleşir. Fiyat bilgisi ilk ve son hesabın yorumlanmasını, teknik bilgi ise kötü işçilik veya gizlenen kaliteyi fark etme ihtimalini belirler. Çok iyi ve çok kötü deneyimler daha sık, sıradan deneyimler daha seyrek yorum doğurur. Aynı müşteri aynı teslim için yalnız bir bütüncül yorum bırakabilir. Yıkama seviyesine göre sonuca en fazla iki küçük artı ekler; kötü tamiri veya gizlenen parçayı iyi deneyime çeviremez.
+
 İlk sürümde parça deposu bulunmaz; bütün parçalar iş emri için parçacı kataloğundan sipariş edilir. Oyuncu tamir başlamadan fiyatında diretir ve müşteri kabul etmeyip ayrılırsa alınan parça otomatik olarak parçacıya döner. Alış bedelinin `%90`ı kasaya iade edilir, `%10` kesinti ayrı kasa hareketi olarak görünür. Tamir başladıktan sonra müşteri işi iptal edemez.
 
 ## Arızaya özgü mini oyunlar

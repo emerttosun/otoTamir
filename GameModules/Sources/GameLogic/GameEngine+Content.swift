@@ -139,37 +139,41 @@ extension GameEngine {
 
     mutating func makeReview(
         for job: RepairJob,
+        customer: CustomerDefinition,
         workmanship: WorkmanshipQuality,
-        strategy: PriceStrategy,
-        noticed: Bool,
+        partQuality: PartQuality,
+        normalTotal: Money,
         random: inout SeededRandomSource
     ) -> ShopReview? {
-        let tone: ReviewTone
-        var stars: Int
-        if noticed || workmanship == .poor {
-            tone = .negative
-            stars = noticed && workmanship == .poor ? 1 : 2
-        } else if workmanship == .good && (strategy == .affordable || strategy == .fair) {
-            tone = .positive
-            stars = 5
-        } else {
-            tone = .neutral
-            stars = strategy == .excessive ? 3 : 4
+        let evaluation = CustomerExperienceRules.evaluate(
+            job: job,
+            customer: customer,
+            workmanship: workmanship,
+            partQuality: partQuality,
+            normalTotal: normalTotal,
+            random: &random
+        )
+        guard random.next(upperBound: 100) < evaluation.reviewChance else { return nil }
+        let contextualTemplates = catalog.reviews.filter {
+            $0.tone == evaluation.tone && $0.context == evaluation.context
         }
-        if job.isWashed, !noticed, workmanship != .poor {
-            stars = min(5, stars + 1)
-        }
-        let chance = tone == .neutral ? 45 : 78
-        guard random.next(upperBound: 100) < chance else { return nil }
-        let templates = catalog.reviews.filter { $0.tone == tone }
+        let templates = contextualTemplates.isEmpty
+            ? catalog.reviews.filter { $0.tone == evaluation.tone && $0.context == .general }
+            : contextualTemplates
         let fallback: String
-        switch tone {
+        switch evaluation.tone {
         case .positive: fallback = "İşi temiz yaptı, fiyatı da baştan düşündüğüm gibiydi."
         case .neutral: fallback = "İş görüldü, biraz bekledim ama araç düzeldi."
-        case .negative: fallback = "Fiyat sonradan değişti; bir daha gelmeden önce iki kere düşünürüm."
+        case .negative: fallback = "İşin bütünü içime sinmedi; bir daha gelmeden önce iki kere düşünürüm."
         }
         let text = templates.isEmpty ? fallback : templates[random.next(upperBound: templates.count)].text
-        return ShopReview(id: random.nextUUID(), customerID: job.customerID, stars: stars, text: text, day: state.day)
+        return ShopReview(
+            id: random.nextUUID(),
+            customerID: job.customerID,
+            stars: evaluation.stars,
+            text: text,
+            day: state.day
+        )
     }
 
     mutating func addReview(_ review: ShopReview) {
@@ -184,9 +188,7 @@ extension GameEngine {
         paid: Money,
         quality: WorkmanshipQuality,
         partQuality: PartQuality,
-        strategy: PriceStrategy,
         concealed: Bool,
-        noticed: Bool,
         random: inout SeededRandomSource
     ) {
         let risky = quality == .poor || partQuality == .used || concealed

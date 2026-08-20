@@ -145,7 +145,14 @@
     { "id": "negative_noise", "tone": "negative", "text": "Tak tuk gitti, bu kez gıcır gıcır başladı. Araba repertuvar değiştirdi." },
     { "id": "negative_invoice", "tone": "negative", "text": "Fiyat sorunca 'hallederiz' dedi, kasada ben halloldum." },
     { "id": "negative_wash", "tone": "negative", "text": "Motor düzeldi ama koltukta yağ iziyle teslim aldım." },
-    { "id": "negative_repeat", "tone": "negative", "text": "İki gün sonra aynı lamba yandı; bu kez telefon da açılmadı." }
+    { "id": "negative_repeat", "tone": "negative", "text": "İki gün sonra aynı lamba yandı; bu kez telefon da açılmadı." },
+    { "id": "holistic_price_recovered", "tone": "neutral", "context": "priceRecovered", "text": "İşi düzgün yaptı ama başta yüksekten açtı; pazarlıkla makul bir yerde anlaştık." },
+    { "id": "holistic_high_price", "tone": "neutral", "context": "highPrice", "text": "Araç düzeldi, kullanılan parçayı da anlattı; yalnız ilk ve son fiyat hâlâ pahalı geldi." },
+    { "id": "holistic_poor_work", "tone": "negative", "context": "poorWork", "text": "Hesap konuştuğumuz gibiydi ama teslimde işçilik içime sinmedi; araç hâlâ kendini belli ediyor." },
+    { "id": "holistic_poor_price", "tone": "negative", "context": "poorWorkAndPrice", "text": "Hem başta yüksek fiyat söyledi hem de yapılan iş düzgün çıkmadı; bu hesap bu işçiliği taşımıyor." },
+    { "id": "holistic_concealed_part", "tone": "negative", "context": "concealedPart", "text": "İş bitmiş görünüyordu ama anlatılan parçayla takılan uyuşmadı; mesele para değil açık konuşulmaması." },
+    { "id": "holistic_washed", "tone": "positive", "context": "washedPositive", "text": "Arızayı düzgün çözdü, hesabı baştan anlattı; aracı da temiz teslim etti." },
+    { "id": "holistic_used_disclosed", "tone": "neutral", "context": "disclosedUsedPart", "text": "Çıkma parçanın durumunu baştan söyledi; fiyat ona göreydi, araç da şimdilik düzgün çalışıyor." }
   ],
   "shopLevels": [
     { "id": 1, "name": "Kepenk Altı", "capacity": 1, "upgradeCost": { "minorUnits": 0 }, "equipmentBonus": 0, "facilities": ["basicRepair"], "maxApprentices": 0 },

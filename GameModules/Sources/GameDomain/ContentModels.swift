@@ -254,15 +254,40 @@ public enum ReviewTone: String, Codable, Sendable {
     case negative
 }
 
+public enum ReviewContext: String, Codable, CaseIterable, Sendable {
+    case general
+    case priceRecovered
+    case highPrice
+    case poorWork
+    case poorWorkAndPrice
+    case concealedPart
+    case washedPositive
+    case disclosedUsedPart
+}
+
 public struct ReviewTemplateDefinition: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let tone: ReviewTone
+    public let context: ReviewContext
     public let text: String
 
-    public init(id: String, tone: ReviewTone, text: String) {
+    public init(id: String, tone: ReviewTone, context: ReviewContext = .general, text: String) {
         self.id = id
         self.tone = tone
+        self.context = context
         self.text = text
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, tone, context, text
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = try values.decode(String.self, forKey: .id)
+        tone = try values.decode(ReviewTone.self, forKey: .tone)
+        context = try values.decodeIfPresent(ReviewContext.self, forKey: .context) ?? .general
+        text = try values.decode(String.self, forKey: .text)
     }
 }
 

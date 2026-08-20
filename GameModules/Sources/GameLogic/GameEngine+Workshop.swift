@@ -376,6 +376,7 @@ extension GameEngine {
               let workmanship = state.activeJobs[index].workmanship,
               let strategy = state.activeJobs[index].strategy,
               let paid = state.activeJobs[index].quote,
+              let inventory = state.inventory.first(where: { $0.jobID == jobID }),
               let customer = catalog.customer(id: state.activeJobs[index].customerID) else {
             throw GameRuleError.invalidCommand("Tamir ve fiyat anlaşması tamamlanmadan araç teslim edilemez.")
         }
@@ -420,14 +421,17 @@ extension GameEngine {
             for: workmanship,
             concealed: job.hidePartQuality
         )
-        if job.isWashed {
-            state.ratingTenths = min(50, state.ratingTenths + max(1, job.washRatingBonus))
-        }
+        let normalTotal = CustomerPricingRules.quote(
+            partCost: inventory.purchasePrice,
+            for: job,
+            catalog: catalog
+        ).normalTotal
         let newReview = makeReview(
             for: job,
+            customer: customer,
             workmanship: workmanship,
-            strategy: strategy,
-            noticed: questioned,
+            partQuality: partQuality,
+            normalTotal: normalTotal,
             random: &random
         )
         if let newReview { addReview(newReview) }
@@ -436,9 +440,7 @@ extension GameEngine {
             paid: paid,
             quality: workmanship,
             partQuality: partQuality,
-            strategy: strategy,
             concealed: job.hidePartQuality,
-            noticed: questioned,
             random: &random
         )
         state.randomSeed = random.state

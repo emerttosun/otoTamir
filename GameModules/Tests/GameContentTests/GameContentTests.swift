@@ -16,6 +16,7 @@ struct GameContentTests {
         #expect(catalog.shopLevels.count == 7)
         #expect(catalog.washLevels.count == 3)
         #expect(catalog.reviews.count >= 24)
+        #expect(Set(ReviewContext.allCases).subtracting([.general]).isSubset(of: Set(catalog.reviews.map(\.context))))
         #expect(Set(catalog.faults.map(\.area)) == Set(SkillArea.allCases))
         #expect(Set(catalog.faults.map(\.repairGame)).count == catalog.faults.count)
         #expect(catalog.faults.allSatisfy { $0.complaintVariants.count >= 2 })

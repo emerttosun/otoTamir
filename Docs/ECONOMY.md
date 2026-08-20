@@ -14,6 +14,7 @@ Fiyatlar tek bir gerçek marka veya modele ait canlı teklif değildir. 16 Ağus
 - Fiyat stratejisi: uygun `%85`, normal `%100`, yüksek `%135`, uçuk `%180`.
 - Fiyat ekranı gerçek parça alış tutarını, katalogdan gelen işçiliği ve normal toplamı ayrı gösterir. Dört fiyat seçeneğinde müşteriden istenecek tutar önceden görünür. Fiyat bilgisi yüksek müşteri pahalı teklifi sorgularsa pazarlık açılır; karşı teklifi kabul etme, ortada buluşma veya kendi fiyatında diretme sonucunda kesin tutar belirlenir. Tamir bu anlaşmadan sonra başlar ve teslimde kasaya yalnız anlaşılmış tutar girer.
 - İlk istenen tutar ile pazarlık sonunda ödenen tutar müşteri değerlendirmesinde birlikte kullanılabilir. Yüksek fiyat söylemek tek başına şaibe değildir; gizlenen parça kalitesi ve benzeri dürüstlük ihlalleri ayrı risk üretir.
+- Müşteri yorumu işçilik, parça, ilk/son fiyat ve yıkamadan tek seferde hesaplanır. Teknik bilgisi yüksek müşterinin kötü işçiliği veya gizlenen parçayı fark etme ihtimali artar; yıkama yalnız bir değerlendirme puanı kadar küçük katkı sağlar.
 - Müşteri tamir başlamadan fiyat yüzünden ayrılırsa satın alınan parça parçacıya otomatik iade edilir. Alış bedeli pozitif `Parça iadesi`, `%10` kesinti negatif `Parça iade kesintisi` olarak iki kasa hareketine yazılır; kasaya net `%90` döner.
 - İşçilik ve parça güvenilirliği tekrar arıza ihtimalini etkiler.
 - Hileli davranışlar anında kazanç sağlar; dükkân puanı/yorum, şikâyet ve denetim sonraki takvim günlerinde uygulanır.

@@ -51,6 +51,10 @@ public enum ContentValidator {
         guard catalog.faults.count >= 30 else { throw ContentError.invalidValue("En az 30 arıza gerekli") }
         guard catalog.customers.count >= 20 else { throw ContentError.invalidValue("En az 20 müşteri gerekli") }
         guard catalog.reviews.count >= 24 else { throw ContentError.invalidValue("En az 24 yorum metni gerekli") }
+        let requiredReviewContexts = Set(ReviewContext.allCases).subtracting([.general])
+        guard requiredReviewContexts.isSubset(of: Set(catalog.reviews.map(\.context))) else {
+            throw ContentError.invalidValue("Bütün birleşik müşteri değerlendirme bağlamları için yorum gerekli")
+        }
         guard catalog.faults.allSatisfy({ $0.inspectionFindings.count >= 2 }) else {
             throw ContentError.invalidValue("Her arıza en az iki araç kontrolüyle bağlantılı olmalı")
         }
