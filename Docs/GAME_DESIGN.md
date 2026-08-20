@@ -20,7 +20,7 @@ Motor, elektrik, yürüyen ve kaporta seviyeleri yalnız işçilik puanı vermez
 
 ## Müşteri ve fiyat davranışı
 
-Müşteriler sabit bir günlük listede bulunmaz. Yapılan işlemler zamanı ilerlettikçe itibar ve dükkân puanına bağlı aralıklarla gelir, sabır süresi dolunca ayrılır ve kuyruk en fazla üç kişidir. İş yoksa oyuncu açıkça müşteri beklemeyi seçebilir. Küçük dükkân aynı anda bir araç alır.
+Müşteriler sabit bir günlük listede bulunmaz. Yapılan işlemler zamanı ilerlettikçe itibar ve dükkân puanına bağlı aralıklarla gelir, bekleme süresi dolunca kendiliğinden ayrılır ve kuyruk en fazla üç kişidir. Oyuncu istemediği müşteriyi ayrıca `Gönder` seçeneğiyle hemen reddedebilir; beklemek veya açıkça göndermek birlikte korunur. İş yoksa oyuncu açıkça müşteri beklemeyi seçebilir. Küçük dükkân aynı anda bir araç alır.
 
 Fiyat parça satın alınıp işçilik tamamlandıktan sonra `Uygun`, `Normal`, `Yüksek` veya `Uçuk` olarak seçilir. Müşterinin görünüşü ve davranış profili oyuncuya kesin olmayan bir ipucu verir. Hassas müşteri yüksek fiyatı fark edip pazarlık yapabilir; sonradan düşük puan, şikâyet veya denetim doğabilir. Ayrıntılı fatura ekranı ilk sürüm kapsamına alınmaz.
 

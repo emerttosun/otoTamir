@@ -141,6 +141,45 @@ struct GameLogicTests {
         #expect(engine.state.totalMinutes == 720)
     }
 
+    @Test("Bekleyen müşteri hem gönderilebilir hem de süresi dolunca ayrılır")
+    func customerCanBeDeclinedOrExpire() throws {
+        let catalog = try DefaultContentRepository().load()
+        var engine = GameEngine(catalog: catalog, seed: 91)
+        try engine.handle(.prepareWorld)
+        let declinedOffer = try #require(engine.state.offers.first)
+        let beforeDecline = engine.state.totalMinutes
+
+        let declineEvents = try engine.handle(.declineOffer(declinedOffer.id))
+
+        #expect(!engine.state.offers.contains { $0.id == declinedOffer.id })
+        #expect(engine.state.totalMinutes == beforeDecline + 15)
+        #expect(declineEvents.contains(.customerLeft(declinedOffer.id)))
+
+        let expiringID = UUID()
+        var expiryState = GameState(
+            startingCash: catalog.balance.startingCash,
+            daySlots: catalog.balance.daySlots,
+            randomSeed: 91
+        )
+        expiryState.offers = [CustomerOffer(
+            id: expiringID,
+            customerID: catalog.customers[0].id,
+            vehicleID: catalog.vehicles[0].id,
+            serviceKind: .faultRepair,
+            actualFaultID: catalog.faults[0].id,
+            suspectedFaultIDs: [catalog.faults[0].id],
+            complaint: "Bekleme testi",
+            arrivedAtMinute: expiryState.totalMinutes,
+            expiresAtMinute: expiryState.totalMinutes + 10
+        )]
+        var expiryEngine = GameEngine(state: expiryState, catalog: catalog)
+
+        let expiryEvents = try expiryEngine.handle(.advanceTime(minutes: 10))
+
+        #expect(expiryEngine.state.offers.isEmpty)
+        #expect(expiryEvents.contains(.customerLeft(expiringID)))
+    }
+
     @Test("Uzmanlık ilerledikçe zor işler, yeni müşteriler ve araçlar açılır")
     func expertiseUnlocksContent() throws {
         let catalog = try DefaultContentRepository().load()
