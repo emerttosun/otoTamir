@@ -8,6 +8,7 @@ public struct CustomerExperienceEvaluation: Equatable, Sendable {
     public let reviewChance: Int
     public let detectedPoorWork: Bool
     public let detectedConcealedPart: Bool
+    public let deliveryTiming: DeliveryTiming
 
     public init(
         score: Int,
@@ -16,7 +17,8 @@ public struct CustomerExperienceEvaluation: Equatable, Sendable {
         context: ReviewContext,
         reviewChance: Int,
         detectedPoorWork: Bool,
-        detectedConcealedPart: Bool
+        detectedConcealedPart: Bool,
+        deliveryTiming: DeliveryTiming
     ) {
         self.score = score
         self.stars = stars
@@ -25,6 +27,7 @@ public struct CustomerExperienceEvaluation: Equatable, Sendable {
         self.reviewChance = reviewChance
         self.detectedPoorWork = detectedPoorWork
         self.detectedConcealedPart = detectedConcealedPart
+        self.deliveryTiming = deliveryTiming
     }
 }
 
@@ -35,6 +38,7 @@ public enum CustomerExperienceRules {
         workmanship: WorkmanshipQuality,
         partQuality: PartQuality,
         normalTotal: Money,
+        deliveryDelayMinutes: Int = 0,
         random: inout SeededRandomSource
     ) -> CustomerExperienceEvaluation {
         let poorWorkDetected = workmanship == .poor
@@ -49,6 +53,8 @@ public enum CustomerExperienceRules {
 
         let pricePenalty = priceScore(job: job, normalTotal: normalTotal)
         score += pricePenalty
+        let deliveryTiming = DeliveryTimingRules.status(delayMinutes: deliveryDelayMinutes)
+        score += DeliveryTimingRules.scoreAdjustment(for: deliveryTiming)
         if job.isWashed { score += min(2, max(1, job.washRatingBonus)) }
 
         let stars: Int
@@ -67,6 +73,7 @@ public enum CustomerExperienceRules {
             concealedPartDetected: concealedPartDetected,
             partQuality: partQuality,
             priceScore: pricePenalty,
+            deliveryTiming: deliveryTiming,
             tone: tone
         )
         let reviewChance = stars == 5 || stars <= 2 ? 80 : 42
@@ -77,7 +84,8 @@ public enum CustomerExperienceRules {
             context: context,
             reviewChance: reviewChance,
             detectedPoorWork: poorWorkDetected,
-            detectedConcealedPart: concealedPartDetected
+            detectedConcealedPart: concealedPartDetected,
+            deliveryTiming: deliveryTiming
         )
     }
 
@@ -113,11 +121,14 @@ public enum CustomerExperienceRules {
         concealedPartDetected: Bool,
         partQuality: PartQuality,
         priceScore: Int,
+        deliveryTiming: DeliveryTiming,
         tone: ReviewTone
     ) -> ReviewContext {
         if concealedPartDetected { return .concealedPart }
         if poorWorkDetected && priceScore < 0 { return .poorWorkAndPrice }
         if poorWorkDetected { return .poorWork }
+        if deliveryTiming == .veryLate { return .veryLateDelivery }
+        if deliveryTiming == .late { return .lateDelivery }
         if job.priceWasQuestioned {
             let finalPrice = job.quote ?? job.initialQuote ?? normalTotal
             return finalPrice.minorUnits <= normalTotal.minorUnits * 110 / 100 ? .priceRecovered : .highPrice

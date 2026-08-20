@@ -11,7 +11,13 @@ extension GameEngine {
             throw GameRuleError.shopIsFull
         }
         let offer = state.offers.remove(at: index)
-        state.activeJobs.append(RepairJob(offer: offer))
+        let expectedDeliveryMinute = state.totalMinutes
+            + DeliveryTimingRules.expectedDuration(for: offer, catalog: catalog)
+        state.activeJobs.append(RepairJob(
+            offer: offer,
+            acceptedAtMinute: state.totalMinutes,
+            expectedDeliveryMinute: expectedDeliveryMinute
+        ))
         return [.offerAccepted(id)]
     }
 
@@ -364,8 +370,27 @@ extension GameEngine {
         var random = SeededRandomSource(seed: state.randomSeed)
         let job = state.activeJobs[index]
         let questioned = job.priceWasQuestioned
+        let deliveryTiming = DeliveryTimingRules.status(
+            currentMinute: state.totalMinutes,
+            expectedDeliveryMinute: job.expectedDeliveryMinute
+        )
+        let deliveryDelay = max(0, state.totalMinutes - job.expectedDeliveryMinute)
         let reaction: String
-        if questioned {
+        if deliveryTiming == .veryLate {
+            let lines = [
+                "\(customer.name) anahtarı aldı ama teslim hedefinin \(deliveryDelay) dakika aşılmasını yoruma yazacağını söyledi.",
+                "Araç sonunda çıktı; müşteri ‘Usta, bu araba senden önce emekli olacaktı’ deyip gecikmeyi not etti.",
+                "Teslim tamamlandı fakat \(deliveryDelay) dakikalık gecikme müşterinin yapılan işten önce konuştuğu konu oldu."
+            ]
+            reaction = lines[random.next(upperBound: lines.count)]
+        } else if deliveryTiming == .late {
+            let lines = [
+                "\(customer.name) aracı teslim aldı; hedefin \(deliveryDelay) dakika geçtiğini de not etti.",
+                "İş bitti ama çaydanlık bir tur fazla kaynadı; müşteri gecikmeyi fark etti.",
+                "Anahtar teslim edildi. Müşteri sonucu beğense de beklediğinden geç çıktığını söyledi."
+            ]
+            reaction = lines[random.next(upperBound: lines.count)]
+        } else if questioned {
             let lines = [
                 "\(customer.name) pazarlıkta anlaşılan hesabı ödedi; ilk söylenen fiyatı yine de unutmadı.",
                 "Pazarlık kapandı, anahtar teslim edildi. Müşteri son ödediği tutarı not etti.",
@@ -412,6 +437,7 @@ extension GameEngine {
             workmanship: workmanship,
             partQuality: partQuality,
             normalTotal: normalTotal,
+            deliveryDelayMinutes: deliveryDelay,
             random: &random
         )
         if let newReview { addReview(newReview) }

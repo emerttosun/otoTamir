@@ -274,7 +274,44 @@ private struct JobCard: View {
                 Text("Şikâyet: “\(job.complaint)”")
                     .font(.subheadline).italic().foregroundStyle(.white.opacity(0.86))
             }
+            Label(deliveryTargetText, systemImage: deliveryTiming == .onTime ? "clock" : "clock.badge.exclamationmark")
+                .font(.caption.bold().monospacedDigit())
+                .foregroundStyle(deliveryTiming == .veryLate ? GarageStyle.danger : (deliveryTiming == .late ? GarageStyle.orange : .secondary))
+                .accessibilityLabel(deliveryTargetAccessibilityText)
         }
+    }
+
+    private var deliveryTiming: DeliveryTiming {
+        DeliveryTimingRules.status(
+            currentMinute: currentMinute,
+            expectedDeliveryMinute: job.expectedDeliveryMinute
+        )
+    }
+
+    private var deliveryTargetText: String {
+        let target = absoluteTimeText(job.expectedDeliveryMinute)
+        let delay = max(0, currentMinute - job.expectedDeliveryMinute)
+        return switch deliveryTiming {
+        case .onTime: "Teslim hedefi • \(target)"
+        case .late: "Teslim hedefi • \(target) • \(delay) dk gecikti"
+        case .veryLate: "Çok gecikti • hedef \(target) • \(delay) dk"
+        }
+    }
+
+    private var deliveryTargetAccessibilityText: String {
+        let delay = max(0, currentMinute - job.expectedDeliveryMinute)
+        return switch deliveryTiming {
+        case .onTime: "Teslim hedefi \(absoluteTimeText(job.expectedDeliveryMinute))"
+        case .late: "Teslim \(delay) dakika gecikti"
+        case .veryLate: "Teslim çok gecikti, \(delay) dakika gecikme var"
+        }
+    }
+
+    private func absoluteTimeText(_ minute: Int) -> String {
+        let normalized = max(0, minute)
+        let day = normalized / 1_440 + 1
+        let minuteOfDay = normalized % 1_440
+        return String(format: "Gün %d • %02d:%02d", day, minuteOfDay / 60, minuteOfDay % 60)
     }
 
     private var inspectionContent: some View {

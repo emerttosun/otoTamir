@@ -22,8 +22,8 @@
 - `Money.swift`: Kuruş tabanlı güvenli para değerini ve Türk lirası gösterimini sağlar.
 - `ContentModels.swift`: JSON'dan gelen araç, ortak parçaya kimlikle bağlanan arıza, üç davranış değerli müşteri, bağlamsal bütüncül yorum, müşteri liftinden bağımsız Garaj kapasiteli dükkân ve üç seviyeli yıkama gelişimi ile ayrıntılı gider dengelerini tanımlar.
 - `PartModels.swift`: Tekil parçaların kategori, taban fiyat ve bakım/normal tamire göre kalite profilini; bakım görevlerinin parça ve işçilik eşlemesini tanımlar.
-- `GameModels.swift`: Sürüm 18 `GameState` kayıt kökünü, eski güven değerinin dükkân puanına göçünü, kişilikli çırakları, kaybedilen müşteri havuzunu, alan bazlı yetkinliği ve eylem tabanlı zamanı tanımlar.
-- `RepairModels.swift`: Müşteri teklifi, iş emri, parça kalitesi, bakım, ustalık ve itibar modellerini toplar.
+- `GameModels.swift`: Sürüm 19 `GameState` kayıt kökünü, eski güven değerinin dükkân puanına göçünü, kişilikli çırakları, kaybedilen müşteri havuzunu, alan bazlı yetkinliği ve eylem tabanlı zamanı tanımlar.
+- `RepairModels.swift`: Müşteri teklifi, kabul ve kesin teslim hedefi taşıyan iş emri, parça kalitesi, bakım, ustalık ve itibar modellerini toplar.
 - `ApprenticeModels.swift`: Çırak geçmişini, beş gizli özelliği, mutluluğu, sadık müşterileri, ayrılık uyarısını, görev sayısını ve dört alandaki ilerlemeyi tanımlar.
 - `ApprenticeWorkOrder.swift`: Çırağın kayıtlar arasında korunan hazırlık, fiyat bekleme ve paralel tamir iş emrini tanımlar.
 - `FinanceModels.swift`: Kredi, kasa hareketi, yorum, envanter ve gecikmeli sonuç modellerini tanımlar.
@@ -42,9 +42,10 @@
 - `PartPricingRules.swift`: Bakım görevlerinden değişecek benzersiz parçaları bulur; kalite katsayısı ve görev bazlı işçilik tutarlarını tek merkezde hesaplar.
 - `CustomerPricingRules.swift`: Tamir öncesi gösterilen parça, işçilik, normal toplam ve fiyat stratejilerinin istenen tutarlarını tek merkezde hesaplar.
 - `CustomerNegotiationRules.swift`: Müşterinin fiyat bilgisi ve pazarlık gücünden fark etme, karşı teklif, orta yol ve diretme olasılığını deterministik hesaplar.
-- `CustomerExperienceRules.swift`: Fiyat bilgisi, teknik bilgi, ilk/son fiyat, parça, işçilik ve yıkamayı tek müşteri değerlendirmesine dönüştürür.
+- `DeliveryTimingRules.swift`: İş türü ve arıza zorluğundan kesin teslim hedefini; teslim anındaki normal, gecikmiş ve çok gecikmiş durumları deterministik hesaplar.
+- `CustomerExperienceRules.swift`: Fiyat bilgisi, teknik bilgi, ilk/son fiyat, parça, işçilik, teslim gecikmesi ve yıkamayı tek müşteri değerlendirmesine dönüştürür.
 - `GameEngine.swift`: Komutları doğrular ve ilgili kural uzantısına yönlendiren küçük oyun motoru girişidir.
-- `GameEngine+Workshop.swift`: Kontrol, teşhis, parça, tamir, fiyat, `%10` kesintili parçacı iadesi, usta/çırak yıkaması ve seviye kontrollü çırak iş akışını yürütür.
+- `GameEngine+Workshop.swift`: Kontrol, teşhis, parça, tamir, fiyat, kesin teslim hedefi/gecikme sonucu, `%10` kesintili parçacı iadesi, usta/çırak yıkaması ve seviye kontrollü çırak iş akışını yürütür.
 - `GameEngine+Apprentices.swift`: Çırak ilanı, deterministik aday üretimi, işe alım, prim, günlük bağlılık kontrolü, ayrılık uyarısı ve müşteri götürme akışını yürütür.
 - `GameEngine+ApprenticeWork.swift`: Kalite politikasıyla çırağa araç devretme, arka planda kontrol/teşhis ve fiyat sonrası paralel tamir sonucunu yürütür.
 - `GameEngine+World.swift`: Eylem tabanlı saat, gider, kredi ve dükkân gelişimini yürütür.
@@ -52,7 +53,7 @@
 - `GameEngine+Content.swift`: Deterministik müşteri/içerik seçimi, itibar, yorum ve gecikmeli sonuç üretir.
 - `GameEngine+Support.swift`: Para yüzdesi, tesis kontrolü ve kayıt defteri gibi ortak saf yardımcıları tutar.
 - `DefaultContentRepository.swift`: Paket JSON'unu yükler ve bütünlük kurallarını doğrular.
-- `Resources/catalog.json`: 12 araç, benzersiz tamir oyunlu 30 arıza, bakım ve normal tamirde kullanılan 36 ortak parça, bakım görev eşlemeleri, 20 müşteri, üçlü şikâyet anlatımları, 26 yorum ve yedi dükkân seviyesini koddan bağımsız tutar.
+- `Resources/catalog.json`: 12 araç, benzersiz tamir oyunlu 30 arıza, bakım ve normal tamirde kullanılan 36 ortak parça, bakım görev eşlemeleri, 20 müşteri, üçlü şikâyet anlatımları, gecikme dâhil 38 yorum ve yedi dükkân seviyesini koddan bağımsız tutar.
 
 ## Apple servis adaptörleri
 

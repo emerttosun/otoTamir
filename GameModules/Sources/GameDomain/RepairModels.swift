@@ -103,6 +103,12 @@ public enum WorkmanshipQuality: String, Codable, Sendable {
     }
 }
 
+public enum DeliveryTiming: String, Codable, Sendable {
+    case onTime
+    case late
+    case veryLate
+}
+
 public enum RepairStage: String, Codable, Sendable {
     case awaitingInspection
     case awaitingDiagnosis
@@ -276,6 +282,7 @@ public struct RepairJob: Codable, Hashable, Identifiable, Sendable {
     public let maintenanceTasks: [MaintenanceTask]
     public let complaint: String
     public let acceptedAtMinute: Int
+    public let expectedDeliveryMinute: Int
     public var completedMaintenanceTasks: [MaintenanceTask]
     public var performedInspections: [InspectionKind]
     public var findings: [String]
@@ -297,7 +304,11 @@ public struct RepairJob: Codable, Hashable, Identifiable, Sendable {
     public var repairedByApprenticeID: UUID?
     public var apprenticeWorkOrder: ApprenticeWorkOrder?
 
-    public init(offer: CustomerOffer) {
+    public init(
+        offer: CustomerOffer,
+        acceptedAtMinute: Int? = nil,
+        expectedDeliveryMinute: Int? = nil
+    ) {
         id = offer.id
         customerID = offer.customerID
         vehicleID = offer.vehicleID
@@ -306,7 +317,8 @@ public struct RepairJob: Codable, Hashable, Identifiable, Sendable {
         suspectedFaultIDs = offer.suspectedFaultIDs
         maintenanceTasks = offer.maintenanceTasks
         complaint = offer.complaint
-        acceptedAtMinute = offer.arrivedAtMinute
+        self.acceptedAtMinute = acceptedAtMinute ?? offer.arrivedAtMinute
+        self.expectedDeliveryMinute = expectedDeliveryMinute ?? ((acceptedAtMinute ?? offer.arrivedAtMinute) + 240)
         completedMaintenanceTasks = []
         performedInspections = []
         findings = []
@@ -331,7 +343,7 @@ public struct RepairJob: Codable, Hashable, Identifiable, Sendable {
 
     private enum CodingKeys: String, CodingKey {
         case id, customerID, vehicleID, serviceKind, actualFaultID, suspectedFaultIDs
-        case maintenanceTasks, complaint, acceptedAtMinute, completedMaintenanceTasks, performedInspections, findings, candidateFaultIDs
+        case maintenanceTasks, complaint, acceptedAtMinute, expectedDeliveryMinute, completedMaintenanceTasks, performedInspections, findings, candidateFaultIDs
         case diagnosedFaultID, stage, strategy, hidePartQuality, initialQuote, quote, customerCounterOffer, priceWasQuestioned
         case partQuality, workmanship
         case repairPerformanceTotal, repairPerformanceCount, isWashed, washRatingBonus, repairedByApprenticeID
@@ -353,6 +365,7 @@ public struct RepairJob: Codable, Hashable, Identifiable, Sendable {
         maintenanceTasks = try values.decodeIfPresent([MaintenanceTask].self, forKey: .maintenanceTasks) ?? []
         complaint = try values.decodeIfPresent(String.self, forKey: .complaint) ?? "Müşteri aracın kontrol edilmesini istiyor."
         acceptedAtMinute = try values.decodeIfPresent(Int.self, forKey: .acceptedAtMinute) ?? 0
+        expectedDeliveryMinute = try values.decodeIfPresent(Int.self, forKey: .expectedDeliveryMinute) ?? (acceptedAtMinute + 240)
         completedMaintenanceTasks = try values.decodeIfPresent([MaintenanceTask].self, forKey: .completedMaintenanceTasks) ?? []
         performedInspections = try values.decodeIfPresent([InspectionKind].self, forKey: .performedInspections) ?? []
         findings = try values.decodeIfPresent([String].self, forKey: .findings) ?? []

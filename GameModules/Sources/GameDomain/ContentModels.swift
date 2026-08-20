@@ -263,6 +263,8 @@ public enum ReviewContext: String, Codable, CaseIterable, Sendable {
     case concealedPart
     case washedPositive
     case disclosedUsedPart
+    case lateDelivery
+    case veryLateDelivery
 }
 
 public struct ReviewTemplateDefinition: Codable, Hashable, Identifiable, Sendable {

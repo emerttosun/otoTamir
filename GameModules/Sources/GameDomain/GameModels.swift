@@ -1,7 +1,7 @@
 import Foundation
 
 public struct GameState: Codable, Hashable, Sendable {
-    public static let currentSchemaVersion = 18
+    public static let currentSchemaVersion = 19
 
     public var schemaVersion: Int
     public var saveID: UUID

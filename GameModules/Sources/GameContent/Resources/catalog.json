@@ -152,7 +152,12 @@
     { "id": "holistic_poor_price", "tone": "negative", "context": "poorWorkAndPrice", "text": "Hem başta yüksek fiyat söyledi hem de yapılan iş düzgün çıkmadı; bu hesap bu işçiliği taşımıyor." },
     { "id": "holistic_concealed_part", "tone": "negative", "context": "concealedPart", "text": "İş bitmiş görünüyordu ama anlatılan parçayla takılan uyuşmadı; mesele para değil açık konuşulmaması." },
     { "id": "holistic_washed", "tone": "positive", "context": "washedPositive", "text": "Arızayı düzgün çözdü, hesabı baştan anlattı; aracı da temiz teslim etti." },
-    { "id": "holistic_used_disclosed", "tone": "neutral", "context": "disclosedUsedPart", "text": "Çıkma parçanın durumunu baştan söyledi; fiyat ona göreydi, araç da şimdilik düzgün çalışıyor." }
+    { "id": "holistic_used_disclosed", "tone": "neutral", "context": "disclosedUsedPart", "text": "Çıkma parçanın durumunu baştan söyledi; fiyat ona göreydi, araç da şimdilik düzgün çalışıyor." },
+    { "id": "holistic_late_positive", "tone": "positive", "context": "lateDelivery", "text": "Biraz geç teslim etti ama işi ve hesabı temizdi; beklediğime değdi." },
+    { "id": "holistic_late_neutral", "tone": "neutral", "context": "lateDelivery", "text": "Araç düzeldi, fiyat da konuştuğumuz gibiydi; yalnız teslim hedefi biraz aşıldı." },
+    { "id": "holistic_late_negative", "tone": "negative", "context": "lateDelivery", "text": "İş zaten içime sinmedi, bir de söylendiğinden geç teslim edildi." },
+    { "id": "holistic_very_late_neutral", "tone": "neutral", "context": "veryLateDelivery", "text": "Yapılan iş düzgün görünüyor ama araç söz verilen vaktin çok sonrasında çıktı." },
+    { "id": "holistic_very_late_negative", "tone": "negative", "context": "veryLateDelivery", "text": "Araba dükkânda yatmaktan mahalleyi ezberledi; teslim süresi kabul edilecek gibi değildi." }
   ],
   "shopLevels": [
     { "id": 1, "name": "Kepenk Altı", "capacity": 1, "upgradeCost": { "minorUnits": 0 }, "equipmentBonus": 0, "facilities": ["basicRepair"], "maxApprentices": 0, "garageCapacity": 0 },

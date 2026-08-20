@@ -53,6 +53,91 @@ struct GameLogicTests {
         #expect(engine.state.expertise[fault.area, default: SkillProgress()].experience > 0)
     }
 
+    @Test("Teslim hedefi gecikmeyi değerlendirir ve bekleyen araç lift kapasitesini tutar")
+    func deliveryTimingAffectsExperienceAndCapacity() throws {
+        let catalog = try DefaultContentRepository().load()
+        let fault = catalog.faults[0]
+        let firstOffer = CustomerOffer(
+            id: UUID(),
+            customerID: catalog.customers[0].id,
+            vehicleID: catalog.vehicles[0].id,
+            actualFaultID: fault.id,
+            suspectedFaultIDs: [fault.id],
+            complaint: fault.complaint,
+            arrivedAtMinute: 450
+        )
+        var state = GameState(startingCash: catalog.balance.startingCash, daySlots: 8)
+        state.totalMinutes = 480
+        state.offers = [firstOffer]
+        var engine = GameEngine(state: state, catalog: catalog)
+
+        try engine.handle(.acceptOffer(firstOffer.id))
+        var job = try #require(engine.state.activeJobs.first)
+        let expectedDuration = DeliveryTimingRules.expectedDuration(for: firstOffer, catalog: catalog)
+        #expect(job.acceptedAtMinute == 480)
+        #expect(job.expectedDeliveryMinute == 480 + expectedDuration)
+
+        let customer = try #require(catalog.customer(id: firstOffer.customerID))
+        let normalTotal = Money(minorUnits: 500_000)
+        job.initialQuote = normalTotal
+        job.quote = normalTotal
+        var onTimeRandom = SeededRandomSource(seed: 4)
+        var lateRandom = SeededRandomSource(seed: 4)
+        var veryLateRandom = SeededRandomSource(seed: 4)
+        let onTime = CustomerExperienceRules.evaluate(
+            job: job,
+            customer: customer,
+            workmanship: .good,
+            partQuality: .aftermarket,
+            normalTotal: normalTotal,
+            deliveryDelayMinutes: 0,
+            random: &onTimeRandom
+        )
+        let late = CustomerExperienceRules.evaluate(
+            job: job,
+            customer: customer,
+            workmanship: .good,
+            partQuality: .aftermarket,
+            normalTotal: normalTotal,
+            deliveryDelayMinutes: 60,
+            random: &lateRandom
+        )
+        let veryLate = CustomerExperienceRules.evaluate(
+            job: job,
+            customer: customer,
+            workmanship: .good,
+            partQuality: .aftermarket,
+            normalTotal: normalTotal,
+            deliveryDelayMinutes: 180,
+            random: &veryLateRandom
+        )
+
+        #expect(onTime.deliveryTiming == .onTime)
+        #expect(late.deliveryTiming == .late)
+        #expect(veryLate.deliveryTiming == .veryLate)
+        #expect(onTime.score > late.score)
+        #expect(late.score > veryLate.score)
+
+        job.stage = .awaitingDelivery
+        state = engine.state
+        state.activeJobs = [job]
+        state.totalMinutes = job.expectedDeliveryMinute + 180
+        let waitingOffer = CustomerOffer(
+            id: UUID(),
+            customerID: catalog.customers[1].id,
+            vehicleID: catalog.vehicles[1].id,
+            actualFaultID: fault.id,
+            suspectedFaultIDs: [fault.id],
+            complaint: fault.complaint
+        )
+        state.offers = [waitingOffer]
+        engine = GameEngine(state: state, catalog: catalog)
+
+        #expect(throws: GameRuleError.shopIsFull) {
+            try engine.handle(.acceptOffer(waitingOffer.id))
+        }
+    }
+
     @Test("Anlaşılan müşteri fiyatı teslimde kesin tahsil edilir")
     func selectedCustomerPriceIsCollectedExactly() throws {
         let sample = CustomerQuoteBreakdown(

@@ -143,6 +143,7 @@ extension GameEngine {
         workmanship: WorkmanshipQuality,
         partQuality: PartQuality,
         normalTotal: Money,
+        deliveryDelayMinutes: Int,
         random: inout SeededRandomSource
     ) -> ShopReview? {
         let evaluation = CustomerExperienceRules.evaluate(
@@ -151,6 +152,7 @@ extension GameEngine {
             workmanship: workmanship,
             partQuality: partQuality,
             normalTotal: normalTotal,
+            deliveryDelayMinutes: deliveryDelayMinutes,
             random: &random
         )
         guard random.next(upperBound: 100) < evaluation.reviewChance else { return nil }
