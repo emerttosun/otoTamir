@@ -93,7 +93,7 @@ struct ProgressViewScreen: View {
     private func impactRow(_ incident: GameIncident) -> some View {
         let impacts = [
             incident.cashImpact == .zero ? nil : "Kasa \(signedMoney(incident.cashImpact))",
-            incident.trustImpact == 0 ? nil : "Güven \(signed(incident.trustImpact))",
+            incident.ratingImpact == 0 ? nil : "Dükkân puanı \(signed(incident.ratingImpact))",
             incident.craftsmanshipImpact == 0 ? nil : "Ustalık \(signed(incident.craftsmanshipImpact))",
             incident.suspicionImpact == 0 ? nil : "Şaibe \(signed(incident.suspicionImpact))"
         ].compactMap { $0 }

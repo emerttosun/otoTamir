@@ -19,7 +19,7 @@ Başlıca kaynaklar:
 - Mizah aracın sesini veya davranışını kişileştirebilir: “ısınınca küsüyor”, “fren mahalleye haber veriyor”.
 - Müşterinin mesleği, yaşı, cinsiyeti veya gelir düzeyi hakaret konusu yapılmaz.
 - Her müşteri arketipi fiyat dışında en az bir davranış farkı taşır: zaman, güvenlik, teknik açıklama, dayanıklılık veya mahalle etkisi.
-- Aldatma komik bir seçenek olabilir; sonucu güven kaybı, yorum, telafi veya denetim olarak görünür kalır.
+- Aldatma komik bir seçenek olabilir; sonucu dükkân puanı kaybı, yorum, telafi veya denetim olarak görünür kalır.
 - Denetim ve şikâyet metinleri aynı cümleyi tekrarlamaz; olayın sebebini oyuncuya açıkça söyler.
 
 ## Mini oyun ilkeleri

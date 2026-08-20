@@ -102,7 +102,7 @@ public enum ContentValidator {
             throw ContentError.invalidValue("Dükkân seviyeleri 1 ile 7 arasında kesintisiz olmalı")
         }
         guard catalog.washLevels.map(\.id).sorted() == Array(1...3),
-              catalog.washLevels.allSatisfy({ $0.requiredShopLevel >= 1 && $0.durationMinutes > 0 && $0.trustBonus > 0 }),
+              catalog.washLevels.allSatisfy({ $0.requiredShopLevel >= 1 && $0.durationMinutes > 0 && $0.ratingBonus > 0 }),
               zip(catalog.washLevels, catalog.washLevels.dropFirst()).allSatisfy({ current, next in
                   current.washCost >= next.washCost
               }) else {

@@ -47,7 +47,7 @@ struct GameContentTests {
         #expect(catalog.shopLevels[6].facilities.contains(.vehicleShowroom))
         #expect(catalog.shopLevels[6].capacity == 5)
         #expect(catalog.washLevels.map(\.id) == [1, 2, 3])
-        #expect(catalog.washLevels[2].trustBonus == 3)
+        #expect(catalog.washLevels[2].ratingBonus == 3)
         #expect(catalog.balance.dailyRent + catalog.balance.dailyUtilities + catalog.balance.dailySupplies == catalog.balance.dailyExpense)
     }
 

@@ -196,18 +196,15 @@ public struct SkillProgress: Codable, Hashable, Sendable {
 
 public struct Reputation: Codable, Hashable, Sendable {
     public var craftsmanship: Int
-    public var trust: Int
     public var suspicion: Int
 
-    public init(craftsmanship: Int = 10, trust: Int = 10, suspicion: Int = 0) {
+    public init(craftsmanship: Int = 10, suspicion: Int = 0) {
         self.craftsmanship = craftsmanship
-        self.trust = trust
         self.suspicion = suspicion
     }
 
     public mutating func clamp() {
         craftsmanship = min(100, max(0, craftsmanship))
-        trust = min(100, max(0, trust))
         suspicion = min(100, max(0, suspicion))
     }
 }
@@ -295,7 +292,7 @@ public struct RepairJob: Codable, Hashable, Identifiable, Sendable {
     public var repairPerformanceTotal: Int
     public var repairPerformanceCount: Int
     public var isWashed: Bool
-    public var washTrustBonus: Int
+    public var washRatingBonus: Int
     public var repairedByApprenticeID: UUID?
 
     public init(offer: CustomerOffer) {
@@ -325,7 +322,7 @@ public struct RepairJob: Codable, Hashable, Identifiable, Sendable {
         repairPerformanceTotal = 0
         repairPerformanceCount = 0
         isWashed = false
-        washTrustBonus = 0
+        washRatingBonus = 0
         repairedByApprenticeID = nil
     }
 
@@ -334,7 +331,11 @@ public struct RepairJob: Codable, Hashable, Identifiable, Sendable {
         case maintenanceTasks, complaint, acceptedAtMinute, completedMaintenanceTasks, performedInspections, findings, candidateFaultIDs
         case diagnosedFaultID, stage, strategy, hidePartQuality, initialQuote, quote, customerCounterOffer, priceWasQuestioned
         case partQuality, workmanship
-        case repairPerformanceTotal, repairPerformanceCount, isWashed, washTrustBonus, repairedByApprenticeID
+        case repairPerformanceTotal, repairPerformanceCount, isWashed, washRatingBonus, repairedByApprenticeID
+    }
+
+    private enum LegacyCodingKeys: String, CodingKey {
+        case washTrustBonus
     }
 
     public init(from decoder: any Decoder) throws {
@@ -377,7 +378,10 @@ public struct RepairJob: Codable, Hashable, Identifiable, Sendable {
         repairPerformanceTotal = try values.decodeIfPresent(Int.self, forKey: .repairPerformanceTotal) ?? 0
         repairPerformanceCount = try values.decodeIfPresent(Int.self, forKey: .repairPerformanceCount) ?? 0
         isWashed = try values.decodeIfPresent(Bool.self, forKey: .isWashed) ?? false
-        washTrustBonus = try values.decodeIfPresent(Int.self, forKey: .washTrustBonus) ?? (isWashed ? 1 : 0)
+        let legacyValues = try decoder.container(keyedBy: LegacyCodingKeys.self)
+        washRatingBonus = try values.decodeIfPresent(Int.self, forKey: .washRatingBonus)
+            ?? legacyValues.decodeIfPresent(Int.self, forKey: .washTrustBonus)
+            ?? (isWashed ? 1 : 0)
         repairedByApprenticeID = try values.decodeIfPresent(UUID.self, forKey: .repairedByApprenticeID)
     }
 }

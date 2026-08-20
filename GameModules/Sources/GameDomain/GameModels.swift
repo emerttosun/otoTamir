@@ -1,7 +1,7 @@
 import Foundation
 
 public struct GameState: Codable, Hashable, Sendable {
-    public static let currentSchemaVersion = 14
+    public static let currentSchemaVersion = 15
 
     public var schemaVersion: Int
     public var saveID: UUID
@@ -79,6 +79,10 @@ public struct GameState: Codable, Hashable, Sendable {
         case processedTransactionIDs, selectedThemeID, randomSeed
     }
 
+    private struct LegacyReputation: Decodable {
+        let trust: Int?
+    }
+
     public init(from decoder: any Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         schemaVersion = try values.decodeIfPresent(Int.self, forKey: .schemaVersion) ?? 1
@@ -95,6 +99,7 @@ public struct GameState: Codable, Hashable, Sendable {
             ?? Dictionary(uniqueKeysWithValues: SkillArea.allCases.map { ($0, 1) })
         expertise = try values.decodeIfPresent([SkillArea: SkillProgress].self, forKey: .expertise)
             ?? Dictionary(uniqueKeysWithValues: skills.map { ($0.key, SkillProgress(level: $0.value)) })
+        let legacyTrust = try values.decodeIfPresent(LegacyReputation.self, forKey: .reputation)?.trust
         reputation = try values.decodeIfPresent(Reputation.self, forKey: .reputation) ?? Reputation()
         shopLevel = try values.decodeIfPresent(Int.self, forKey: .shopLevel) ?? 1
         washLevel = try values.decodeIfPresent(Int.self, forKey: .washLevel) ?? 0
@@ -106,6 +111,9 @@ public struct GameState: Codable, Hashable, Sendable {
         projectCars = try values.decodeIfPresent([ProjectCar].self, forKey: .projectCars) ?? []
         reviews = try values.decodeIfPresent([ShopReview].self, forKey: .reviews) ?? []
         ratingTenths = try values.decodeIfPresent(Int.self, forKey: .ratingTenths) ?? 40
+        if schemaVersion < 15, let legacyTrust {
+            ratingTenths = min(50, max(10, ratingTenths + (legacyTrust - 10) / 5))
+        }
         apprentices = try values.decodeIfPresent([Apprentice].self, forKey: .apprentices) ?? []
         apprenticeRecruitment = try values.decodeIfPresent(ApprenticeRecruitment.self, forKey: .apprenticeRecruitment)
         lostCustomerIDs = try values.decodeIfPresent(Set<String>.self, forKey: .lostCustomerIDs) ?? []

@@ -48,7 +48,7 @@ enum GameSection: String, CaseIterable, Identifiable {
         case .apprentices:
             "Çırak ilanı verip adayları değerlendir. İş ve yıkama verdikçe alan seviyeleri, mutluluğu ve zamanla tanıdığın kişisel özellikleri gelişir."
         case .bank:
-            "Dükkân puanı ve güvene bağlı limitten araç yatırım kredisi kullan; faiz, taksit ve kalan borcu buradan izle."
+            "Dükkân seviyesi ve puanına bağlı limitten araç yatırım kredisi kullan; faiz, taksit ve kalan borcu buradan izle."
         case .store:
             "Oyun parası ve kozmetik ürünler burada bulunur. Satın alma yalnız ilerlemeyi hızlandırır; ustalık ve iyi işçilik satılmaz."
         }

@@ -301,7 +301,7 @@ public struct WashLevelDefinition: Codable, Hashable, Identifiable, Sendable {
     public let requiredShopLevel: Int
     public let washCost: Money
     public let durationMinutes: Int
-    public let trustBonus: Int
+    public let ratingBonus: Int
     public let detail: String
 
     public init(
@@ -311,7 +311,7 @@ public struct WashLevelDefinition: Codable, Hashable, Identifiable, Sendable {
         requiredShopLevel: Int,
         washCost: Money,
         durationMinutes: Int,
-        trustBonus: Int,
+        ratingBonus: Int,
         detail: String
     ) {
         self.id = id
@@ -320,7 +320,7 @@ public struct WashLevelDefinition: Codable, Hashable, Identifiable, Sendable {
         self.requiredShopLevel = requiredShopLevel
         self.washCost = washCost
         self.durationMinutes = durationMinutes
-        self.trustBonus = trustBonus
+        self.ratingBonus = ratingBonus
         self.detail = detail
     }
 }

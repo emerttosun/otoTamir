@@ -123,22 +123,17 @@ extension GameEngine {
 
     mutating func applyReputation(
         for quality: WorkmanshipQuality,
-        strategy: PriceStrategy,
-        concealed: Bool,
-        noticed: Bool
+        concealed: Bool
     ) {
         switch quality {
         case .good:
             state.reputation.craftsmanship += 4
-            state.reputation.trust += strategy == .affordable || strategy == .fair ? 3 : 1
         case .acceptable:
             state.reputation.craftsmanship += 1
         case .poor:
             state.reputation.craftsmanship -= 5
-            state.reputation.trust -= 3
         }
         if concealed { state.reputation.suspicion += 6 }
-        if noticed { state.reputation.trust -= 2 }
         state.reputation.clamp()
     }
 

@@ -172,15 +172,14 @@ extension GameEngine {
             let takenCount = shuffledFans.isEmpty ? 0 : max(1, (shuffledFans.count + 1) / 2)
             state.lostCustomerIDs.formUnion(shuffledFans.prefix(takenCount))
             state.apprentices.remove(at: index)
-            state.reputation.trust -= takenCount
-            state.reputation.clamp()
+            state.ratingTenths = max(10, state.ratingTenths - takenCount)
             events.append(.apprenticeLeft(name: apprentice.name, customersTaken: takenCount))
             recordIncident(
                 kind: .apprentice,
                 message: takenCount > 0
                     ? "\(apprentice.name) kendi yerini açıp ayrıldı; onu seven \(takenCount) müşteri de yeni dükkânına gitti."
                     : "\(apprentice.name) işi öğrenip kendi yerini açmak için dükkândan ayrıldı.",
-                trustImpact: -takenCount
+                ratingImpact: -takenCount
             )
         }
         state.randomSeed = random.state

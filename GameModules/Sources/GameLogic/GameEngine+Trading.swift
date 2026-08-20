@@ -325,7 +325,7 @@ extension GameEngine {
         state.cash = state.cash + price
         recordFinance(amount: price, category: .vehicleSale, note: vehicleName)
         if project.disclosedDamage {
-            state.reputation.trust += 3
+            state.ratingTenths = min(50, state.ratingTenths + 3)
         } else {
             state.reputation.suspicion += 8
             if project.restorationQuality < 85 {
@@ -345,7 +345,7 @@ extension GameEngine {
                 ? "\(vehicleName), hasar geçmişi alıcıya anlatılarak \(price.liraText) bedelle satıldı."
                 : "\(vehicleName), hasar geçmişi saklanarak \(price.liraText) bedelle satıldı; sonradan geri dönüş riski oluştu.",
             cashImpact: price,
-            trustImpact: project.disclosedDamage ? 3 : 0,
+            ratingImpact: project.disclosedDamage ? 3 : 0,
             suspicionImpact: project.disclosedDamage ? 0 : 8
         )
         state.projectCars.remove(at: projectIndex)

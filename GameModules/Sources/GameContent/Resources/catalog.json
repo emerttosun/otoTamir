@@ -157,9 +157,9 @@
     { "id": 7, "name": "Sanayi Kompleksi", "capacity": 5, "upgradeCost": { "minorUnits": 110000000 }, "equipmentBonus": 24, "facilities": ["basicRepair", "waitingArea", "periodicMaintenance", "apprenticeStation", "washBay", "diagnosticLab", "bodyPaintBooth", "detailingBay", "vehicleShowroom"], "maxApprentices": 4 }
   ],
   "washLevels": [
-    { "id": 1, "name": "Temel Yıkama", "upgradeCost": { "minorUnits": 1200000 }, "requiredShopLevel": 3, "washCost": { "minorUnits": 35000 }, "durationMinutes": 30, "trustBonus": 1, "detail": "Dış yıkama • temiz teslim • +1 güven" },
-    { "id": 2, "name": "Detaylı Temizlik", "upgradeCost": { "minorUnits": 4500000 }, "requiredShopLevel": 5, "washCost": { "minorUnits": 28000 }, "durationMinutes": 22, "trustBonus": 2, "detail": "İç-dış temizlik • hızlı ekipman • +2 güven" },
-    { "id": 3, "name": "Premium Teslim", "upgradeCost": { "minorUnits": 12000000 }, "requiredShopLevel": 7, "washCost": { "minorUnits": 20000 }, "durationMinutes": 15, "trustBonus": 3, "detail": "Detaylı son kontrol • vitrin teslimi • +3 güven" }
+    { "id": 1, "name": "Temel Yıkama", "upgradeCost": { "minorUnits": 1200000 }, "requiredShopLevel": 3, "washCost": { "minorUnits": 35000 }, "durationMinutes": 30, "ratingBonus": 1, "detail": "Dış yıkama • temiz teslim • dükkân puanına küçük katkı" },
+    { "id": 2, "name": "Detaylı Temizlik", "upgradeCost": { "minorUnits": 4500000 }, "requiredShopLevel": 5, "washCost": { "minorUnits": 28000 }, "durationMinutes": 22, "ratingBonus": 2, "detail": "İç-dış temizlik • hızlı ekipman • dükkân puanına katkı" },
+    { "id": 3, "name": "Premium Teslim", "upgradeCost": { "minorUnits": 12000000 }, "requiredShopLevel": 7, "washCost": { "minorUnits": 20000 }, "durationMinutes": 15, "ratingBonus": 3, "detail": "Detaylı son kontrol • vitrin teslimi • dükkân puanına güçlü katkı" }
   ],
   "balance": {
     "startingCash": { "minorUnits": 2500000 },

@@ -124,7 +124,6 @@ struct WorkshopDevelopmentView: View {
             }
 
             reputationMetric("İşçilik", value: store.state.reputation.craftsmanship, tint: GarageStyle.mint)
-            reputationMetric("Güven", value: store.state.reputation.trust, tint: .blue)
             reputationMetric("Şaibe", value: store.state.reputation.suspicion, tint: GarageStyle.danger)
 
             Divider().overlay(.white.opacity(0.12))

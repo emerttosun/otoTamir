@@ -22,7 +22,7 @@ Fiyatlar tek bir gerçek marka veya modele ait canlı teklif değildir. 16 Ağus
 - Günlük gider; kira, elektrik-su/enerji ve sarf-temizlik olarak ayrı kasa hareketlerine yazılır. Çırak ücretleri kişi başı ayrıca görünür.
 - Yıkama, çırak işe alımı, hasarlı araç alımı ve restorasyon parçaları da ayrı gider kategorileridir.
 - Kaporta-boya kabini proje araç restorasyon giderini azaltır; satış vitrini ilanların alıcı ihtimalini yükseltir.
-- Banka limiti dükkân seviyesi, güven ve dükkân puanından hesaplanır. Üç vadede toplam faiz baştan görünür; kalan borç limiti meşgul eder ve taksitler yalnız oyun zamanı ilerlediğinde tahsil edilir.
+- Banka limiti dükkân seviyesi ve dükkân puanından hesaplanır. Üç vadede toplam faiz baştan görünür; kalan borç limiti meşgul eder ve taksitler yalnız oyun zamanı ilerlediğinde tahsil edilir.
 - Hasarlı araç raporu tek kâr rakamı vermez: onarım, toplam yatırım, adil satış ve olası kâr/zarar aralıkları gösterilir.
 - Restorasyon sonrası araç doğrudan satılmaz. İlan fiyatı adil fiyatın üzerine çıktıkça satış ihtimali düşer; her ilan yayını sabit bir ilan gideri üretir.
 - Parçacı en fazla 10.000 ₺ veresiye parça verir; kasa -5.000 ₺ altına düşerse gün sonunda çalışmayı sürdürecek seviyede esnaf avansı açılır.

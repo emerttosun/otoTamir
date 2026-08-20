@@ -28,4 +28,4 @@ Rastgele seçimler `GameState.randomSeed` üzerinden yapılır. Aynı başlangı
 
 `GameState.totalMinutes` işlemlerin sıralanması için tek zaman kaynağıdır. Geçici tasarımda gerçek zaman sayacı çalıştırılmaz; yalnız oyuncu komutları zamanı ilerletir. Müşteri gelişleri, giderler, kredi taksitleri, ilan alıcı kontrolleri, hasarlı araç pazarı ve gecikmeli sonuçlar aynı deterministik takvim üzerinde kalır.
 
-Kayıt şeması sürüm 7'dir. Eski kayıtlar silinmez; migrator gün bilgisini dakikaya, eski uzmanlık seviyelerini XP modeline taşır ve çırak/kasa hareketi/kredi, Olay Defteri ile proje restorasyon ilerlemesini güvenli varsayılanlarla ekler. iCloud eşitlemesi otomatik ve isteğe bağlıdır; normal oyun akışında elle eşitleme düğmesi bulunmaz.
+Kayıt şeması sürüm 15'tir. Eski kayıtlar silinmez; migrator gün bilgisini dakikaya, eski uzmanlık seviyelerini XP modeline, kaldırılan güven sayacındaki ilerlemeyi dükkân puanına taşır ve çırak/kasa hareketi/kredi, Olay Defteri ile proje restorasyon ilerlemesini güvenli varsayılanlarla ekler. iCloud eşitlemesi otomatik ve isteğe bağlıdır; normal oyun akışında elle eşitleme düğmesi bulunmaz.

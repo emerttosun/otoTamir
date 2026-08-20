@@ -31,7 +31,7 @@ extension GameEngine {
         kind: IncidentKind,
         message: String,
         cashImpact: Money = .zero,
-        trustImpact: Int = 0,
+        ratingImpact: Int = 0,
         craftsmanshipImpact: Int = 0,
         suspicionImpact: Int = 0
     ) {
@@ -51,7 +51,7 @@ extension GameEngine {
             kind: kind,
             message: message,
             cashImpact: cashImpact,
-            trustImpact: trustImpact,
+            ratingImpact: ratingImpact,
             craftsmanshipImpact: craftsmanshipImpact,
             suspicionImpact: suspicionImpact
         ))

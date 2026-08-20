@@ -83,7 +83,7 @@ enum QAScenarioFactory {
         state.shopLevel = 7
         state.washLevel = 3
         state.ratingTenths = 46
-        state.reputation = Reputation(craftsmanship: 72, trust: 68, suspicion: 12)
+        state.reputation = Reputation(craftsmanship: 72, suspicion: 12)
         return state
     }
 

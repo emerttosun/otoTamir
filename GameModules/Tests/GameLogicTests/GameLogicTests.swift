@@ -449,7 +449,7 @@ struct GameLogicTests {
         try engine.handle(.upgradeWashBay)
 
         #expect(engine.state.washLevel == 3)
-        #expect(WashBayRules.currentDefinition(for: engine.state, catalog: catalog)?.trustBonus == 3)
+        #expect(WashBayRules.currentDefinition(for: engine.state, catalog: catalog)?.ratingBonus == 3)
         #expect(throws: GameRuleError.self) {
             try engine.handle(.upgradeWashBay)
         }
@@ -690,7 +690,7 @@ struct GameLogicTests {
         #expect(incident.kind == .inspection)
         #expect(incident.message == "Denetim kaydı testi")
         #expect(incident.cashImpact == Money(minorUnits: -125_000))
-        #expect(incident.trustImpact == -3)
+        #expect(incident.ratingImpact == -3)
         #expect(incident.suspicionImpact == -8)
     }
 
@@ -933,6 +933,38 @@ struct GameLogicTests {
         #expect(migrated.totalMinutes > 0)
         #expect(migrated.expertise.count == SkillArea.allCases.count)
         #expect(migrated.incidents.isEmpty)
+    }
+
+    @Test("Eski güven değeri dükkân puanına taşınır")
+    func legacyTrustMigratesToShopRating() async throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("ototamir-trust-migration-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        let catalog = try DefaultContentRepository().load()
+        var legacy = GameState(startingCash: catalog.balance.startingCash, daySlots: 8)
+        legacy.schemaVersion = 14
+        legacy.ratingTenths = 38
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let encoded = try encoder.encode(legacy)
+        var object = try #require(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["reputation"] = ["craftsmanship": 42, "trust": 35, "suspicion": 7]
+        let legacyData = try JSONSerialization.data(withJSONObject: object)
+        try legacyData.write(to: directory.appendingPathComponent("ototamir-save.json"))
+
+        let repository = JSONFileSaveRepository(directory: directory)
+        let migrated = try #require(try await repository.load())
+
+        #expect(migrated.schemaVersion == 15)
+        #expect(migrated.ratingTenths == 43)
+        #expect(migrated.reputation.craftsmanship == 42)
+        #expect(migrated.reputation.suspicion == 7)
+        let migratedData = try encoder.encode(migrated)
+        let migratedObject = try #require(JSONSerialization.jsonObject(with: migratedData) as? [String: Any])
+        let reputation = try #require(migratedObject["reputation"] as? [String: Any])
+        #expect(reputation["trust"] == nil)
     }
 
     @Test("Kontrolü yapılmış iş kayıt turunda teşhis aşamasını korur")

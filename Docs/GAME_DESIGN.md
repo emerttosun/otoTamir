@@ -1,17 +1,17 @@
 # Oyun Tasarımı
 
-Ana fantezi küçük bir sanayi dükkânını ustalıkla ve esnaflık kararlarıyla büyütmektir. Gün/saat tasarımı kesinleşene kadar oyun boşta kendi kendine ilerlemez; yalnız kontrol, parça, tamir, yıkama veya açıkça müşteri bekleme eylemleri zamanı ilerletir. Böylece uygulama açık bırakıldığı için para kaybedilmez. Oyuncu kısa vadeli nakit ile uzun vadeli güven arasında seçim yapar.
+Ana fantezi küçük bir sanayi dükkânını ustalıkla ve esnaflık kararlarıyla büyütmektir. Gün/saat tasarımı kesinleşene kadar oyun boşta kendi kendine ilerlemez; yalnız kontrol, parça, tamir, yıkama veya açıkça müşteri bekleme eylemleri zamanı ilerletir. Böylece uygulama açık bırakıldığı için para kaybedilmez. Oyuncu kısa vadeli nakit ile uzun vadeli dükkân itibarı arasında seçim yapar.
 
 ## Döngüler
 
 - **Müşteri:** bekleyen müşteri, şikâyeti dinleme, araç kontrolleri, bulguyla bağlantılı teşhis, parçacı kataloğundan parça alma, fiyat söyleme ve gerekirse pazarlık, tamir mini oyunu, teslim, ödeme ve gecikmeli sonuç.
 - **Yıllık bakım:** bakım seti alma, yağ/filtre, akü, lastik-fren ve sıvı kontrollerini uygun mini oyunlarla tamamlama.
-- **Gelişim:** yapılan işlerden alan bazlı XP ve seviye, ustalık/güven/şaibe, dükkân puanı ve yorumlar, dükkân kabiliyetleri ve çıraklar.
+- **Gelişim:** yapılan işlerden alan bazlı XP ve seviye, işçilik şöhreti, şaibe, dükkân puanı ve yorumlar, dükkân kabiliyetleri ve çıraklar.
 - **Hasarlı araç ihalesi:** sabit ihale bedelli, sigorta çıkması ve eksper tarafından onarılabilir kabul edilmiş ağır hasarlı araç; üstten kaporta şeması, ayrıntılı taşıyıcı yapı ölçümü, yatırım/kâr aralığı ve satın alma.
 - **Dükkân sahnesi:** kabul edilen müşteri araçlarını ve satın alınan proje araçlarını geliş sırasına göre (FIFO) tek araçlık yatay sayfalarda gösterir; işlem paneli yalnız oyuncu araca dokunduğunda açılır.
 - **Proje restorasyonu:** ihale aracı tek düğmeyle bitmez. Her mekanik arıza, hasarlı veya eksik dış parça, şasi/podye/direk onarımı ve hava yastığı sistemi ayrı maliyetli bir iş ve uygun mini oyunla oyuncu tarafından tamamlanır.
 - **İlan yeri:** restorasyonu biten araç için fiyat belirleme, satış ihtimali, ayrı ilan takibi ve dürüst veya riskli satış.
-- **Finansman:** dükkân puanı, güven ve gelişim seviyesine bağlı banka limiti; araç yatırımı için farklı faiz/vade seçenekleri ve eylem tabanlı taksitler.
+- **Finansman:** dükkân puanı ve gelişim seviyesine bağlı banka limiti; araç yatırımı için farklı faiz/vade seçenekleri ve eylem tabanlı taksitler.
 - **Olay Defteri:** denetim, şikâyet, tavsiye, kredi, ilan, araç satışı ve çırak sonuçlarını para/itibar etkileriyle Gelişim ekranında kalıcı tutar.
 
 Zorunlu ve uzun bir ilk üç gün eğitimi bulunmaz. Her üst sekme ilk kez açıldığında ne işe yaradığını anlatan tek, kapatılabilir oyun içi kart gösterir. Sonrasında oyun sonsuz ilerler. Mizah; abartılı teşhis, yanlış parça, çay sohbeti ve esnaf olayları üzerinden kurulur; kimlik veya dezavantaj üzerinden aşağılayıcı şaka kullanılmaz.
@@ -47,13 +47,13 @@ Sistem uyarısı veya ayrı iPhone penceresi açılmaz; oyunlar dükkân ekranı
 
 - Seviye 1: temel lift ve tek araç kapasitesi.
 - Seviye 2: ikinci lift, oturma alanı, yıllık bakım ve ilk çırak tezgâhı.
-- Dükkân Seviye 3'te bağımsız yıkama gelişimi açılır. Yıkama Seviye 1 temel dış yıkama, Seviye 2 iç-dış detaylı temizlik, Seviye 3 premium teslim sunar; ilerledikçe işlem süresi ve sarf maliyeti düşer, güven katkısı artar.
+- Dükkân Seviye 3'te bağımsız yıkama gelişimi açılır. Yıkama Seviye 1 temel dış yıkama, Seviye 2 iç-dış detaylı temizlik, Seviye 3 premium teslim sunar; ilerledikçe işlem süresi ve sarf maliyeti düşer, dükkân puanına küçük katkısı artar.
 - Seviye 4: üç araç kapasitesi, ikinci çırak ve kontrolleri hızlandıran teşhis laboratuvarı.
 - Seviye 5: hasarlı araç restorasyon giderini azaltan kaporta-boya kabini.
 - Seviye 6: dört araç kapasitesi, detaylı temizlik ve üçüncü çırak.
 - Seviye 7: beş araç kapasitesi, dört çırak ve ilan satış ihtimalini yükselten araç vitrini.
 
-Çırak tamir veya tek bir bakım adımına atanabilir. Başlangıçta ustadan daha düşük ve değişken performans gösterir; tamamladığı işlerden XP kazanıp seviye atlar. Araç, fiyat söylenmeden önce mevcut yıkama seviyesinde temizlenebilir; o seviyenin sarf maliyetini ve süresini kullanır, temiz teslim seviyesine göre güven kazandırır.
+Çırak tamir veya tek bir bakım adımına atanabilir. Başlangıçta ustadan daha düşük ve değişken performans gösterir; tamamladığı işlerden XP kazanıp seviye atlar. Araç teslimden önce mevcut yıkama seviyesinde temizlenebilir; o seviyenin sarf maliyetini ve süresini kullanır, temiz teslim seviyesine göre dükkân puanına küçük katkı sağlar.
 
 ## Ağır hasarlı araç raporu
 
@@ -65,6 +65,8 @@ Ekspertizde `Usta Hesabı` bölümü; tahmini onarım giderini, alış dahil top
 
 ## Banka kredisi
 
-Kredi limiti dükkân seviyesi, müşteri güveni ve dükkân puanıyla büyür. Kısa, dengeli ve esnek vadeler sırasıyla daha yüksek taksit/düşük faiz ile daha düşük taksit/yüksek faiz arasında seçim sunar. Kalan borç kullanılabilir limitten düşer. Taksitler gerçek zamanla veya uygulama açık kaldığı için işlemez; yalnız oyun içi eylemler ödeme tarihini geçtiğinde otomatik tahsil edilir ve kasa hareketlerinde ayrı görünür.
+Kredi limiti dükkân seviyesi ve dükkân puanıyla büyür. Kısa, dengeli ve esnek vadeler sırasıyla daha yüksek taksit/düşük faiz ile daha düşük taksit/yüksek faiz arasında seçim sunar. Kalan borç kullanılabilir limitten düşer. Taksitler gerçek zamanla veya uygulama açık kaldığı için işlemez; yalnız oyun içi eylemler ödeme tarihini geçtiğinde otomatik tahsil edilir ve kasa hareketlerinde ayrı görünür.
+
+`Güven` ayrı bir sayaç değildir. Oyuncuya görünen uzun vadeli müşteri algısı tek dükkân puanı ve yorum geçmişiyle temsil edilir; teknik kalite algısı işçilik şöhretinde, dürüstlük riski şaibede kalır. Sürüm 14 ve daha eski kayıtlardaki güven ilerlemesi, başlangıç değeri korunacak şekilde dükkân puanına aktarılır.
 
 Rapor kapsamı; gerçek ekspertizlerde kullanılan kaporta-boya, şasi/podye/direk, airbag, motor-mekanik, fren, süspansiyon ve OBD başlıklarından esinlenir. Ağır ve tam hasar ayrımı SEDDK 2025/12 Genelgesi esas alınarak oyunlaştırılır. Kaynaklar: [SEDDK ağır ve tam hasar genelgesi](https://www.tsb.org.tr/content/Legislations/Motorlu%20Ara%C3%A7%20Sigortalar%C4%B1%20Kapsam%C4%B1nda%20Tam%20Hasara%20Ya%20Da%20A%C4%9F%C4%B1r%20Hasara%20U%C4%9Fram%C4%B1%C5%9F%20Ara%C3%A7lar%C4%B1n%20Tespiti%20Hakk%C4%B1nda%20Genelge%20202512.pdf), [Ticaret Bakanlığı ikinci el taşıt yönetmeliği](https://ietts.gtb.gov.tr/Home/Yonetmelik?v=1.0.26), [örnek kaporta ekspertiz raporu](https://cdn.zugo.live/File/AracHavuzDosya/131/3DB736C4-E5BB-4E67-B08E-56C3FBA5F833/3C013D0E-4685-4B37-9855-612C46A24531.pdf).

@@ -40,7 +40,7 @@ public struct GameIncident: Codable, Hashable, Identifiable, Sendable {
     public let kind: IncidentKind
     public let message: String
     public let cashImpact: Money
-    public let trustImpact: Int
+    public let ratingImpact: Int
     public let craftsmanshipImpact: Int
     public let suspicionImpact: Int
 
@@ -50,7 +50,7 @@ public struct GameIncident: Codable, Hashable, Identifiable, Sendable {
         kind: IncidentKind,
         message: String,
         cashImpact: Money = .zero,
-        trustImpact: Int = 0,
+        ratingImpact: Int = 0,
         craftsmanshipImpact: Int = 0,
         suspicionImpact: Int = 0
     ) {
@@ -59,8 +59,31 @@ public struct GameIncident: Codable, Hashable, Identifiable, Sendable {
         self.kind = kind
         self.message = message
         self.cashImpact = cashImpact
-        self.trustImpact = trustImpact
+        self.ratingImpact = ratingImpact
         self.craftsmanshipImpact = craftsmanshipImpact
         self.suspicionImpact = suspicionImpact
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, sequence, kind, message, cashImpact, ratingImpact, craftsmanshipImpact, suspicionImpact
+    }
+
+    private enum LegacyCodingKeys: String, CodingKey {
+        case trustImpact
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        let legacyValues = try decoder.container(keyedBy: LegacyCodingKeys.self)
+        id = try values.decode(UUID.self, forKey: .id)
+        sequence = try values.decode(Int.self, forKey: .sequence)
+        kind = try values.decode(IncidentKind.self, forKey: .kind)
+        message = try values.decode(String.self, forKey: .message)
+        cashImpact = try values.decodeIfPresent(Money.self, forKey: .cashImpact) ?? .zero
+        ratingImpact = try values.decodeIfPresent(Int.self, forKey: .ratingImpact)
+            ?? legacyValues.decodeIfPresent(Int.self, forKey: .trustImpact)
+            ?? 0
+        craftsmanshipImpact = try values.decodeIfPresent(Int.self, forKey: .craftsmanshipImpact) ?? 0
+        suspicionImpact = try values.decodeIfPresent(Int.self, forKey: .suspicionImpact) ?? 0
     }
 }

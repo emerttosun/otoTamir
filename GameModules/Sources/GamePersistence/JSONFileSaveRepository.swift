@@ -126,6 +126,9 @@ enum SaveMigrator {
             state.lostCustomerIDs = []
             state.schemaVersion = 14
         }
+        if state.schemaVersion < 15 {
+            state.schemaVersion = 15
+        }
         return state
     }
 }

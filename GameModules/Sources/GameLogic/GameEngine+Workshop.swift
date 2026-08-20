@@ -418,13 +418,10 @@ extension GameEngine {
         recordFinance(amount: paid, category: .customerIncome, note: "\(customer.name) araç teslimi")
         applyReputation(
             for: workmanship,
-            strategy: strategy,
-            concealed: job.hidePartQuality,
-            noticed: questioned
+            concealed: job.hidePartQuality
         )
         if job.isWashed {
-            state.reputation.trust += max(1, job.washTrustBonus)
-            state.reputation.clamp()
+            state.ratingTenths = min(50, state.ratingTenths + max(1, job.washRatingBonus))
         }
         let newReview = makeReview(
             for: job,
@@ -470,7 +467,7 @@ extension GameEngine {
         guard state.cash >= cost else { throw GameRuleError.notEnoughMoney }
         state.cash = state.cash - cost
         state.activeJobs[index].isWashed = true
-        state.activeJobs[index].washTrustBonus = wash.trustBonus
+        state.activeJobs[index].washRatingBonus = wash.ratingBonus
         recordFinance(amount: Money(minorUnits: -cost.minorUnits), category: .wash, note: wash.name)
         var events = advanceClock(by: wash.durationMinutes)
         events.append(.vehicleWashed(jobID))

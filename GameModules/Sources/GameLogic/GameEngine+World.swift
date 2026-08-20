@@ -87,37 +87,37 @@ extension GameEngine {
         for consequence in due {
             let incidentKind: IncidentKind
             let cashImpact: Money
-            let trustImpact: Int
+            let ratingImpact: Int
             let craftsmanshipImpact: Int
             let suspicionImpact: Int
             switch consequence.kind {
             case .complaint, .comeback:
                 incidentKind = .complaint
                 cashImpact = Money(minorUnits: -consequence.amount.minorUnits)
-                trustImpact = -4
+                ratingImpact = -4
                 craftsmanshipImpact = -2
                 suspicionImpact = 0
                 state.cash = state.cash - consequence.amount
                 recordFinance(amount: cashImpact, category: .fine, note: consequence.message)
-                state.reputation.trust -= 4
+                state.ratingTenths = max(10, state.ratingTenths - 4)
                 state.reputation.craftsmanship -= 2
             case .inspection:
                 incidentKind = .inspection
                 cashImpact = Money(minorUnits: -consequence.amount.minorUnits)
-                trustImpact = -3
+                ratingImpact = -3
                 craftsmanshipImpact = 0
                 suspicionImpact = -8
                 state.cash = state.cash - consequence.amount
                 recordFinance(amount: cashImpact, category: .fine, note: consequence.message)
                 state.reputation.suspicion -= 8
-                state.reputation.trust -= 3
+                state.ratingTenths = max(10, state.ratingTenths - 3)
             case .referral:
                 incidentKind = .referral
                 cashImpact = consequence.amount
-                trustImpact = 3
+                ratingImpact = 3
                 craftsmanshipImpact = 0
                 suspicionImpact = 0
-                state.reputation.trust += 3
+                state.ratingTenths = min(50, state.ratingTenths + 3)
                 state.cash = state.cash + consequence.amount
                 recordFinance(amount: consequence.amount, category: .customerIncome, note: consequence.message)
             }
@@ -126,7 +126,7 @@ extension GameEngine {
                 kind: incidentKind,
                 message: consequence.message,
                 cashImpact: cashImpact,
-                trustImpact: trustImpact,
+                ratingImpact: ratingImpact,
                 craftsmanshipImpact: craftsmanshipImpact,
                 suspicionImpact: suspicionImpact
             )

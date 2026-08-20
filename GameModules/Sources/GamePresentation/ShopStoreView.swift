@@ -22,7 +22,7 @@ struct ShopStoreView: View {
             Label("DÜKKÂN MAĞAZASI", systemImage: "bag.fill")
                 .font(.caption.weight(.black)).foregroundStyle(GarageStyle.orange)
             Text("Ustanın kasasını destekle").font(.title3.bold())
-            Text("Gerçek para ile alınan kasa paketleri yalnız ilerlemeyi hızlandırır. İyi işçilik, uzmanlık, güven ve ihale sonucu satın alınamaz.")
+            Text("Gerçek para ile alınan kasa paketleri yalnız ilerlemeyi hızlandırır. İyi işçilik, uzmanlık, dükkân puanı ve hasarlı araç sonucu satın alınamaz.")
                 .font(.caption).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
