@@ -43,6 +43,7 @@
 - `CustomerPricingRules.swift`: Tamir öncesi gösterilen parça, işçilik, normal toplam ve fiyat stratejilerinin istenen tutarlarını tek merkezde hesaplar.
 - `CustomerNegotiationRules.swift`: Müşterinin fiyat bilgisi ve pazarlık gücünden fark etme, karşı teklif, orta yol ve diretme olasılığını deterministik hesaplar.
 - `DeliveryTimingRules.swift`: İş türü ve arıza zorluğundan kesin teslim hedefini; teslim anındaki normal, gecikmiş ve çok gecikmiş durumları deterministik hesaplar.
+- `DailyFinanceRules.swift`: Yalnız mevcut oyun gününün hareketlerinden işletme geliri/gideri, finansman, net nakit değişimi ve gün başı/sonu kasayı hesaplar; kredi anaparasını kârdan ayırır.
 - `CustomerExperienceRules.swift`: Fiyat bilgisi, teknik bilgi, ilk/son fiyat, parça, işçilik, teslim gecikmesi ve yıkamayı tek müşteri değerlendirmesine dönüştürür.
 - `GameEngine.swift`: Komutları doğrular ve ilgili kural uzantısına yönlendiren küçük oyun motoru girişidir.
 - `GameEngine+Workshop.swift`: Kontrol, teşhis, parça, tamir, fiyat, kesin teslim hedefi/gecikme sonucu, `%10` kesintili parçacı iadesi, usta/çırak yıkaması ve seviye kontrollü çırak iş akışını yürütür.
@@ -81,7 +82,7 @@
 - `ApprenticesView.swift`: Çırak kadrosunu, deneyimlerini, boş kadroyu ve işe alma işlemini ayrı bölümde sunar.
 - `BankView.swift`: Kredi limiti, vade seçimi, taksit hesabı ve aktif borçları ayrı bölümde sunar.
 - `ShopStoreView.swift`: Gerçek para ile alınabilen StoreKit oyun parası, kozmetik ve içerik ürünlerini ayrı mağazada sunar.
-- `FinanceLedgerView.swift`: Üstteki para göstergesine dokunulduğunda kasa bakiyesi ve bütün gelir/gider hareketlerini açar.
+- `FinanceLedgerView.swift`: Üstteki para göstergesine dokunulduğunda yalnız mevcut günün işletme sonucu, kredi hareketleri, net nakit değişimi ve ayrıntılı kasa hareketlerini açar.
 - `RepairMiniGames.swift`: Tamir isteğini ilgili mini oyun ailesine yönlendiren sunum girişidir.
 - `RepairMiniGames/CommonMiniGames.swift`: Gösterge, civata, kablo ve hizalama gibi yeniden kullanılabilir temel mekanikleri tutar.
 - `RepairMiniGames/MaintenanceMiniGames.swift`: Sıvı dolumu ve zamanlama bakım oyunlarını tutar.

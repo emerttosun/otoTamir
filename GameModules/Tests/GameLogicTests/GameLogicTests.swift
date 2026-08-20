@@ -691,6 +691,32 @@ struct GameLogicTests {
         #expect(categories.contains(.supplies))
     }
 
+    @Test("Günlük finans yalnız bugünü gösterir ve krediyi kâr saymaz")
+    func dailyFinanceSeparatesLoanFromProfit() {
+        var state = GameState(startingCash: Money(minorUnits: 10_000_000), daySlots: 8)
+        state.day = 2
+        state.cash = Money(minorUnits: 12_500_000)
+        state.financeEntries = [
+            FinanceEntry(id: UUID(), day: 1, category: .customerIncome, amount: Money(minorUnits: 9_000_000), note: "Dünkü iş"),
+            FinanceEntry(id: UUID(), day: 2, category: .customerIncome, amount: Money(minorUnits: 1_000_000), note: "Tamir"),
+            FinanceEntry(id: UUID(), day: 2, category: .parts, amount: Money(minorUnits: -300_000), note: "Parça"),
+            FinanceEntry(id: UUID(), day: 2, category: .loanProceeds, amount: Money(minorUnits: 2_000_000), note: "Kredi"),
+            FinanceEntry(id: UUID(), day: 2, category: .loanPayment, amount: Money(minorUnits: -200_000), note: "Taksit")
+        ]
+
+        let summary = DailyFinanceRules.summary(for: state)
+
+        #expect(summary.entries.count == 4)
+        #expect(summary.operatingIncome == Money(minorUnits: 1_000_000))
+        #expect(summary.operatingExpense == Money(minorUnits: 300_000))
+        #expect(summary.operatingResult == Money(minorUnits: 700_000))
+        #expect(summary.newLoanProceeds == Money(minorUnits: 2_000_000))
+        #expect(summary.loanPayments == Money(minorUnits: 200_000))
+        #expect(summary.netCashChange == Money(minorUnits: 2_500_000))
+        #expect(summary.openingCash == Money(minorUnits: 10_000_000))
+        #expect(summary.closingCash == state.cash)
+    }
+
     @Test("Yıkama alanı açıldıktan sonra araç yıkanır ve gider kaydı oluşur")
     func vehicleWashBeforeDelivery() throws {
         let catalog = try DefaultContentRepository().load()
