@@ -28,6 +28,8 @@ Fiyat parça satın alındıktan sonra, tamir başlamadan önce `Uygun`, `Normal
 
 Müşteri fiyatı yüksek bulursa karşı teklif verir. Oyuncu karşı teklifi kabul eder, ortada buluşur veya kendi fiyatında diretir. Anlaşma sağlanınca tutar sabitlenir ve tamir başlar; tamir edilmiş araç için sonradan işi iptal etme akışı oluşmaz. Teslimde kasaya giren para anlaşılmış son tutardır. İlk istenen fiyat ile son ödenen fiyat müşteri değerlendirmesinde ayrı ayrı dikkate alınabilir; uçuk başlayıp pazarlıkla düşmek müşterinin yorumunu etkileyebilir fakat tek başına şaibe sayılmaz.
 
+İlk sürümde parça deposu bulunmaz; bütün parçalar iş emri için parçacı kataloğundan sipariş edilir. Oyuncu tamir başlamadan fiyatında diretir ve müşteri kabul etmeyip ayrılırsa alınan parça otomatik olarak parçacıya döner. Alış bedelinin `%90`ı kasaya iade edilir, `%10` kesinti ayrı kasa hareketi olarak görünür. Tamir başladıktan sonra müşteri işi iptal edemez.
+
 ## Arızaya özgü mini oyunlar
 
 - Gösterge: hareketli ibreyi doğru aralıkta durdurma.

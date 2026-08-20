@@ -44,7 +44,6 @@ public enum ShopFacility: String, Codable, CaseIterable, Sendable {
     case periodicMaintenance
     case washBay
     case apprenticeStation
-    case partsStorage
     case diagnosticLab
     case bodyPaintBooth
     case detailingBay
@@ -57,7 +56,6 @@ public enum ShopFacility: String, Codable, CaseIterable, Sendable {
         case .periodicMaintenance: "Yıllık bakım ekipmanı"
         case .washBay: "Araç yıkama alanı"
         case .apprenticeStation: "Çırak çalışma tezgâhı"
-        case .partsStorage: "Parça deposu"
         case .diagnosticLab: "İleri teşhis laboratuvarı"
         case .bodyPaintBooth: "Kaporta ve boya kabini"
         case .detailingBay: "Detaylı temizlik alanı"

@@ -38,11 +38,11 @@
 - `ApprenticeRules.swift`: Çırağın alan seviyesine göre yapabileceği işleri; kişilik, mutluluk ve çalışma hızına bağlı iş performansını belirler.
 - `VehicleTradingRules.swift`: Hasarlı araç yatırım aralığını, restorasyon maliyetini, adil ilan fiyatını ve satış ihtimalini deterministik hesaplar.
 - `ProgressionRules.swift`: Alan uzmanlığı ve dükkân seviyesinden açık arıza, müşteri ve araç havuzunu deterministik hesaplar.
-- `PartPricingRules.swift`: Bakım görevlerinden değişecek benzersiz parçaları bulur; kalite, depo indirimi ve görev bazlı işçilik tutarlarını tek merkezde hesaplar.
+- `PartPricingRules.swift`: Bakım görevlerinden değişecek benzersiz parçaları bulur; kalite katsayısı ve görev bazlı işçilik tutarlarını tek merkezde hesaplar.
 - `CustomerPricingRules.swift`: Tamir öncesi gösterilen parça, işçilik, normal toplam ve fiyat stratejilerinin istenen tutarlarını tek merkezde hesaplar.
 - `CustomerNegotiationRules.swift`: Müşterinin fiyat bilgisi ve pazarlık gücünden fark etme, karşı teklif, orta yol ve diretme olasılığını deterministik hesaplar.
 - `GameEngine.swift`: Komutları doğrular ve ilgili kural uzantısına yönlendiren küçük oyun motoru girişidir.
-- `GameEngine+Workshop.swift`: Kontrol, teşhis, parça, tamir, fiyat, usta/çırak yıkaması ve seviye kontrollü çırak iş akışını yürütür.
+- `GameEngine+Workshop.swift`: Kontrol, teşhis, parça, tamir, fiyat, `%10` kesintili parçacı iadesi, usta/çırak yıkaması ve seviye kontrollü çırak iş akışını yürütür.
 - `GameEngine+Apprentices.swift`: Çırak ilanı, deterministik aday üretimi, işe alım, prim, günlük bağlılık kontrolü, ayrılık uyarısı ve müşteri götürme akışını yürütür.
 - `GameEngine+World.swift`: Eylem tabanlı saat, gider, kredi ve dükkân gelişimini yürütür.
 - `GameEngine+Trading.swift`: Hasarlı araç alımı, restorasyon, ilan ve satış akışını yürütür.

@@ -4,6 +4,8 @@ public enum FinanceCategory: String, Codable, Sendable {
     case customerIncome
     case vehicleSale
     case parts
+    case partReturn
+    case partReturnLoss
     case rent
     case utilities
     case supplies
@@ -24,6 +26,8 @@ public enum FinanceCategory: String, Codable, Sendable {
         case .customerIncome: "Müşteri ödemesi"
         case .vehicleSale: "Araç satışı"
         case .parts: "Parça alımı"
+        case .partReturn: "Parça iadesi"
+        case .partReturnLoss: "Parça iade kesintisi"
         case .rent: "Dükkân kirası"
         case .utilities: "Elektrik, su ve enerji"
         case .supplies: "Sarf ve temizlik"

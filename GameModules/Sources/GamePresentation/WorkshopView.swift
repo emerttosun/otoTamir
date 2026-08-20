@@ -684,12 +684,10 @@ private struct JobCard: View {
         let baseCost = job.serviceKind == .periodicMaintenance
             ? PartPricingRules.maintenanceBasePartCost(for: job.maintenanceTasks, catalog: catalog)
             : diagnosedPart?.basePrice ?? .zero
-        let hasPartsStorage = currentShop?.facilities.contains(.partsStorage) == true
         return PartPricingRules.purchasePrice(
             baseCost: baseCost,
             quality: quality,
-            profile: qualityProfile,
-            hasPartsStorage: hasPartsStorage
+            profile: qualityProfile
         )
     }
 
@@ -727,5 +725,4 @@ private struct JobCard: View {
     private var customer: CustomerDefinition? { catalog.customer(id: job.customerID) }
     private var diagnosedFault: FaultDefinition? { job.diagnosedFaultID.flatMap(catalog.fault(id:)) }
     private var diagnosedPart: PartDefinition? { diagnosedFault.flatMap(catalog.part(for:)) }
-    private var currentShop: ShopLevelDefinition? { catalog.shopLevel(shopLevel) }
 }

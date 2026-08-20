@@ -145,6 +145,51 @@ struct GameLogicTests {
         ))
     }
 
+    @Test("Fiyatta diretilince ayrılan müşterinin parçası yüzde on kesintiyle iade edilir")
+    func rejectedPriceReturnsPartWithDeduction() throws {
+        let catalog = try DefaultContentRepository().load()
+        let fault = catalog.faults[0]
+        let dealer = try #require(catalog.customer(id: "dealer_cemil"))
+        let offer = CustomerOffer(
+            id: UUID(),
+            customerID: dealer.id,
+            vehicleID: catalog.vehicles[0].id,
+            actualFaultID: fault.id,
+            suspectedFaultIDs: [fault.id],
+            complaint: fault.complaint
+        )
+        var state = GameState(
+            startingCash: catalog.balance.startingCash,
+            daySlots: catalog.balance.daySlots,
+            randomSeed: 1
+        )
+        state.offers = [offer]
+        var engine = GameEngine(state: state, catalog: catalog)
+
+        try engine.handle(.acceptOffer(offer.id))
+        for kind in Array(fault.inspectionFindings.keys.prefix(2)) {
+            try engine.handle(.performInspection(jobID: offer.id, kind: kind))
+        }
+        try engine.handle(.diagnose(jobID: offer.id, faultID: fault.id))
+        try engine.handle(.buyPart(jobID: offer.id, quality: .aftermarket))
+        try engine.handle(.setPrice(jobID: offer.id, strategy: .excessive, hidePartQuality: false))
+        let purchasePrice = try #require(engine.state.inventory.first?.purchasePrice)
+        let deduction = Money(minorUnits: purchasePrice.minorUnits / 10)
+        let refund = purchasePrice - deduction
+        let cashBeforeResponse = engine.state.cash
+
+        var rejectionState = engine.state
+        rejectionState.randomSeed = 1
+        engine = GameEngine(state: rejectionState, catalog: catalog)
+        let events = try engine.handle(.respondToCustomerOffer(jobID: offer.id, response: .insist))
+
+        #expect(engine.state.cash == cashBeforeResponse + refund)
+        #expect(engine.state.activeJobs.isEmpty)
+        #expect(engine.state.inventory.isEmpty)
+        #expect(engine.state.financeEntries.suffix(2).map(\.category) == [.partReturn, .partReturnLoss])
+        #expect(events.contains(.customerWalkedAway(partRefund: refund, deduction: deduction)))
+    }
+
     @Test("Geçersiz komut oyun zamanını tüketmez")
     func failedCommandIsAtomic() throws {
         let catalog = try DefaultContentRepository().load()
@@ -278,8 +323,7 @@ struct GameLogicTests {
                 catalog: catalog
             ),
             quality: .aftermarket,
-            profile: .maintenanceSupply,
-            hasPartsStorage: false
+            profile: .maintenanceSupply
         )
         try engine.handle(.buyPart(jobID: id, quality: .aftermarket))
         #expect(engine.state.cash == cashBeforeParts - expectedPartCost)
@@ -305,15 +349,8 @@ struct GameLogicTests {
         #expect(PartPricingRules.purchasePrice(
             baseCost: Money(minorUnits: 575_000),
             quality: .original,
-            profile: .maintenanceSupply,
-            hasPartsStorage: false
+            profile: .maintenanceSupply
         ) == Money(minorUnits: 776_250))
-        #expect(PartPricingRules.purchasePrice(
-            baseCost: Money(minorUnits: 575_000),
-            quality: .original,
-            profile: .maintenanceSupply,
-            hasPartsStorage: true
-        ) == Money(minorUnits: 698_625))
         #expect(PartQuality.used.title(for: .maintenanceSupply) == "Ekonomik")
         #expect(PartQuality.used.title(for: .replacementPart) == "Çıkma")
     }

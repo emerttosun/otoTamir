@@ -111,8 +111,7 @@ extension GameEngine {
         let cost = PartPricingRules.purchasePrice(
             baseCost: baseCost,
             quality: quality,
-            profile: qualityProfile,
-            hasPartsStorage: supports(.partsStorage)
+            profile: qualityProfile
         )
         let creditLimit = Money(minorUnits: -1_000_000)
         guard state.cash - cost >= creditLimit else { throw GameRuleError.notEnoughMoney }
@@ -341,7 +340,26 @@ extension GameEngine {
                 )
             state.randomSeed = random.state
             guard accepted else {
-                return [.customerInsistenceRejected(counterOffer)]
+                guard let inventoryIndex = state.inventory.firstIndex(where: { $0.jobID == jobID }) else {
+                    throw GameRuleError.invalidCommand("İade edilecek satın alınmış parça bulunamadı.")
+                }
+                let purchasedPart = state.inventory[inventoryIndex]
+                let deduction = percent(purchasedPart.purchasePrice, 10)
+                let refund = purchasedPart.purchasePrice - deduction
+                state.cash = state.cash + refund
+                recordFinance(
+                    amount: purchasedPart.purchasePrice,
+                    category: .partReturn,
+                    note: "\(customer.name) işi iptal etti • \(purchasedPart.partName)"
+                )
+                recordFinance(
+                    amount: Money(minorUnits: -deduction.minorUnits),
+                    category: .partReturnLoss,
+                    note: "Parçacı %10 iade kesintisi"
+                )
+                state.inventory.remove(at: inventoryIndex)
+                state.activeJobs.remove(at: index)
+                return [.customerWalkedAway(partRefund: refund, deduction: deduction)]
             }
             agreedPrice = askingPrice
         }

@@ -47,7 +47,7 @@ public enum GameEvent: Equatable, Sendable {
     case maintenanceTaskCompleted(MaintenanceTask)
     case customerCountered(askingPrice: Money, counterOffer: Money)
     case customerPriceAccepted(Money)
-    case customerInsistenceRejected(Money)
+    case customerWalkedAway(partRefund: Money, deduction: Money)
     case priceSettled(Money, reaction: String)
     case vehicleWashed(UUID)
     case apprenticeHired(Apprentice)

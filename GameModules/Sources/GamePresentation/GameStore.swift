@@ -152,7 +152,7 @@ public final class GameStore: ObservableObject {
         guard let event = events.last(where: { event in
             switch event {
             case .tutorial, .consequence, .inspectionCompleted, .diagnosisCompleted, .repairCompleted,
-                 .customerCountered, .customerPriceAccepted, .customerInsistenceRejected,
+                 .customerCountered, .customerPriceAccepted, .customerWalkedAway,
                  .priceSettled, .vehicleWashed, .apprenticeHired, .apprenticeApplicationReceived,
                  .apprenticeApplicationRejected, .apprenticeCompleted, .apprenticeWashed,
                  .apprenticeTraitRevealed, .apprenticeHappinessChanged,
@@ -182,8 +182,8 @@ public final class GameStore: ObservableObject {
             bannerMessage = "\(askingPrice.liraText) müşteriye yüksek geldi; \(counterOffer.liraText) teklif etti."
         case .customerPriceAccepted(let price):
             bannerMessage = "\(price.liraText) üzerinde anlaşıldı. Şimdi tamire başlayabilirsin."
-        case .customerInsistenceRejected(let counterOffer):
-            bannerMessage = "Müşteri diretmeni kabul etmedi; \(counterOffer.liraText) karşı teklifi hâlâ masada."
+        case .customerWalkedAway(let refund, let deduction):
+            bannerMessage = "Müşteri fiyatı kabul etmedi. Parça iade edildi: \(refund.liraText) kasaya döndü, \(deduction.liraText) kesildi."
         case .priceSettled(let price, let reaction):
             bannerMessage = "\(price.liraText) alındı. \(reaction)"
         case .vehicleWashed:

@@ -43,8 +43,6 @@ struct GameContentTests {
         #expect(catalog.shopLevels[1].facilities.contains(.periodicMaintenance))
         #expect(catalog.shopLevels[1].maxApprentices == 1)
         #expect(catalog.shopLevels[2].facilities.contains(.washBay))
-        #expect(catalog.shopLevels[2].facilities.contains(.partsStorage))
-        #expect(!catalog.shopLevels[1].facilities.contains(.partsStorage))
         #expect(catalog.shopLevels[4].facilities.contains(.bodyPaintBooth))
         #expect(catalog.shopLevels[6].facilities.contains(.vehicleShowroom))
         #expect(catalog.shopLevels[6].capacity == 5)
