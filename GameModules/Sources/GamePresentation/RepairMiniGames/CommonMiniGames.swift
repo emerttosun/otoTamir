@@ -71,34 +71,86 @@ struct BoltsMiniGame: View {
     let onComplete: (Int) -> Void
     @State private var currentIndex = 0
     @State private var mistakes = 0
-
     @State private var completed: Set<Int> = []
+    @State private var toolRotation = 0.0
+    @State private var feedbackTrigger = 0
 
     var body: some View {
-        MiniGameShell(title: "Çapraz Sık", instruction: "\(partName.capitalized) civatalarını 1'den 4'e çapraz sırayla sık.") {
-            LazyVGrid(columns: [.init(), .init()], spacing: 22) {
-                ForEach([1, 3, 4, 2], id: \.self) { bolt in
-                    Button {
-                        tap(bolt)
-                    } label: {
-                        ZStack {
-                            Circle().fill(completed.contains(bolt) ? GarageStyle.mint : GarageStyle.raised)
-                            Image(systemName: "screwdriver.fill")
-                                .rotationEffect(.degrees(Double(bolt * 35)))
-                                .font(.title)
-                            Text("\(bolt)")
-                                .font(.caption.bold())
-                                .offset(y: 30)
-                        }
-                        .frame(width: 78, height: 78)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("\(bolt) numaralı civata")
+        MiniGameShell(
+            title: "Bijonları Çapraz Sık",
+            instruction: "Darbeli somun sıkmayı sıradaki bijona dokundur. Dört bijonu çapraz sırayla sık."
+        ) {
+            ZStack {
+                Circle()
+                    .fill(Color.black.gradient)
+                    .overlay(Circle().stroke(Color.white.opacity(0.16), lineWidth: 7))
+
+                Circle()
+                    .fill(Color.gray.opacity(0.34))
+                    .frame(width: 174, height: 174)
+                    .overlay(Circle().stroke(Color.white.opacity(0.24), lineWidth: 3))
+
+                ForEach(0..<8, id: \.self) { spoke in
+                    Capsule()
+                        .fill(Color.white.opacity(0.28))
+                        .frame(width: 13, height: 70)
+                        .offset(y: -37)
+                        .rotationEffect(.degrees(Double(spoke) * 45))
                 }
+
+                Circle()
+                    .fill(GarageStyle.raised)
+                    .frame(width: 82, height: 82)
+                    .overlay(Circle().stroke(Color.white.opacity(0.22), lineWidth: 2))
+
+                ForEach(1...4, id: \.self) { bolt in
+                    boltButton(bolt)
+                }
+
+                Circle()
+                    .fill(Color.black.opacity(0.75))
+                    .frame(width: 22, height: 22)
             }
-            Text("Sıradaki: \(sequence[min(currentIndex, sequence.count - 1)]) • Hata: \(mistakes)")
+            .frame(width: 250, height: 250)
+            .accessibilityElement(children: .contain)
+
+            HStack(spacing: 10) {
+                Image(systemName: "wrench.adjustable.fill")
+                    .font(.title2)
+                    .foregroundStyle(GarageStyle.orange)
+                    .rotationEffect(.degrees(toolRotation))
+                Text("Sıradaki bijon: \(sequence[min(currentIndex, sequence.count - 1)]) • Hata: \(mistakes)")
+            }
                 .font(.headline.monospacedDigit())
         }
+        .sensoryFeedback(.impact(weight: .heavy), trigger: feedbackTrigger)
+    }
+
+    private func boltButton(_ bolt: Int) -> some View {
+        let isCompleted = completed.contains(bolt)
+        let isNext = bolt == sequence[min(currentIndex, sequence.count - 1)]
+
+        return Button {
+            tap(bolt)
+        } label: {
+            ZStack {
+                Circle()
+                    .fill(isCompleted ? GarageStyle.mint : (isNext ? GarageStyle.orange : GarageStyle.raised))
+                Image(systemName: isCompleted ? "checkmark" : "hexagon.fill")
+                    .font(.headline.bold())
+                    .foregroundStyle(isCompleted ? Color.black : Color.white)
+                Text("\(bolt)")
+                    .font(.caption2.bold())
+                    .foregroundStyle(.white)
+                    .offset(y: 29)
+            }
+            .frame(width: 52, height: 52)
+            .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .offset(boltOffset(bolt))
+        .accessibilityLabel("\(bolt) numaralı bijon")
+        .accessibilityHint(isNext ? "Sıradaki bijon" : "Çapraz sıkma sırasını takip et")
     }
 
     private func tap(_ bolt: Int) {
@@ -106,7 +158,11 @@ struct BoltsMiniGame: View {
             mistakes += 1
             return
         }
-        completed.insert(bolt)
+        withAnimation(.snappy(duration: 0.22)) {
+            completed.insert(bolt)
+            toolRotation += 45
+        }
+        feedbackTrigger += 1
         if currentIndex == sequence.count - 1 {
             onComplete(max(25, 100 - mistakes * 18))
         } else {
@@ -114,8 +170,17 @@ struct BoltsMiniGame: View {
         }
     }
 
+    private func boltOffset(_ bolt: Int) -> CGSize {
+        switch bolt {
+        case 1: CGSize(width: 0, height: -42)
+        case 2: CGSize(width: 42, height: 0)
+        case 3: CGSize(width: 0, height: 42)
+        default: CGSize(width: -42, height: 0)
+        }
+    }
+
     private var sequence: [Int] {
-        [[1, 2, 3, 4], [1, 3, 2, 4], [2, 4, 1, 3], [3, 1, 4, 2]][variant % 4]
+        [[1, 3, 2, 4], [2, 4, 1, 3], [3, 1, 4, 2], [4, 2, 3, 1]][variant % 4]
     }
 }
 
