@@ -70,7 +70,7 @@
 - `GameSection.swift`: Üst gezinti sekmelerinin başlık, simge ve tek seferlik kısa tanıtım metinlerini tanımlar.
 - `SectionIntroductionCard.swift`: Bir sekme ilk kez açıldığında akışı kilitlemeden kısa kullanım açıklamasını gösterir.
 - `WorkshopView.swift`: Yeniden yüklenmeden çalışan müşteri aracı seçimini, müşteri kuyruğunu ve kontrol, teşhis, parça, tamir/bakım, fiyat sıralı iş akışını gösterir.
-- `AuctionView.swift`: Sabit satış bedelli ağır hasarlı araçların kısa özetini, üç isteğe bağlı kontrolünü, belirsizlikli yatırım hesabını ve satın alma akışını sunar.
+- `SalvageMarketView.swift`: Sabit satış bedelli ağır hasarlı araçların kısa özetini, üç isteğe bağlı kontrolünü, belirsizlikli yatırım hesabını ve satın alma akışını sunar.
 - `GarageView.swift`: Dükkân seviyesine bağlı bağımsız proje kapasitesini, geliş sıralı tek araçlık yatay sayfaları, restorasyon görevlerini ve proje mini oyunlarını sunar.
 - `VehicleInspectionDiagram.swift`: Hasarlı veya eksik dış parçaları sade üstten 2B kaporta şemasında; yalnız incelenmiş şasi, podye, kule, direk, panel ve bagaj havuzunu ayrı metin satırlarında ve VoiceOver özetiyle gösterir.
 - `RestoredBodyHistoryView.swift`: İlan hazırlığında ve yayındaki ilanda restorasyon sonrası boyalı/değişen parçaları, yapısal onarımları ve airbag geçmişini açılır bölümde gösterir.

@@ -529,32 +529,32 @@ struct GameLogicTests {
         try engine.handle(.grantPurchase(transactionID: "test-funds", cash: Money(minorUnits: 200_000_000), themeID: nil))
         try engine.handle(.upgradeShop)
         try engine.handle(.prepareWorld)
-        let lot = try #require(engine.state.auction?.lots.first)
+        let listing = try #require(engine.state.salvageMarket?.listings.first)
 
-        #expect(lot.fixedPrice == lot.currentBid)
-        #expect(lot.severity == .heavy)
-        #expect(lot.panelDamages.count == VehiclePanel.exteriorCases.count)
-        #expect(lot.structuralDamages.count == StructuralArea.allCases.count)
-        #expect(lot.structuralDamages.contains { $0.condition.requiresRepair })
-        #expect(lot.mechanicalFaultIDs.count >= 3)
-        #expect(!lot.wornFaultIDs.isEmpty)
-        #expect(lot.performedInspections.isEmpty)
-        #expect(lot.revealedFaultIDs.isEmpty)
+        #expect(listing.fixedPrice > .zero)
+        #expect(listing.severity == .heavy)
+        #expect(listing.panelDamages.count == VehiclePanel.exteriorCases.count)
+        #expect(listing.structuralDamages.count == StructuralArea.allCases.count)
+        #expect(listing.structuralDamages.contains { $0.condition.requiresRepair })
+        #expect(listing.mechanicalFaultIDs.count >= 3)
+        #expect(!listing.wornFaultIDs.isEmpty)
+        #expect(listing.performedInspections.isEmpty)
+        #expect(listing.revealedFaultIDs.isEmpty)
 
         let minuteBefore = engine.state.totalMinutes
-        try engine.handle(.inspectSalvageLot(lotID: lot.id, kind: .body))
-        let inspectedLot = try #require(engine.state.auction?.lots.first { $0.id == lot.id })
+        try engine.handle(.inspectSalvageVehicle(listingID: listing.id, kind: .body))
+        let inspectedListing = try #require(engine.state.salvageMarket?.listings.first { $0.id == listing.id })
         #expect(engine.state.totalMinutes == minuteBefore + SalvageInspectionKind.body.durationMinutes)
-        #expect(inspectedLot.performedInspections == [.body])
-        #expect(inspectedLot.revealedPanelIDs.count == VehiclePanel.exteriorCases.count)
+        #expect(inspectedListing.performedInspections == [.body])
+        #expect(inspectedListing.revealedPanelIDs.count == VehiclePanel.exteriorCases.count)
         #expect(throws: GameRuleError.self) {
-            try engine.handle(.inspectSalvageLot(lotID: lot.id, kind: .body))
+            try engine.handle(.inspectSalvageVehicle(listingID: listing.id, kind: .body))
         }
 
-        try engine.handle(.purchaseAuctionLot(lot.id))
-        let project = try #require(engine.state.projectCars.first { $0.id == lot.id })
-        #expect(project.faultIDs == lot.mechanicalFaultIDs)
-        #expect(project.structuralDamages == lot.structuralDamages)
+        try engine.handle(.purchaseSalvageVehicle(listing.id))
+        let project = try #require(engine.state.projectCars.first { $0.id == listing.id })
+        #expect(project.faultIDs == listing.mechanicalFaultIDs)
+        #expect(project.structuralDamages == listing.structuralDamages)
         #expect(engine.state.financeEntries.last?.category == .salvageVehicle)
         #expect(engine.state.incidents.last?.kind == .vehiclePurchase)
     }
@@ -565,18 +565,18 @@ struct GameLogicTests {
         var state = GameState(startingCash: Money(minorUnits: 200_000_000), daySlots: 8, randomSeed: 81)
         var engine = GameEngine(state: state, catalog: catalog)
         try engine.handle(.prepareWorld)
-        let lockedLot = try #require(engine.state.auction?.lots.first)
+        let lockedListing = try #require(engine.state.salvageMarket?.listings.first)
 
         #expect(throws: GameRuleError.garageIsFull) {
-            try engine.handle(.purchaseAuctionLot(lockedLot.id))
+            try engine.handle(.purchaseSalvageVehicle(lockedListing.id))
         }
 
         try engine.handle(.upgradeShop)
-        try engine.handle(.purchaseAuctionLot(lockedLot.id))
+        try engine.handle(.purchaseSalvageVehicle(lockedListing.id))
         #expect(engine.state.projectCars.count == 1)
-        let secondLot = try #require(engine.state.auction?.lots.first)
+        let secondListing = try #require(engine.state.salvageMarket?.listings.first)
         #expect(throws: GameRuleError.garageIsFull) {
-            try engine.handle(.purchaseAuctionLot(secondLot.id))
+            try engine.handle(.purchaseSalvageVehicle(secondListing.id))
         }
 
         state = engine.state
@@ -647,21 +647,20 @@ struct GameLogicTests {
     func totalLossCannotBePurchased() throws {
         let catalog = try DefaultContentRepository().load()
         let fault = catalog.faults[0]
-        let lot = AuctionLot(
+        let listing = SalvageVehicleListing(
             id: UUID(),
             vehicleID: catalog.vehicles[0].id,
             visibleFaultID: fault.id,
             hiddenFaultIDs: [],
-            currentBid: Money(minorUnits: 1_000_000),
-            competitorMaximum: Money(minorUnits: 1_000_000),
+            fixedPrice: Money(minorUnits: 1_000_000),
             severity: .totalLoss
         )
         var state = GameState(startingCash: Money(minorUnits: 10_000_000), daySlots: 8)
-        state.auction = AuctionState(lots: [lot])
+        state.salvageMarket = SalvageMarket(listings: [listing])
         var engine = GameEngine(state: state, catalog: catalog)
 
         #expect(throws: GameRuleError.self) {
-            try engine.handle(.purchaseAuctionLot(lot.id))
+            try engine.handle(.purchaseSalvageVehicle(listing.id))
         }
         #expect(engine.state.projectCars.isEmpty)
     }
@@ -1183,17 +1182,17 @@ struct GameLogicTests {
         let catalog = try DefaultContentRepository().load()
         var engine = GameEngine(catalog: catalog, seed: 91)
         try engine.handle(.prepareWorld)
-        let lot = try #require(engine.state.auction?.lots.first)
-        let vehicle = try #require(catalog.vehicle(id: lot.vehicleID))
+        let listing = try #require(engine.state.salvageMarket?.listings.first)
+        let vehicle = try #require(catalog.vehicle(id: listing.vehicleID))
         let estimate = VehicleTradingRules.investmentEstimate(
-            lot: lot,
+            listing: listing,
             vehicle: vehicle,
             catalog: catalog,
             hasBodyPaintBooth: false
         )
 
         #expect(estimate.repairLow <= estimate.repairHigh)
-        #expect(estimate.totalInvestmentLow == lot.fixedPrice + estimate.repairLow)
+        #expect(estimate.totalInvestmentLow == listing.fixedPrice + estimate.repairLow)
         #expect(estimate.profitLow == estimate.fairSaleLow - estimate.totalInvestmentHigh)
         #expect(estimate.profitHigh == estimate.fairSaleHigh - estimate.totalInvestmentLow)
     }
@@ -1339,6 +1338,30 @@ struct GameLogicTests {
         #expect(migrated.totalMinutes > 0)
         #expect(migrated.expertise.count == SkillArea.allCases.count)
         #expect(migrated.incidents.isEmpty)
+    }
+
+    @Test("Eski ihale kayıt anahtarları hasarlı araç pazarına taşınır")
+    func legacySalvageMarketKeysRemainReadable() throws {
+        let catalog = try DefaultContentRepository().load()
+        var engine = GameEngine(catalog: catalog, seed: 91)
+        try engine.handle(.prepareWorld)
+        let expectedPrice = try #require(engine.state.salvageMarket?.listings.first?.fixedPrice)
+
+        let encoded = try JSONEncoder().encode(engine.state)
+        var stateObject = try #require(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        var legacyMarket = try #require(stateObject["auction"] as? [String: Any])
+        var legacyListings = try #require(legacyMarket["lots"] as? [[String: Any]])
+        var legacyListing = try #require(legacyListings.first)
+        legacyListing["currentBid"] = legacyListing.removeValue(forKey: "fixedPrice")
+        legacyListings[0] = legacyListing
+        legacyMarket["lots"] = legacyListings
+        legacyMarket["round"] = 1
+        stateObject["auction"] = legacyMarket
+
+        let legacyData = try JSONSerialization.data(withJSONObject: stateObject)
+        let decoded = try JSONDecoder().decode(GameState.self, from: legacyData)
+
+        #expect(decoded.salvageMarket?.listings.first?.fixedPrice == expectedPrice)
     }
 
     @Test("Eski güven değeri dükkân puanına taşınır")

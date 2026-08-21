@@ -22,30 +22,30 @@ public enum VehicleTradingRules {
     public static let listingFee = Money(minorUnits: 50_000)
 
     public static func investmentEstimate(
-        lot: AuctionLot,
+        listing: SalvageVehicleListing,
         vehicle: VehicleDefinition,
         catalog: ContentCatalog,
         hasBodyPaintBooth: Bool
     ) -> VehicleInvestmentEstimate {
-        let mechanical = mechanicalPartCost(for: lot.revealedFaultIDs, catalog: catalog)
-        let body = lot.panelDamages.filter { lot.revealedPanelIDs.contains($0.panel) }.reduce(Money.zero) { partial, damage in
+        let mechanical = mechanicalPartCost(for: listing.revealedFaultIDs, catalog: catalog)
+        let body = listing.panelDamages.filter { listing.revealedPanelIDs.contains($0.panel) }.reduce(Money.zero) { partial, damage in
             partial + panelRepairCost(for: damage.condition, vehicleValue: vehicle.baseValue)
         }
-        let structure = lot.structuralDamages.filter { lot.revealedStructuralAreas.contains($0.area) }.reduce(Money.zero) { partial, damage in
+        let structure = listing.structuralDamages.filter { listing.revealedStructuralAreas.contains($0.area) }.reduce(Money.zero) { partial, damage in
             partial + structuralRepairCost(for: damage.condition, vehicleValue: vehicle.baseValue)
         }
-        let airbag = lot.airbagsDeployed ? percent(vehicle.baseValue, 6) : .zero
+        let airbag = listing.airbagsDeployed ? percent(vehicle.baseValue, 6) : .zero
         var knownRepair = percent(mechanical, 85) + body + structure + airbag
         if hasBodyPaintBooth { knownRepair = percent(knownRepair, 90) }
-        let completed = lot.performedInspections.count
+        let completed = listing.performedInspections.count
         let uncertaintyLow = percent(vehicle.baseValue, max(1, 7 - completed * 2))
         let uncertaintyHigh = percent(vehicle.baseValue, max(5, 22 - completed * 5))
         let repairLow = percent(knownRepair, 85) + uncertaintyLow
         let repairHigh = percent(knownRepair, 125) + uncertaintyHigh
-        let fairSaleLow = percent(vehicle.baseValue, lot.severity == .totalLoss ? 58 : 64)
-        let fairSaleHigh = percent(vehicle.baseValue, lot.severity == .totalLoss ? 76 : 84)
-        let totalLow = lot.fixedPrice + repairLow
-        let totalHigh = lot.fixedPrice + repairHigh
+        let fairSaleLow = percent(vehicle.baseValue, listing.severity == .totalLoss ? 58 : 64)
+        let fairSaleHigh = percent(vehicle.baseValue, listing.severity == .totalLoss ? 76 : 84)
+        let totalLow = listing.fixedPrice + repairLow
+        let totalHigh = listing.fixedPrice + repairHigh
         return VehicleInvestmentEstimate(
             repairLow: repairLow,
             repairHigh: repairHigh,

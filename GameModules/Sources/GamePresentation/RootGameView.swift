@@ -37,8 +37,8 @@ public struct RootGameView: View {
                 switch selectedSection {
                 case .workshop:
                     WorkshopView(store: store)
-                case .auction:
-                    AuctionView(store: store)
+                case .salvageMarket:
+                    SalvageMarketView(store: store)
                 case .garage:
                     GarageView(store: store)
                 case .listings:

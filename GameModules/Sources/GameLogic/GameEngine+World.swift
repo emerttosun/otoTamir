@@ -13,9 +13,9 @@ extension GameEngine {
                 events.append(.tutorial("Ustan: Müşteriyi dinle, sonra aracı kendin kontrol et. Söylenenle çıkan her zaman aynı olmaz."))
             }
         }
-        if state.auction == nil {
-            state.auction = makeAuction()
-            events.append(.auctionOpened)
+        if state.salvageMarket == nil {
+            state.salvageMarket = makeSalvageMarket()
+            events.append(.salvageMarketRefreshed)
         }
         if createdInitialOffer { scheduleNextCustomer() }
         return events
@@ -127,9 +127,9 @@ extension GameEngine {
             events.append(.consequence(consequence.message))
         }
 
-        if newDay >= 4, (newDay - 4).isMultiple(of: 3), state.auction == nil {
-            state.auction = makeAuction()
-            events.append(.auctionOpened)
+        if newDay >= 4, (newDay - 4).isMultiple(of: 3), state.salvageMarket == nil {
+            state.salvageMarket = makeSalvageMarket()
+            events.append(.salvageMarketRefreshed)
         }
         return events
     }

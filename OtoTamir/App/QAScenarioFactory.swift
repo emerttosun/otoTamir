@@ -18,14 +18,12 @@ enum QAScenarioFactory {
             return try workshopState(catalog: catalog, stage: .awaitingPrice)
         case "workshop-delivery":
             return try workshopState(catalog: catalog, stage: .awaitingDelivery)
-        case "auction-market":
-            return try auctionMarketState(catalog: catalog)
-        case "auction-project":
+        case "salvage-market":
+            return try salvageMarketState(catalog: catalog)
+        case "salvage-project":
             return try projectState(catalog: catalog, stage: .awaitingRepair)
         case "listing-ready":
             return try projectState(catalog: catalog, stage: .readyForSale)
-        case "auction-listed":
-            return try projectState(catalog: catalog, stage: .listed)
         case "listing-listed":
             return try projectState(catalog: catalog, stage: .listed)
         case "progress":
@@ -155,25 +153,27 @@ enum QAScenarioFactory {
         var state = try workshopState(catalog: catalog, stage: .awaitingDiagnosis)
         var engine = GameEngine(state: state, catalog: catalog)
         try engine.handle(.prepareWorld)
-        let lot = try required(engine.state.auction?.lots.first, "QA proje aracı")
-        try engine.handle(.purchaseAuctionLot(lot.id))
+        let listing = try required(engine.state.salvageMarket?.listings.first, "QA proje aracı")
+        try engine.handle(.purchaseSalvageVehicle(listing.id))
         state = engine.state
         return state
     }
 
-    private static func auctionMarketState(catalog: ContentCatalog) throws -> GameState {
+    private static func salvageMarketState(catalog: ContentCatalog) throws -> GameState {
         var engine = GameEngine(state: baseState(catalog: catalog, seed: 91), catalog: catalog)
         try engine.handle(.prepareWorld)
         var state = engine.state
-        if let first = state.auction?.lots.first { state.auction = AuctionState(lots: [first]) }
+        if let first = state.salvageMarket?.listings.first {
+            state.salvageMarket = SalvageMarket(listings: [first])
+        }
         return state
     }
 
     private static func projectState(catalog: ContentCatalog, stage: ProjectCarStage) throws -> GameState {
         var engine = GameEngine(state: baseState(catalog: catalog, seed: 99), catalog: catalog)
         try engine.handle(.prepareWorld)
-        let lot = try required(engine.state.auction?.lots.first, "QA hasarlı aracı")
-        try engine.handle(.purchaseAuctionLot(lot.id))
+        let listing = try required(engine.state.salvageMarket?.listings.first, "QA hasarlı aracı")
+        try engine.handle(.purchaseSalvageVehicle(listing.id))
         if stage != .awaitingRepair {
             let project = try required(engine.state.projectCars.first, "QA proje aracı")
             let tasks: [ProjectRepairTask] = project.faultIDs.map { .mechanical(faultID: $0) }
@@ -183,7 +183,7 @@ enum QAScenarioFactory {
                 + project.structuralDamages.filter { $0.condition.requiresRepair }.map { .structural($0.area) }
                 + (project.airbagsDeployed ? [.airbag] : [])
             for task in tasks {
-                try engine.handle(.completeProjectRepair(projectID: lot.id, task: task, performance: 88))
+                try engine.handle(.completeProjectRepair(projectID: listing.id, task: task, performance: 88))
             }
         }
         if stage == .listed {
@@ -196,7 +196,7 @@ enum QAScenarioFactory {
             }
         }
         var state = engine.state
-        state.auction = AuctionState(lots: [])
+        state.salvageMarket = SalvageMarket(listings: [])
         return state
     }
 

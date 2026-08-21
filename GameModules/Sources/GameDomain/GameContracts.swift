@@ -23,8 +23,8 @@ public enum GameCommand: Sendable {
     case giveApprenticeBonus(UUID)
     case upgradeShop
     case upgradeWashBay
-    case inspectSalvageLot(lotID: UUID, kind: SalvageInspectionKind)
-    case purchaseAuctionLot(UUID)
+    case inspectSalvageVehicle(listingID: UUID, kind: SalvageInspectionKind)
+    case purchaseSalvageVehicle(UUID)
     case completeProjectRepair(projectID: UUID, task: ProjectRepairTask, performance: Int)
     case listProjectCar(projectID: UUID, askingPrice: Money, discloseDamage: Bool)
     case cancelProjectListing(projectID: UUID)
@@ -72,8 +72,8 @@ public enum GameEvent: Equatable, Sendable {
     case shopUpgraded(Int)
     case washBayUpgraded(Int)
     case salvageInspectionCompleted(kind: SalvageInspectionKind, revealedCount: Int)
-    case auctionOpened
-    case auctionWon(vehicleName: String, price: Money)
+    case salvageMarketRefreshed
+    case salvageVehiclePurchased(vehicleName: String, price: Money)
     case projectCarReady(UUID)
     case projectRepairCompleted(projectID: UUID, task: ProjectRepairTask)
     case projectCarListed(price: Money, saleChance: Int)

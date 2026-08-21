@@ -22,7 +22,7 @@ public struct GameState: Codable, Hashable, Sendable {
     public var activeJobs: [RepairJob]
     public var inventory: [InventoryItem]
     public var consequences: [ScheduledConsequence]
-    public var auction: AuctionState?
+    public var salvageMarket: SalvageMarket?
     public var projectCars: [ProjectCar]
     public var reviews: [ShopReview]
     public var ratingTenths: Int
@@ -56,7 +56,7 @@ public struct GameState: Codable, Hashable, Sendable {
         activeJobs = []
         inventory = []
         consequences = []
-        auction = nil
+        salvageMarket = nil
         projectCars = []
         reviews = []
         ratingTenths = 40
@@ -74,7 +74,7 @@ public struct GameState: Codable, Hashable, Sendable {
     private enum CodingKeys: String, CodingKey {
         case schemaVersion, saveID, revision, parentRevision, modifiedAt
         case day, remainingSlots, totalMinutes, nextCustomerArrivalMinute, cash, skills, expertise, reputation, shopLevel, washLevel
-        case offers, activeJobs, inventory, consequences, auction, projectCars
+        case offers, activeJobs, inventory, consequences, salvageMarket = "auction", projectCars
         case reviews, ratingTenths, apprentices, apprenticeRecruitment, lostCustomerIDs, financeEntries, loans, incidents
         case processedTransactionIDs, selectedThemeID, randomSeed
     }
@@ -107,7 +107,7 @@ public struct GameState: Codable, Hashable, Sendable {
         activeJobs = try values.decodeIfPresent([RepairJob].self, forKey: .activeJobs) ?? []
         inventory = try values.decodeIfPresent([InventoryItem].self, forKey: .inventory) ?? []
         consequences = try values.decodeIfPresent([ScheduledConsequence].self, forKey: .consequences) ?? []
-        auction = try values.decodeIfPresent(AuctionState.self, forKey: .auction)
+        salvageMarket = try values.decodeIfPresent(SalvageMarket.self, forKey: .salvageMarket)
         projectCars = try values.decodeIfPresent([ProjectCar].self, forKey: .projectCars) ?? []
         reviews = try values.decodeIfPresent([ShopReview].self, forKey: .reviews) ?? []
         ratingTenths = try values.decodeIfPresent(Int.self, forKey: .ratingTenths) ?? 40

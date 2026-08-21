@@ -22,15 +22,12 @@ public enum SalvageInspectionKind: String, Codable, CaseIterable, Sendable {
     }
 }
 
-public struct AuctionLot: Codable, Hashable, Identifiable, Sendable {
+public struct SalvageVehicleListing: Codable, Hashable, Identifiable, Sendable {
     public let id: UUID
     public let vehicleID: String
     public let visibleFaultID: String
     public let hiddenFaultIDs: [String]
     public var revealedFaultIDs: [String]
-    public var currentBid: Money
-    public let competitorMaximum: Money
-    public var playerIsHighest: Bool
     public var fixedPrice: Money
     public var severity: SalvageSeverity
     public var panelDamages: [PanelDamage]
@@ -50,10 +47,7 @@ public struct AuctionLot: Codable, Hashable, Identifiable, Sendable {
         visibleFaultID: String,
         hiddenFaultIDs: [String],
         revealedFaultIDs: [String] = [],
-        currentBid: Money,
-        competitorMaximum: Money,
-        playerIsHighest: Bool = false,
-        fixedPrice: Money? = nil,
+        fixedPrice: Money,
         severity: SalvageSeverity = .heavy,
         panelDamages: [PanelDamage] = [],
         structuralDamages: [StructuralDamage] = [],
@@ -71,10 +65,7 @@ public struct AuctionLot: Codable, Hashable, Identifiable, Sendable {
         self.visibleFaultID = visibleFaultID
         self.hiddenFaultIDs = hiddenFaultIDs
         self.revealedFaultIDs = revealedFaultIDs
-        self.currentBid = currentBid
-        self.competitorMaximum = competitorMaximum
-        self.playerIsHighest = playerIsHighest
-        self.fixedPrice = fixedPrice ?? currentBid
+        self.fixedPrice = fixedPrice
         self.severity = severity
         self.panelDamages = panelDamages
         self.structuralDamages = structuralDamages
@@ -90,7 +81,7 @@ public struct AuctionLot: Codable, Hashable, Identifiable, Sendable {
 
     private enum CodingKeys: String, CodingKey {
         case id, vehicleID, visibleFaultID, hiddenFaultIDs, revealedFaultIDs
-        case currentBid, competitorMaximum, playerIsHighest
+        case legacyCurrentBid = "currentBid"
         case fixedPrice, severity, panelDamages, structuralDamages, mechanicalFaultIDs
         case airbagsDeployed, startsAndDrives, recordedDamage
         case performedInspections, revealedPanelIDs, revealedStructuralAreas
@@ -104,10 +95,8 @@ public struct AuctionLot: Codable, Hashable, Identifiable, Sendable {
         visibleFaultID = try values.decode(String.self, forKey: .visibleFaultID)
         hiddenFaultIDs = try values.decodeIfPresent([String].self, forKey: .hiddenFaultIDs) ?? []
         revealedFaultIDs = try values.decodeIfPresent([String].self, forKey: .revealedFaultIDs) ?? []
-        currentBid = try values.decodeIfPresent(Money.self, forKey: .currentBid) ?? .zero
-        competitorMaximum = try values.decodeIfPresent(Money.self, forKey: .competitorMaximum) ?? currentBid
-        playerIsHighest = try values.decodeIfPresent(Bool.self, forKey: .playerIsHighest) ?? false
-        fixedPrice = try values.decodeIfPresent(Money.self, forKey: .fixedPrice) ?? currentBid
+        let legacyPrice = try values.decodeIfPresent(Money.self, forKey: .legacyCurrentBid) ?? .zero
+        fixedPrice = try values.decodeIfPresent(Money.self, forKey: .fixedPrice) ?? legacyPrice
         severity = try values.decodeIfPresent(SalvageSeverity.self, forKey: .severity) ?? .heavy
         panelDamages = try values.decodeIfPresent([PanelDamage].self, forKey: .panelDamages) ?? []
         structuralDamages = try values.decodeIfPresent([StructuralDamage].self, forKey: .structuralDamages)
@@ -124,6 +113,27 @@ public struct AuctionLot: Codable, Hashable, Identifiable, Sendable {
         revealedStructuralAreas = try values.decodeIfPresent(Set<StructuralArea>.self, forKey: .revealedStructuralAreas)
             ?? Set(structuralDamages.map(\.area))
         wornFaultIDs = try values.decodeIfPresent([String].self, forKey: .wornFaultIDs) ?? []
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var values = encoder.container(keyedBy: CodingKeys.self)
+        try values.encode(id, forKey: .id)
+        try values.encode(vehicleID, forKey: .vehicleID)
+        try values.encode(visibleFaultID, forKey: .visibleFaultID)
+        try values.encode(hiddenFaultIDs, forKey: .hiddenFaultIDs)
+        try values.encode(revealedFaultIDs, forKey: .revealedFaultIDs)
+        try values.encode(fixedPrice, forKey: .fixedPrice)
+        try values.encode(severity, forKey: .severity)
+        try values.encode(panelDamages, forKey: .panelDamages)
+        try values.encode(structuralDamages, forKey: .structuralDamages)
+        try values.encode(mechanicalFaultIDs, forKey: .mechanicalFaultIDs)
+        try values.encode(airbagsDeployed, forKey: .airbagsDeployed)
+        try values.encode(startsAndDrives, forKey: .startsAndDrives)
+        try values.encode(recordedDamage, forKey: .recordedDamage)
+        try values.encode(performedInspections, forKey: .performedInspections)
+        try values.encode(revealedPanelIDs, forKey: .revealedPanelIDs)
+        try values.encode(revealedStructuralAreas, forKey: .revealedStructuralAreas)
+        try values.encode(wornFaultIDs, forKey: .wornFaultIDs)
     }
 }
 
@@ -274,13 +284,15 @@ public struct PanelDamage: Codable, Hashable, Identifiable, Sendable {
     }
 }
 
-public struct AuctionState: Codable, Hashable, Sendable {
-    public var round: Int
-    public var lots: [AuctionLot]
+public struct SalvageMarket: Codable, Hashable, Sendable {
+    public var listings: [SalvageVehicleListing]
 
-    public init(round: Int = 1, lots: [AuctionLot]) {
-        self.round = round
-        self.lots = lots
+    public init(listings: [SalvageVehicleListing]) {
+        self.listings = listings
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case listings = "lots"
     }
 }
 

@@ -3,25 +3,25 @@ import GameDomain
 import GameLogic
 import SwiftUI
 
-struct AuctionView: View {
+struct SalvageMarketView: View {
     @ObservedObject var store: GameStore
 
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(spacing: 12) {
-                    if let market = store.state.auction, !market.lots.isEmpty {
+                    if let market = store.state.salvageMarket, !market.listings.isEmpty {
                         marketHeader
-                        ForEach(market.lots) { lot in
-                            SalvageLotCard(
-                                lot: lot,
+                        ForEach(market.listings) { listing in
+                            SalvageVehicleListingCard(
+                                listing: listing,
                                 catalog: store.catalog,
                                 hasBodyPaintBooth: currentFacilities.contains(.bodyPaintBooth),
                                 inspect: { kind in
-                                    store.send(.inspectSalvageLot(lotID: lot.id, kind: kind))
+                                    store.send(.inspectSalvageVehicle(listingID: listing.id, kind: kind))
                                 }
                             ) {
-                                store.send(.purchaseAuctionLot(lot.id))
+                                store.send(.purchaseSalvageVehicle(listing.id))
                             }
                         }
                     } else {
@@ -71,8 +71,8 @@ struct AuctionView: View {
     }
 }
 
-private struct SalvageLotCard: View {
-    let lot: AuctionLot
+private struct SalvageVehicleListingCard: View {
+    let listing: SalvageVehicleListing
     let catalog: ContentCatalog
     let hasBodyPaintBooth: Bool
     let inspect: (SalvageInspectionKind) -> Void
@@ -86,7 +86,7 @@ private struct SalvageLotCard: View {
                     Text(vehicle?.category ?? "").font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer()
-                Text(lot.severity.title)
+                Text(listing.severity.title)
                     .font(.caption2.bold()).foregroundStyle(.white)
                     .padding(.horizontal, 8).padding(.vertical, 5)
                     .background(GarageStyle.danger, in: Capsule())
@@ -96,11 +96,11 @@ private struct SalvageLotCard: View {
                 Text("EKSPER ÖZETİ").font(.caption2.bold()).foregroundStyle(GarageStyle.orange)
                 Label(impactSummary, systemImage: "car.rear.road.lane")
                 Label(
-                    lot.airbagsDeployed ? "Hava yastıkları açmış" : "Hava yastığı sistemi kayıtlı olarak sağlam",
+                    listing.airbagsDeployed ? "Hava yastıkları açmış" : "Hava yastığı sistemi kayıtlı olarak sağlam",
                     systemImage: "shield.lefthalf.filled"
                 )
                 Label(
-                    lot.startsAndDrives ? "Araç çalışıyor ve yürür durumda" : "Araç çalışmıyor veya çekici gerekiyor",
+                    listing.startsAndDrives ? "Araç çalışıyor ve yürür durumda" : "Araç çalışmıyor veya çekici gerekiyor",
                     systemImage: "engine.combustion.fill"
                 )
                 Text("Mekanik ve taşıyıcı ayrıntılar inceleme yapılmadan belirsizdir.")
@@ -110,16 +110,16 @@ private struct SalvageLotCard: View {
 
             inspectionControls
 
-            if !lot.performedInspections.isEmpty {
+            if !listing.performedInspections.isEmpty {
                 VehicleInspectionDiagram(
-                    damages: lot.panelDamages,
-                    structuralDamages: lot.structuralDamages,
-                    knownPanels: lot.revealedPanelIDs,
-                    knownStructuralAreas: lot.revealedStructuralAreas
+                    damages: listing.panelDamages,
+                    structuralDamages: listing.structuralDamages,
+                    knownPanels: listing.revealedPanelIDs,
+                    knownStructuralAreas: listing.revealedStructuralAreas
                 )
             }
 
-            if lot.performedInspections.contains(.body) {
+            if listing.performedInspections.contains(.body) {
                 VStack(alignment: .leading, spacing: 7) {
                     Text("TESPİT EDİLEN DIŞ PARÇALAR").font(.caption2.bold()).foregroundStyle(GarageStyle.orange)
                     ForEach(revealedPanelDamages) { damage in
@@ -133,10 +133,10 @@ private struct SalvageLotCard: View {
                 }
             }
 
-            if !lot.revealedFaultIDs.isEmpty {
+            if !listing.revealedFaultIDs.isEmpty {
                 VStack(alignment: .leading, spacing: 7) {
                     Text("TESPİT EDİLEN SİSTEM KUSURLARI").font(.caption2.bold()).foregroundStyle(GarageStyle.orange)
-                    ForEach(lot.revealedFaultIDs, id: \.self) { id in
+                    ForEach(listing.revealedFaultIDs, id: \.self) { id in
                         if let fault = catalog.fault(id: id) {
                             Label(
                                 "\(fault.name) • \(catalog.part(for: fault)?.name ?? "parça kaydı eksik")",
@@ -146,7 +146,7 @@ private struct SalvageLotCard: View {
                         }
                     }
                 }
-            } else if lot.performedInspections.contains(.underbody) || lot.performedInspections.contains(.systems) {
+            } else if listing.performedInspections.contains(.underbody) || listing.performedInspections.contains(.systems) {
                 Label("Bu kontrollerde kesinleşen ek sistem kusuru bulunamadı.", systemImage: "questionmark.circle")
                     .font(.caption).foregroundStyle(.secondary)
             }
@@ -158,12 +158,12 @@ private struct SalvageLotCard: View {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Kayıtlı hasar").font(.caption2).foregroundStyle(.secondary)
-                    Text(lot.recordedDamage.liraText).font(.caption.bold().monospacedDigit())
+                    Text(listing.recordedDamage.liraText).font(.caption.bold().monospacedDigit())
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 2) {
                     Text("Sabit satış bedeli").font(.caption2).foregroundStyle(.secondary)
-                    Text(lot.fixedPrice.liraText)
+                    Text(listing.fixedPrice.liraText)
                         .font(.title3.bold().monospacedDigit()).foregroundStyle(GarageStyle.mint)
                 }
             }
@@ -172,10 +172,10 @@ private struct SalvageLotCard: View {
                 .font(.caption2).foregroundStyle(.secondary)
 
             Button(action: purchase) {
-                Label(lot.severity == .heavy ? "Hasarlı Aracı Satın Al" : "Hurda Araç Satın Alınamaz", systemImage: "cart.fill")
+                Label(listing.severity == .heavy ? "Hasarlı Aracı Satın Al" : "Hurda Araç Satın Alınamaz", systemImage: "cart.fill")
             }
             .buttonStyle(ActionButtonStyle(tint: GarageStyle.mint))
-            .disabled(lot.severity != .heavy)
+            .disabled(listing.severity != .heavy)
             .id("purchase")
         }
         .garageCard()
@@ -188,7 +188,7 @@ private struct SalvageLotCard: View {
             Text("İstediğin kontrolleri yapabilir veya mevcut bilgiyle risk alabilirsin.")
                 .font(.caption2).foregroundStyle(.secondary)
             ForEach(SalvageInspectionKind.allCases, id: \.self) { kind in
-                if lot.performedInspections.contains(kind) {
+                if listing.performedInspections.contains(kind) {
                     Label("\(kind.title) tamamlandı", systemImage: "checkmark.circle.fill")
                         .font(.caption.bold()).foregroundStyle(GarageStyle.mint)
                 } else {
@@ -204,7 +204,7 @@ private struct SalvageLotCard: View {
     }
 
     private var impactSummary: String {
-        let damaged = lot.panelDamages.filter { $0.condition != .original }
+        let damaged = listing.panelDamages.filter { $0.condition != .original }
         let frontPanels: Set<VehiclePanel> = [.frontBumper, .hood, .leftFrontFender, .rightFrontFender]
         let rearPanels: Set<VehiclePanel> = [.trunk, .rearBumper, .leftRearFender, .rightRearFender]
         let front = damaged.filter { frontPanels.contains($0.panel) }.count
@@ -215,16 +215,16 @@ private struct SalvageLotCard: View {
     }
 
     private var revealedPanelDamages: [PanelDamage] {
-        lot.panelDamages.filter {
+        listing.panelDamages.filter {
             $0.condition != .original
                 && VehiclePanel.exteriorCases.contains($0.panel)
-                && lot.revealedPanelIDs.contains($0.panel)
+                && listing.revealedPanelIDs.contains($0.panel)
         }
     }
 
     private func investmentReport(vehicle: VehicleDefinition) -> some View {
         let estimate = VehicleTradingRules.investmentEstimate(
-            lot: lot,
+            listing: listing,
             vehicle: vehicle,
             catalog: catalog,
             hasBodyPaintBooth: hasBodyPaintBooth
@@ -254,7 +254,7 @@ private struct SalvageLotCard: View {
         }
     }
 
-    private var vehicle: VehicleDefinition? { catalog.vehicle(id: lot.vehicleID) }
+    private var vehicle: VehicleDefinition? { catalog.vehicle(id: listing.vehicleID) }
 
     private func estimateRow(_ title: String, low: Money, high: Money) -> some View {
         HStack {

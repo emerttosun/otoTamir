@@ -159,7 +159,7 @@ public final class GameStore: ObservableObject {
                  .apprenticeTraitRevealed, .apprenticeHappinessChanged,
                  .apprenticeDepartureWarning, .apprenticeStayed, .apprenticeLeft,
                  .experienceGained, .reviewReceived, .salvageInspectionCompleted,
-                 .auctionWon, .projectCarSold, .shopUpgraded:
+                 .salvageVehiclePurchased, .projectCarSold, .shopUpgraded:
                 true
             case .projectRepairCompleted, .projectCarListed, .projectListingExpired,
                  .loanTaken, .loanInstallmentPaid, .loanClosed:
@@ -226,7 +226,7 @@ public final class GameStore: ObservableObject {
             bannerMessage = revealedCount > 0
                 ? "\(kind.title) tamamlandı; \(revealedCount) kusur rapora eklendi."
                 : "\(kind.title) tamamlandı; kesinleşen yeni kusur bulunmadı. Gizli kusur riski devam ediyor."
-        case .auctionWon(let vehicle, let price):
+        case .salvageVehiclePurchased(let vehicle, let price):
             bannerMessage = "\(vehicle) \(price.liraText) bedelle dükkâna geliyor."
         case .projectRepairCompleted(_, let task):
             switch task {

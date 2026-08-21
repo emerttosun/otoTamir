@@ -2,7 +2,7 @@ import Foundation
 
 enum GameSection: String, CaseIterable, Identifiable {
     case workshop
-    case auction
+    case salvageMarket
     case garage
     case listings
     case progress
@@ -15,7 +15,7 @@ enum GameSection: String, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .workshop: "Dükkân"
-        case .auction: "Hasarlı"
+        case .salvageMarket: "Hasarlı"
         case .garage: "Garaj"
         case .listings: "İlanlar"
         case .progress: "Gelişim"
@@ -28,7 +28,7 @@ enum GameSection: String, CaseIterable, Identifiable {
     var icon: String {
         switch self {
         case .workshop: "wrench.and.screwdriver.fill"
-        case .auction: "car.side.rear.open.fill"
+        case .salvageMarket: "car.side.rear.open.fill"
         case .garage: "building.2.crop.circle.fill"
         case .listings: "rectangle.and.pencil.and.ellipsis"
         case .progress: "chart.line.uptrend.xyaxis"
@@ -42,7 +42,7 @@ enum GameSection: String, CaseIterable, Identifiable {
         switch self {
         case .workshop:
             "Bekleyen müşterileri kabul et. Dükkândaki araca dokunarak kontrol, teşhis, parça, tamir ve teslim işlemlerini yap."
-        case .auction:
+        case .salvageMarket:
             "Ağır hasarlı araçları ekspertiz raporu ve Usta Hesabı ile incele; Garaj kapasiten uygunsa sabit bedelle satın al."
         case .garage:
             "Hasarlı'dan aldığın proje araçlarını geliş sırasıyla yönet. Her eksiği ayrı tamamla; hazır aracı İlanlar'da satışa çıkar."
