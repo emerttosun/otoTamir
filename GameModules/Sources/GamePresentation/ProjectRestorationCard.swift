@@ -121,8 +121,8 @@ struct ProjectRestorationCard: View {
         case .mechanical(let faultID): catalog.fault(id: faultID)?.repairGame ?? .timing
         case .panel(let panel):
             switch panel {
-            case .leftFrontDoor, .rightFrontDoor, .leftRearDoor, .rightRearDoor,
-                 .frontBumper, .rearBumper: .bolts
+            case .leftFrontDoor, .rightFrontDoor, .leftRearDoor, .rightRearDoor: .doorGap
+            case .frontBumper, .rearBumper: .bumperClips
             default: .alignment
             }
         case .structural: .panelWeld
